@@ -1,9 +1,9 @@
 /* 建筑与乘车点标签：DOM 覆盖层，清晰、可点击、可开关、按距离分级显示
  *
- * 分级规则（避免 108 个标签糊成一片）：
- *   < 420 m  显示全部建筑
- *   420–1100 只显示地标与主要建筑
- *   > 1100 m 只显示地标
+ * 分级规则（避免 170+ 个标签糊成一片）：
+ *   < 650 m  显示全部建筑
+ *   650–2200 只显示地标与主要建筑
+ *   > 2200 m 只显示地标
  */
 
 import { SHUTTLE_STOPS } from './shuttle.js';
@@ -28,6 +28,21 @@ const MAJOR = new Set([
   '重庆大学A区体育馆',
   '学生十宿舍',
   '学生四宿舍',
+  // B 区（原重庆建筑大学）
+  'B区图书馆',
+  'B区第一综合楼',
+  'B区第二综合楼',
+  '建筑城规学院',
+  '建工馆',
+  '材料楼',
+  '学术报告厅',
+  '科学会堂',
+  'B区机电安装教学楼',
+  '建筑与房地产管理学院',
+  '学生三舍',
+  // C 区（原重庆建筑高等专科学校）
+  '校友会',
+  '陶艺坊',
 ]);
 
 export function addBuildingLabels(viewer, data, terrain) {
@@ -124,7 +139,7 @@ export function addBuildingLabels(viewer, data, terrain) {
         continue;
       }
       const dist = Cesium.Cartesian3.distance(camPos, it.pos);
-      const maxDist = it.tier === 0 ? 2200 : it.tier === 1 ? 1100 : 420;
+      const maxDist = it.tier === 0 ? 3600 : it.tier === 1 ? 2200 : 650;
       if (dist > maxDist || p.x < -60 || p.x > w + 60 || p.y < -30 || p.y > h + 30) {
         it.el.style.display = 'none';
         continue;

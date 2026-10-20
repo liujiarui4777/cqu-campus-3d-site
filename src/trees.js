@@ -87,12 +87,18 @@ export function addTrees(viewer, data, terrain) {
     }
   }
 
-  // 3) 校园边界内的零星绿地
-  for (let i = 0; i < 260; i++) {
-    const lon = 106.4595 + rand() * 0.0105;
-    const lat = 29.5625 + rand() * 0.0105;
-    if (rand() > 0.35) continue;
-    trees.push({ lon, lat, s: 0.7 + rand() * 0.4 });
+  // 3) 校园边界内的零星绿地：A 区 + B 区
+  const campusSquares = [
+    { lon0: 106.4595, lat0: 29.5625, lonW: 0.0105, latH: 0.0105, n: 260, p: 0.35 },
+    { lon0: 106.4510, lat0: 29.5668, lonW: 0.0080, latH: 0.0064, n: 130, p: 0.4 },
+  ];
+  for (const sq of campusSquares) {
+    for (let i = 0; i < sq.n; i++) {
+      const lon = sq.lon0 + rand() * sq.lonW;
+      const lat = sq.lat0 + rand() * sq.latH;
+      if (rand() > sq.p) continue;
+      trees.push({ lon, lat, s: 0.7 + rand() * 0.4 });
+    }
   }
 
   // 去重（间距 > 4m）

@@ -1,13 +1,13 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN" data-theme="day">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="theme-color" content="#eef2f6" />
-    <meta name="description" content="重庆大学 A 区三维校园地图" />
-    <title>重庆大学 · 三维校园（官方版）</title>
+    <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
+    <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261020i" />
+    <link rel="stylesheet" href="./src/style.css?v=20261025c" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -41,13 +41,13 @@
         <span class="brand-mark"></span>
         <div class="brand-text">
           <h1>重庆大学 · 三维校园</h1>
-          <p>A 区（沙坪坝正街 174 号）</p>
+          <p>A / B / C 区 · 15 km 城市白模</p>
         </div>
       </div>
 
       <div class="search">
         <span class="search-icon">⌕</span>
-        <input id="search-input" type="search" placeholder="搜索建筑：主教 / 民主湖 / 图书馆…" autocomplete="off" />
+        <input id="search-input" type="search" placeholder="搜索建筑：主教 / B区图书馆 / C区校友会…" autocomplete="off" />
         <div class="search-results" id="search-results"></div>
       </div>
 
@@ -67,6 +67,7 @@
       <h2 id="card-title"></h2>
       <div class="card-meta" id="card-meta"></div>
       <div class="card-tags" id="card-tags"></div>
+      <div class="card-rooms" id="card-rooms"></div>
       <div class="card-extra" id="card-extra"></div>
       <p class="card-desc" id="card-desc"></p>
       <button class="card-back" id="card-back">← 返回全景</button>
@@ -126,12 +127,14 @@
     <div class="boot" id="boot">
       <div class="boot-inner">
         <div class="boot-ring"></div>
-        <p id="boot-text">正在生成 A 区校园…</p>
+        <p id="boot-text">正在生成 A / B / C 区校园…</p>
       </div>
     </div>
 
     <div class="error" id="error"></div>
 
-    <script type="module" src="./src/app.js?v=20261020i"></script>
+    <script type="module" src="./src/app.js?v=20261025c"></script>
   </body>
 </html>
+
+

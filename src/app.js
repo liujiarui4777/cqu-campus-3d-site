@@ -1,7 +1,7 @@
-/* 重庆大学 A 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
+/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
 const Cesium = window.Cesium;
 
-const CENTER = [106.4648, 29.5672];
+const CENTER = [106.4615, 29.5695];
 const BASE = new URL('./', document.baseURI).href;
 
 const dom = {
@@ -53,18 +53,20 @@ scene.skyBox.show = false;
 scene.skyAtmosphere.show = false;
 scene.fog.enabled = false;
 scene.backgroundColor = Cesium.Color.fromCssColorString('#e9e6de');
-scene.globe.maximumScreenSpaceError = 2.4;
+scene.globe.maximumScreenSpaceError = 1.6;
 scene.screenSpaceCameraController.minimumZoomDistance = 18;
-scene.screenSpaceCameraController.maximumZoomDistance = 4200;
+// 地图覆盖 15 km，允许拉到能看全整张底图的高度
+scene.screenSpaceCameraController.maximumZoomDistance = 22000;
 
 const credit = viewer.cesiumWidget.creditContainer;
 if (credit) credit.style.display = 'none';
 
+// 全景：A 区 + B 区 + C 区居中，约 2.5 km 视野
 const HOME_VIEW = {
-  destination: Cesium.Cartesian3.fromDegrees(106.4648, 29.5568, 1250),
+  destination: Cesium.Cartesian3.fromDegrees(106.4585, 29.5520, 1950),
   orientation: {
-    heading: Cesium.Math.toRadians(6),
-    pitch: Cesium.Math.toRadians(-44),
+    heading: Cesium.Math.toRadians(4),
+    pitch: Cesium.Math.toRadians(-47),
     roll: 0,
   },
 };
@@ -99,17 +101,38 @@ import { addBuildingLabels } from './labels.js';
     viewer.scene.terrainProvider = terrain.provider;
 
     setStatus('正在铺设地面…');
-    const basemap = await createBasemapProvider(BASE, Cesium, terrain.meta, 'basemap.jpg');
-    const styleLayer = viewer.scene.imageryLayers.addImageryProvider(basemap);
-    let esriLayer = null;
+    // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
+    const ASSET_V = '20261020d';
+    // 三层底图：10 km 中图打底，A/B 区细节图覆盖在上，边缘自然过渡
+    const layers = {};
     try {
-      const esri = await createBasemapProvider(BASE, Cesium, terrain.meta, 'esri.jpg');
+      const coarseBase = await createBasemapProvider(BASE, Cesium, terrain.coarseMeta, 'basemap_coarse.jpg', ASSET_V);
+      layers.coarse = viewer.scene.imageryLayers.addImageryProvider(coarseBase);
+    } catch (e) {
+      console.warn('外围底图加载失败', e);
+    }
+    try {
+      const midBase = await createBasemapProvider(BASE, Cesium, terrain.midMeta, 'basemap_mid.jpg', ASSET_V);
+      layers.mid = viewer.scene.imageryLayers.addImageryProvider(midBase);
+    } catch (e) {
+      console.warn('10 km 底图加载失败', e);
+    }
+    const basemap = await createBasemapProvider(BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V);
+    layers.style = viewer.scene.imageryLayers.addImageryProvider(basemap);
+    let esriLayer = null;
+    // 卫星影像按需加载：默认不下载 4 MB 的 esri.jpg，第一次打开「卫星影像」时才拉取
+    async function ensureEsri() {
+      if (esriLayer) return esriLayer;
+      // 影像与精细底图共用同一范围（data/terrain.json），保证和建筑/道路严格对齐
+      const esri = await createBasemapProvider(BASE, Cesium, terrain.meta, 'esri.jpg', ASSET_V);
       esriLayer = viewer.scene.imageryLayers.addImageryProvider(esri);
       esriLayer.show = false;
-    } catch (e) {
-      console.warn('影像层加载失败', e);
+      layers.esri = esriLayer;
+      return esriLayer;
     }
-    window.__layers = { style: styleLayer, esri: esriLayer };
+    window.__ensureEsri = ensureEsri;
+    layers.esri = null;
+    window.__layers = layers;
 
     setStatus('正在生成建筑…');
     const data = await fetch(BASE + 'data/scene.json').then((r) => r.json());
@@ -131,7 +154,10 @@ import { addBuildingLabels } from './labels.js';
     if (!only || only === 'boundary') addBoundary(viewer, data, terrain);
 
     if (dom.stats) {
-      dom.stats.innerHTML = `<span>${data.buildings.length} 栋建筑</span><span>${data.roads.length} 条道路</span><span>${data.areas.length} 处场地</span>`;
+      const a = data.buildings.filter((b) => b.campus === 'A').length;
+      const b = data.buildings.filter((b) => b.campus === 'B').length;
+      const c = data.buildings.filter((b) => b.campus === 'C').length;
+      dom.stats.innerHTML = `<span>${data.buildings.length} 栋建筑（A ${a} / B ${b} / C ${c}）</span><span>${data.roads.length} 条道路</span><span>${data.areas.length} 处场地</span>`;
     }
     if (dom.boot) dom.boot.style.display = 'none';
     const graph = buildRoadGraph(data.roads);

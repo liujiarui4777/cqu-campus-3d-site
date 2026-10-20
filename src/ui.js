@@ -23,9 +23,59 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
   const cardMeta = document.getElementById('card-meta');
   const cardDesc = document.getElementById('card-desc');
   const cardTags = document.getElementById('card-tags');
+  const cardRooms = document.getElementById('card-rooms');
   const cardExtra = document.getElementById('card-extra');
 
   let current = null;
+
+  /* 教室数据（2026 秋 18639 条排课统计，见 docs/调研-教室信息.md） */
+  let classroomData = null;
+  fetch(new URL('data/classrooms.json', document.baseURI))
+    .then((r) => r.json())
+    .then((d) => {
+      classroomData = d.buildings || {};
+      if (current) renderRooms(current);
+    })
+    .catch(() => {});
+
+  function renderRooms(b) {
+    if (!cardRooms) return;
+    const c = classroomData && classroomData[b.name];
+    if (!c) {
+      cardRooms.innerHTML = '';
+      return;
+    }
+    const parts = ['<div class="rooms-head"><b>教室</b>'];
+    if (c.roomCount) {
+      parts.push(
+        '<span>' + c.roomCount + ' 间 · 本学期排课 ' + c.rows + ' 次 · 最大 ' + c.maxStu + ' 人</span></div>',
+      );
+      const floors = Object.keys(c.floors || {}).sort((x, y) => Number(x) - Number(y));
+      if (floors.length) {
+        parts.push(
+          '<div class="rooms-floors">' +
+            floors.map((f) => '<span>' + f + ' 层 ' + c.floors[f] + '</span>').join('') +
+            '</div>',
+        );
+      }
+      parts.push(
+        '<div class="rooms-list">' +
+          c.rooms
+            .map((r) => '<em>' + r.code + '<i>' + r.max + ' 人</i></em>')
+            .join('') +
+          '</div>',
+      );
+      if (c.colleges && c.colleges.length) {
+        parts.push(
+          '<p class="rooms-dept">排课学院：' + c.colleges.map((x) => x.name).join('、') + '</p>',
+        );
+      }
+    } else {
+      parts.push('<span>待核</span></div>');
+    }
+    if (c.note) parts.push('<p class="rooms-note">' + c.note + '</p>');
+    cardRooms.innerHTML = parts.join('');
+  }
 
   function hide() {
     card.classList.remove('show');
@@ -74,6 +124,7 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
       cardTags.appendChild(t);
     }
 
+    renderRooms(b);
     card.classList.add('show');
 
     // 相机飞到该建筑
@@ -183,6 +234,15 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
     { name: '思群广场', lon: 106.46433, lat: 29.56698, h: 180, pitch: -38 },
     { name: '老图书馆', lon: 106.46616, lat: 29.56926, h: 90, pitch: -28 },
     { name: '寅初亭', lon: 106.4633, lat: 29.5687, h: 70, pitch: -26 },
+    // B 区（原重庆建筑大学）
+    { name: 'B区图书馆', lon: 106.45661, lat: 29.56911, h: 90, pitch: -28 },
+    { name: 'B区运动场', lon: 106.45595, lat: 29.57050, h: 150, pitch: -34 },
+    { name: '建筑城规学院', lon: 106.45765, lat: 29.57066, h: 110, pitch: -30 },
+    { name: '科学会堂', lon: 106.45760, lat: 29.57200, h: 100, pitch: -30 },
+    // C 区（原重庆建筑高等专科学校）
+    { name: 'C区校友会', lon: 106.45288, lat: 29.56393, h: 60, pitch: -26 },
+    { name: 'C区陶艺坊', lon: 106.45291, lat: 29.56377, h: 55, pitch: -26 },
+    { name: 'C区宿舍', lon: 106.45242, lat: 29.56510, h: 90, pitch: -30 },
   ];
   const nav = document.getElementById('guides');
   if (nav) {
@@ -554,19 +614,31 @@ void main() {
     });
   }
 
-  // 卫星影像开关
+  // 卫星影像开关（影像按需加载：第一次打开时才下载 esri.jpg）
   const tglImagery = document.getElementById('toggle-imagery');
   if (tglImagery) {
-    tglImagery.addEventListener('change', () => {
+    tglImagery.addEventListener('change', async () => {
       const L = window.__layers;
-      if (!L || !L.esri) {
-        tglImagery.checked = false;
-        setHint('影像层未加载');
+      if (!L) return;
+      if (!tglImagery.checked) {
+        if (L.esri) L.esri.show = false;
+        if (L.style) L.style.show = true;
+        setHint('风格化沙盘底图');
         return;
       }
-      L.esri.show = tglImagery.checked;
-      L.style.show = !tglImagery.checked;
-      setHint(tglImagery.checked ? '真实卫星影像' : '风格化沙盘底图');
+      tglImagery.disabled = true;
+      setHint('正在加载卫星影像…');
+      try {
+        const layer = await window.__ensureEsri();
+        layer.show = true;
+        if (L.style) L.style.show = false;
+        setHint('真实卫星影像');
+      } catch (e) {
+        tglImagery.checked = false;
+        setHint('影像层加载失败');
+      } finally {
+        tglImagery.disabled = false;
+      }
     });
   }
 

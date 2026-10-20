@@ -1,12 +1,14 @@
 /* 自定义单张底图 ImageryProvider：按瓦片从一张大图裁剪，保证经纬度严格对齐。
  * Cesium 自带的 SingleTileImageryProvider 在该场景下会把图拉伸错位，故自己实现。
  */
-export async function createBasemapProvider(base, Cesium, meta, file = 'basemap.jpg') {
+export async function createBasemapProvider(base, Cesium, meta, file = 'basemap.jpg', version = '') {
   const img = await new Promise((resolve, reject) => {
     const i = new Image();
     i.onload = () => resolve(i);
     i.onerror = () => reject(new Error('底图加载失败：' + file));
-    i.src = `${base}data/${file}`;
+    // 大图必须带版本号，否则浏览器会一直用缓存里的旧影像（改了图也看不到）
+    const q = version ? (file.includes('?') ? '&' : '?') + 'v=' + version : '';
+    i.src = `${base}data/${file}${q}`;
   });
 
   const rect = new Cesium.Rectangle(

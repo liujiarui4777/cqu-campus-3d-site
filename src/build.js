@@ -21,23 +21,39 @@ const ringPositions = (Cesium, ring, height) =>
 
 export function addBoundary(viewer, data, terrain) {
   const Cesium = window.Cesium;
-  if (!data.boundary || !data.boundary.length) return;
-  const coords = [];
-  for (const [lon, lat] of data.boundary) coords.push(lon, lat);
-  const inst = new Cesium.GeometryInstance({
-    geometry: new Cesium.GroundPolylineGeometry({
-      positions: Cesium.Cartesian3.fromDegreesArray(coords),
-      width: 2.2,
-    }),
-    attributes: {
-      color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-        Cesium.Color.fromCssColorString('#2f6f6a').withAlpha(0.9),
-      ),
-    },
-  });
+  const list =
+    data.boundaries && data.boundaries.length
+      ? data.boundaries
+      : data.boundary && data.boundary.length
+        ? [{ name: '校区边界', campus: 'A', coords: data.boundary }]
+        : [];
+  if (!list.length) return;
+
+  const insts = [];
+  for (const bdr of list) {
+    if (!bdr.coords || bdr.coords.length < 3) continue;
+    const coords = [];
+    for (const [lon, lat] of bdr.coords) coords.push(lon, lat);
+    insts.push(
+      new Cesium.GeometryInstance({
+        geometry: new Cesium.GroundPolylineGeometry({
+          positions: Cesium.Cartesian3.fromDegreesArray(coords),
+          width: bdr.campus === 'B' ? 2.0 : 2.2,
+        }),
+        attributes: {
+          color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+            Cesium.Color.fromCssColorString(
+              bdr.campus === 'B' ? '#8a6a3f' : bdr.campus === 'C' ? '#7a5f9a' : '#2f6f6a',
+            ).withAlpha(0.9),
+          ),
+        },
+      }),
+    );
+  }
+  if (!insts.length) return;
   viewer.scene.primitives.add(
     new Cesium.GroundPolylinePrimitive({
-      geometryInstances: [inst],
+      geometryInstances: insts,
       appearance: new Cesium.PolylineColorAppearance({ translucent: true }),
       classificationType: Cesium.ClassificationType.TERRAIN,
       asynchronous: true,
@@ -45,9 +61,30 @@ export function addBoundary(viewer, data, terrain) {
   );
 }
 
+function expandRing(ring, center, d, kLon) {
+  const kLat = 110540;
+  return ring.map(([lon, lat]) => {
+    const dx = (lon - center[0]) * kLon;
+    const dy = (lat - center[1]) * kLat;
+    const len = Math.hypot(dx, dy) || 1;
+    return [lon + ((dx / len) * d) / kLon, lat + ((dy / len) * d) / kLat];
+  });
+}
+
+function mixColor(c, target, t) {
+  return new c.constructor(
+    c.red + (target.red - c.red) * t,
+    c.green + (target.green - c.green) * t,
+    c.blue + (target.blue - c.blue) * t,
+    1,
+  );
+}
+
 export function addBuildings(viewer, data, terrain) {
   const Cesium = window.Cesium;
   const store = viewer.entities;
+  // 窗间柱按颜色分组，最后一次性实例化（避免几百个 Entity 拖慢帧率）
+  const pierGroups = new Map();
 
   for (const b of data.buildings) {
     if (!b.outline || b.outline.length < 3) continue;
@@ -95,24 +132,16 @@ export function addBuildings(viewer, data, terrain) {
       properties: { kind: 'building', data: b },
     });
 
-    // 窗带：沿立面每隔若干层一条深色薄环（外扩 0.12m 避免共面闪烁）
-    if (top - bottom > 10 && b.levels >= 3) {
-      const mLon = 111320 * Math.cos((b.center[1] * Math.PI) / 180);
-      const MLAT = 110540;
-      const cx = b.center[0];
-      const cy = b.center[1];
-      const exp = b.outline.map(([lon, lat]) => {
-        const dx = (lon - cx) * mLon;
-        const dy = (lat - cy) * MLAT;
-        const len = Math.hypot(dx, dy) || 1;
-        return [lon + ((dx / len) * 0.14) / mLon, lat + ((dy / len) * 0.14) / MLAT];
-      });
+    // 窗带：沿立面每隔若干层一条深色薄环（外扩 0.14m 避免共面闪烁）
+    const kLon = 111320 * Math.cos((b.center[1] * Math.PI) / 180);
+    if (top - bottom > 10 && b.levels >= 3 && b.campus !== 'B') {
+      const exp = expandRing(b.outline, b.center, 0.14, kLon);
       const expPos = [];
       for (const [lo, la] of exp) expPos.push(lo, la);
       const expHierarchy = Cesium.Cartesian3.fromDegreesArray(expPos);
-      const bands = Math.max(1, Math.min(8, Math.floor(b.levels / 2)));
+      const bands = Math.max(1, Math.min(6, Math.floor(b.levels / 2)));
       const span = top - bottom;
-      const glass = Cesium.Color.fromCssColorString('#7d8b96');
+      const glass = Cesium.Color.fromCssColorString(b.glass || '#5f7076');
       for (let i = 1; i <= bands; i++) {
         const y = bottom + (span * i) / (bands + 1);
         store.add({
@@ -120,7 +149,7 @@ export function addBuildings(viewer, data, terrain) {
           polygon: {
             hierarchy: expHierarchy,
             height: y,
-            extrudedHeight: y + Math.min(1.5, span / (bands + 1) * 0.5),
+            extrudedHeight: y + Math.min(1.5, (span / (bands + 1)) * 0.5),
             material: glass,
             outline: false,
           },
@@ -129,9 +158,50 @@ export function addBuildings(viewer, data, terrain) {
       }
     }
 
-    // 地标建筑：沿立面每 4.5m 加一道竖向窗间柱（形成竖窗格感）
-    if (b.landmark && b.outline.length >= 3) {
-      const kLon = 111320 * Math.cos((b.center[1] * Math.PI) / 180);
+    // 檐口 / 女儿墙：顶部一圈 0.7—1.0m 的收头，让屋顶边缘有厚度
+    const accent = Cesium.Color.fromCssColorString(b.accent || b.wall || '#e1dcd0');
+    const isPitched = b.roof === 'hip' || b.roof === 'gable' || b.roof === 'arc';
+    if (b.height > 6) {
+      if (isPitched) {
+        // 坡屋顶：屋檐挑出一圈浅色檐口
+        const eave = expandRing(b.outline, b.center, 0.4, kLon);
+        const ep = [];
+        for (const [lo, la] of eave) ep.push(lo, la);
+        store.add({
+          id: 'ev' + b.id,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArray(ep),
+            height: top - 0.5,
+            extrudedHeight: top + 0.12,
+            material: mixColor(wall, Cesium.Color.WHITE, 0.22),
+            outline: false,
+          },
+          properties: { kind: 'building', data: b },
+        });
+      } else {
+        // 平屋顶：女儿墙（略深，压住屋顶与墙面的交界）
+        const par = expandRing(b.outline, b.center, 0.08, kLon);
+        const pp = [];
+        for (const [lo, la] of par) pp.push(lo, la);
+        store.add({
+          id: 'pp' + b.id,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArray(pp),
+            height: top - 0.85,
+            extrudedHeight: top + 0.02,
+            material: mixColor(wall, Cesium.Color.BLACK, 0.08),
+            outline: false,
+          },
+          properties: { kind: 'building', data: b },
+        });
+      }
+    }
+
+    // 竖向窗间柱：地标建筑 4.5m 一道；体量较大的教学/办公建筑 7m 一道
+    // 用实例化 Primitive 批量绘制（每栋楼几百根柱不会拖慢帧率）
+    const pierStep = b.landmark ? 4.5 : 7;
+    const wantPiers = b.landmark || (b.area > 1600 && b.levels >= 3 && b.height > 10);
+    if (wantPiers && b.outline.length >= 3) {
       const ring = b.outline;
       const segs = [];
       let per = 0;
@@ -145,8 +215,7 @@ export function addBuildings(viewer, data, terrain) {
         segs.push({ a, c, tx: dx / len, ty: dy / len, len, start: per });
         per += len;
       }
-      const step = 4.5;
-      const n = Math.max(3, Math.floor(per / step));
+      const n = Math.max(3, Math.floor(per / pierStep));
       for (let k = 0; k < n; k++) {
         const target = (k + 0.5) * (per / n);
         let seg = segs[segs.length - 1];
@@ -169,17 +238,26 @@ export function addBuildings(viewer, data, terrain) {
         ];
         const fp = [];
         for (const p of pts) fp.push(p[0], p[1]);
-        store.add({
-          id: 'pier:' + b.id + ':' + k,
-          polygon: {
-            hierarchy: Cesium.Cartesian3.fromDegreesArray(fp),
-            height: bottom + 1.4,
-            extrudedHeight: top - 0.8,
-            material: new Cesium.Color(dark.red * 0.82, dark.green * 0.82, dark.blue * 0.82, 1),
-            outline: false,
-          },
-          properties: { kind: 'building', data: b },
-        });
+        const pierColor = b.landmark ? accent : mixColor(dark, Cesium.Color.BLACK, 0.06);
+        const key = pierColor.toCssColorString();
+        let group = pierGroups.get(key);
+        if (!group) {
+          group = { color: pierColor, insts: [] };
+          pierGroups.set(key, group);
+        }
+        group.insts.push(
+          new Cesium.GeometryInstance({
+            geometry: new Cesium.PolygonGeometry({
+              polygonHierarchy: new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(fp)),
+              height: bottom + 1.4,
+              extrudedHeight: top - 0.8,
+              vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
+            }),
+            attributes: {
+              color: Cesium.ColorGeometryInstanceAttribute.fromColor(pierColor),
+            },
+          }),
+        );
       }
     }
 
@@ -194,6 +272,19 @@ export function addBuildings(viewer, data, terrain) {
       },
       properties: { kind: 'roof', data: b },
     });
+  }
+
+  // 窗间柱：每个颜色一个实例化 Primitive
+  window.__pierPrims = [];
+  for (const group of pierGroups.values()) {
+    if (!group.insts.length) continue;
+    const prim = new Cesium.Primitive({
+      geometryInstances: group.insts,
+      appearance: new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }),
+      asynchronous: true,
+    });
+    viewer.scene.primitives.add(prim);
+    window.__pierPrims.push({ prim, color: group.color });
   }
 }
 
@@ -220,33 +311,40 @@ export function addAreas(viewer, data, terrain) {
       id: { kind: 'area', id: a.id },
     });
     if (a.kind === 'water') {
-      const h0 = terrain.sample(a.center[0], a.center[1]);
-      // 岸线石条：沿水面轮廓外扩 1.3m 的深色环
+      // 岸线石条：外扩 1.2m 的环形（外环 - 内环），逐顶点贴地形，避免整片盖住水面
       const kLon = 111320 * Math.cos((a.center[1] * Math.PI) / 180);
       const expRing = a.outline.map(([lon, lat]) => {
         const dx = (lon - a.center[0]) * kLon;
         const dy = (lat - a.center[1]) * MLAT;
         const len = Math.hypot(dx, dy) || 1;
-        const off = 1.3;
+        const off = 1.2;
         return [lon + ((dx / len) * off) / kLon, lat + ((dy / len) * off) / MLAT];
       });
-      const bankFlat = [];
-      for (const [lo, la] of expRing) bankFlat.push(lo, la);
+      const outerArr = [];
+      for (const [lo, la] of expRing) outerArr.push(lo, la, terrain.sample(lo, la) + 0.18);
+      const innerArr = [];
+      for (const [lo, la] of a.outline) innerArr.push(lo, la, terrain.sample(lo, la) + 0.18);
       viewer.entities.add({
         id: 'bank:' + a.id,
         polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(bankFlat),
-          height: h0 + 0.02,
+          hierarchy: new Cesium.PolygonHierarchy(
+            Cesium.Cartesian3.fromDegreesArrayHeights(outerArr),
+            [new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArrayHeights(innerArr))],
+          ),
+          perPositionHeight: true,
           material: Cesium.Color.fromCssColorString('#b9b2a2'),
           outline: false,
         },
         properties: { kind: 'area' },
       });
+      // 水面：逐顶点贴地形 +0.1m（比固定高程更稳，避免地形穿透出现“假岛”）
+      const waterArr = [];
+      for (const [lo, la] of a.outline) waterArr.push(lo, la, terrain.sample(lo, la) + 0.1);
       viewer.entities.add({
         id: 'water:' + a.id,
         polygon: {
-          hierarchy: new Cesium.PolygonHierarchy(ringPositions(Cesium, a.outline, 0)),
-          height: h0 + 0.04,
+          hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(waterArr),
+          perPositionHeight: true,
           material: Cesium.Color.fromCssColorString(a.color).withAlpha(0.96),
           outline: false,
         },
@@ -273,10 +371,30 @@ export function addAreas(viewer, data, terrain) {
   add(water);
 }
 
+
 export function addRoads(viewer, data, terrain) {
   const Cesium = window.Cesium;
   const MLAT = 110540;
   const mLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
+  // 只对主干道生成 3D 路面；支路/步道仍烘焙进底图（性能关键）
+  const MAJOR = ['primary', 'secondary', 'tertiary'];
+
+  // 折线按 maxStep 米加密，保证路面贴合地形起伏
+  function densify(path, maxStep) {
+    const out = [path[0]];
+    for (let i = 1; i < path.length; i++) {
+      const a = path[i - 1];
+      const b = path[i];
+      const k = mLon((a[1] + b[1]) / 2);
+      const len = Math.hypot((b[0] - a[0]) * k, (b[1] - a[1]) * MLAT);
+      const n = Math.max(1, Math.ceil(len / maxStep));
+      for (let j = 1; j <= n; j++) {
+        const t = j / n;
+        out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+      }
+    }
+    return out;
+  }
 
   // 按真实米宽生成道路带（Cesium 的 polyline 宽度是像素，不能用）
   function bufferRing(path, halfWidth) {
@@ -315,162 +433,93 @@ export function addRoads(viewer, data, terrain) {
     return out;
   }
 
-  function ringToPositions(ring, h) {
+  function ringPositions(ring, h) {
     const arr = [];
-    for (const [lon, lat] of ring) arr.push(lon, lat, h);
+    for (const [lon, lat] of ring) arr.push(lon, lat, terrain.sample(lon, lat) + h);
     return Cesium.Cartesian3.fromDegreesArrayHeights(arr);
   }
 
-  const surfaces = [];
-  const walks = [];
-  const centerLines = [];
-
-  // 所有道路都已烘焙进底图（性能考虑），此处只保留空循环以便后续扩展
-  for (const r of data.roads) {
-    if (!r.path || r.path.length < 2) continue;
-    if (data && r) continue;
-    const isWalk = r.cls === 'footway' || r.cls === 'steps' || r.lanes === 0;
-    const w = isWalk ? 2.4 : Math.max(3, r.width);
-
-    const isMajorRoad = ['primary', 'secondary', 'tertiary', 'primary_link', 'secondary_link'].includes(r.cls);
-    if (!isMajorRoad) {
-      // 支路/服务道：已烘焙进底图，这里不再生成几何（大幅降低贴地多边形数量）
-      continue;
+  const groups = new Map(); // 颜色 → GeometryInstance[]
+  const push = (color, ring, h) => {
+    let arr = groups.get(color);
+    if (!arr) {
+      arr = [];
+      groups.set(color, arr);
     }
-
-    if (!isWalk && w > 4) {
-      // 路缘石：路面两侧各一条 0.44m 宽的石条
-      for (const side of [-1, 1]) {
-        const line = offsetPath(r.path, side * (w / 2 + 0.24));
-        const ring = bufferRing(line, 0.22);
-        if (ring.length < 4) continue;
-        walks.push(
-          new Cesium.GeometryInstance({
-            geometry: new Cesium.PolygonGeometry({
-              polygonHierarchy: new Cesium.PolygonHierarchy(ringPositions(Cesium, ring, 0)),
-              perPositionHeight: true,
-              vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
-            }),
-            attributes: {
-              color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-                Cesium.Color.fromCssColorString('#b3ada0'),
-              ),
-            },
-          }),
-        );
-      }
-    }
-
-    // 路面
-    const roadRing = bufferRing(r.path, w / 2);
-    const roadColor = isWalk
-      ? '#d6d0c1'
-      : r.tunnel
-        ? '#3a3f45'
-        : r.bridge
-          ? '#5a5f66'
-          : '#575c63';
-    surfaces.push(
+    arr.push(
       new Cesium.GeometryInstance({
         geometry: new Cesium.PolygonGeometry({
-          polygonHierarchy: new Cesium.PolygonHierarchy(ringToPositions(roadRing, 0.06)),
+          polygonHierarchy: new Cesium.PolygonHierarchy(ringPositions(ring, h)),
+          perPositionHeight: true,
           vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
         }),
         attributes: {
-          color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-            Cesium.Color.fromCssColorString(roadColor),
-          ),
+          color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.fromCssColorString(color)),
         },
-      }),
-    );
-
-    // 车道分道线：按车道数在路面内均分
-    // 台阶：每 1.3m 一条横向踏步线
-    if (r.cls === 'steps' && r.path.length >= 2) {
-      for (let i = 0; i < r.path.length - 1; i++) {
-        const lon0 = r.path[i][0];
-        const lat0 = r.path[i][1];
-        const lon1 = r.path[i + 1][0];
-        const lat1 = r.path[i + 1][1];
-        const dx = (lon1 - lon0) * mLon(lat0);
-        const dy = (lat1 - lat0) * MLAT;
-        const len = Math.hypot(dx, dy);
-        if (len < 1) continue;
-        const n = Math.max(1, Math.floor(len / 1.3));
-        const nx = -dy / len;
-        const ny = dx / len;
-        const half = 1.7;
-        for (let k = 0; k <= n; k++) {
-          const t = k / n;
-          const lon = lon0 + (lon1 - lon0) * t;
-          const lat = lat0 + (lat1 - lat0) * t;
-          const a = [
-            lon + (nx * half) / mLon(lat),
-            lat + (ny * half) / MLAT,
-            lon - (nx * half) / mLon(lat),
-            lat - (ny * half) / MLAT,
-          ];
-          centerLines.push(
-            new Cesium.GeometryInstance({
-              geometry: new Cesium.GroundPolylineGeometry({
-                positions: Cesium.Cartesian3.fromDegreesArray(a),
-                width: 1.4,
-              }),
-              attributes: {
-                color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-                  Cesium.Color.fromCssColorString('#9a9486'),
-                ),
-              },
-            }),
-          );
-        }
-      }
-    }
-
-    if (!isWalk && r.lanes >= 2 && r.path.length >= 2) {
-      for (let i = 1; i < r.lanes; i++) {
-        const off = -w / 2 + (w / r.lanes) * i;
-        const isCenter = Math.abs(off) < 0.2;
-        const line = offsetPath(r.path, off);
-        const arr = [];
-        for (const [lon, lat] of line) arr.push(lon, lat);
-        centerLines.push(
-          new Cesium.GeometryInstance({
-            geometry: new Cesium.GroundPolylineGeometry({
-              positions: Cesium.Cartesian3.fromDegreesArray(arr),
-              width: isCenter ? 1.5 : 0.9,
-            }),
-            attributes: {
-              color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-                Cesium.Color.fromCssColorString(isCenter ? '#cbb98a' : '#cfc9b8'),
-              ),
-            },
-          }),
-        );
-      }
-    }
-  }
-
-  const add = (insts, appearance) => {
-    if (!insts.length) return;
-    viewer.scene.primitives.add(
-      new Cesium.GroundPrimitive({
-        geometryInstances: insts,
-        appearance,
-        classificationType: Cesium.ClassificationType.TERRAIN,
-        asynchronous: true,
       }),
     );
   };
 
-  add(walks, new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }));
-  add(surfaces, new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }));
-  if (centerLines.length) {
+  // 分段四边形：每段单独成面，避免长条带在多边形三角化时出现“大面片”
+  function addBand(path, width, color, h) {
+    const half = width / 2;
+    for (let i = 0; i < path.length - 1; i++) {
+      const a = path[i];
+      const b = path[i + 1];
+      const k = mLon((a[1] + b[1]) / 2);
+      let dx = (b[0] - a[0]) * k;
+      let dy = (b[1] - a[1]) * MLAT;
+      const len = Math.hypot(dx, dy);
+      if (len < 0.4) continue;
+      const ux = dx / len;
+      const uy = dy / len;
+      const nx = -uy;
+      const ny = ux;
+      // 两端各外延 0.18m，让相邻段搭接，避免出现缝隙
+      const ext = 0.18;
+      const a2 = [a[0] - (ux * ext) / k, a[1] - (uy * ext) / MLAT];
+      const b2 = [b[0] + (ux * ext) / k, b[1] + (uy * ext) / MLAT];
+      const ring = [
+        [a2[0] + (nx * half) / k, a2[1] + (ny * half) / MLAT],
+        [b2[0] + (nx * half) / k, b2[1] + (ny * half) / MLAT],
+        [b2[0] - (nx * half) / k, b2[1] - (ny * half) / MLAT],
+        [a2[0] - (nx * half) / k, a2[1] - (ny * half) / MLAT],
+      ];
+      push(color, ring, h);
+    }
+  }
+
+  let idx = 0;
+  for (const r of data.roads) {
+    if (!MAJOR.includes(r.cls)) continue;
+    if (!r.path || r.path.length < 2) continue;
+    const w = Math.max(4, r.width || 7.5);
+    const path = densify(r.path, 8);
+    // 逐条微调高度，减少路口处同高面片的 z-fighting
+    const lift = 0.14 + (idx % 5) * 0.012;
+    idx++;
+
+    const surface = r.tunnel ? '#3b4046' : r.bridge ? '#5d6268' : r.lanes >= 2 ? '#4b5057' : '#545960';
+    addBand(path, w, surface, lift);
+
+    // 路缘石：主干道（≥10m）两侧各 0.36m 宽，比路面高 6cm
+    if (w >= 10) {
+      addBand(offsetPath(path, w / 2 + 0.18), 0.36, '#b5afa2', lift + 0.06);
+      addBand(offsetPath(path, -w / 2 - 0.18), 0.36, '#b5afa2', lift + 0.06);
+    }
+
+    // 中心线
+    if (!r.tunnel && r.lanes >= 2) {
+      addBand(path, 0.28, '#dcd0a4', lift + 0.03);
+    }
+  }
+
+  for (const [color, insts] of groups) {
+    if (!insts.length) continue;
     viewer.scene.primitives.add(
-      new Cesium.GroundPolylinePrimitive({
-        geometryInstances: centerLines,
-        appearance: new Cesium.PolylineColorAppearance({ translucent: true }),
-        classificationType: Cesium.ClassificationType.TERRAIN,
+      new Cesium.Primitive({
+        geometryInstances: insts,
+        appearance: new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }),
         asynchronous: true,
       }),
     );

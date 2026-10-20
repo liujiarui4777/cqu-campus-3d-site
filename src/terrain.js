@@ -1,4 +1,10 @@
-/* 地形：预下载的 DEM（细网格 + 外围粗网格）→ Cesium 本地地形，不依赖在线服务 */
+/* 地形：预下载的 DEM（A/B 区细网格 + 10 km 中网格 + 外围粗网格）→ Cesium 本地地形
+ *
+ * 三级网格，边界处 400 m 线性混合，避免接缝断崖：
+ *   terrain         A/B 区 3.4 km，约 1.3 m/px
+ *   terrain_mid     10 km × 10 km，约 4.9 m/px
+ *   terrain_coarse  外围 13.5 km，约 13 m/px
+ */
 
 async function fetchBin(base, name) {
   const gz = await fetch(`${base}data/${name}.bin.gz`);
@@ -46,33 +52,53 @@ async function loadGrid(base, name) {
 
 export async function loadTerrain(base, Cesium) {
   const fine = await loadGrid(base, 'terrain');
+  let mid = null;
   let coarse = null;
+  try {
+    mid = await loadGrid(base, 'terrain_mid');
+  } catch (e) {
+    console.warn('10 km 中网格地形缺失', e);
+  }
   try {
     coarse = await loadGrid(base, 'terrain_coarse');
   } catch (e) {
-    console.warn('外围地形缺失，仅使用细网格', e);
+    console.warn('外围地形缺失', e);
   }
 
   const MLAT = 110540;
   const mLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
-  const m = fine.meta;
 
-  // 小范围内用精细网格，向外 400m 与粗网格渐变，避免接缝
+  // 距网格边界的有符号距离（米）：正=内部，负=外部
+  const edgeDist = (meta, lon, lat) => {
+    const dx = Math.min(lon - meta.west, meta.east - lon) * mLon(lat);
+    const dy = Math.min(lat - meta.south, meta.north - lat) * MLAT;
+    return Math.min(dx, dy);
+  };
+
+  const lerp = (a, b, t) => a * (1 - t) + b * t;
+  const blendDist = 400;
+
   const sample = (lon, lat) => {
-    if (!coarse) return fine.sample(lon, lat);
-    const dx = Math.min(lon - m.west, m.east - lon) * mLon(lat);
-    const dy = Math.min(lat - m.south, m.north - lat) * MLAT;
-    const d = Math.min(dx, dy);
-    if (d <= 0) return coarse.sample(lon, lat);
-    if (d >= 400) return fine.sample(lon, lat);
-    const t = d / 400;
-    return coarse.sample(lon, lat) * (1 - t) + fine.sample(lon, lat) * t;
+    const dF = edgeDist(fine.meta, lon, lat);
+    if (!mid) {
+      if (!coarse) return fine.sample(lon, lat);
+      const dC = edgeDist(coarse.meta, lon, lat);
+      if (dF >= blendDist) return fine.sample(lon, lat);
+      if (dF >= 0) return lerp(coarse.sample(lon, lat), fine.sample(lon, lat), dF / blendDist);
+      return dC >= 0 ? coarse.sample(lon, lat) : coarse.sample(lon, lat);
+    }
+    if (dF >= blendDist) return fine.sample(lon, lat);
+    if (dF >= 0) return lerp(mid.sample(lon, lat), fine.sample(lon, lat), dF / blendDist);
+    const dM = edgeDist(mid.meta, lon, lat);
+    if (dM >= blendDist) return mid.sample(lon, lat);
+    if (dM >= 0 && coarse) return lerp(coarse.sample(lon, lat), mid.sample(lon, lat), dM / blendDist);
+    return coarse ? coarse.sample(lon, lat) : mid.sample(lon, lat);
   };
 
   const tilingScheme = new Cesium.GeographicTilingScheme();
   const N = 49;
   const tileCache = new Map();
-  const b = coarse ? coarse.meta : m;
+  const b = coarse ? coarse.meta : mid ? mid.meta : fine.meta;
   const clampLon = (v) => (v < b.west ? b.west : v > b.east ? b.east : v);
   const clampLat = (v) => (v < b.south ? b.south : v > b.north ? b.north : v);
 
@@ -106,5 +132,12 @@ export async function loadTerrain(base, Cesium) {
     },
   });
 
-  return { provider, meta: fine.meta, sample, inRange: fine.inRange };
+  return {
+    provider,
+    meta: fine.meta,
+    midMeta: mid ? mid.meta : fine.meta,
+    coarseMeta: coarse ? coarse.meta : mid ? mid.meta : fine.meta,
+    sample,
+    inRange: fine.inRange,
+  };
 }

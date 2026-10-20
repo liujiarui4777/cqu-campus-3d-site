@@ -1,4 +1,4 @@
-/* 地标构筑物：钟塔 / 大校门 / 寅初亭 / 风雨操场看台 / 思群广场跑道
+﻿/* 地标构筑物：钟塔 / 大校门 / 寅初亭 / 风雨操场看台 / 思群广场跑道
  * 参数来自 docs/调研-A区建筑资料.md（形制有据，尺寸为合理推测）
  */
 const MLAT = 110540;
@@ -269,42 +269,37 @@ export function addLandmarks(viewer, data, terrain) {
     });
   }
 
-  /* ---------- 坡屋顶：给民国建筑的平顶换成双坡瓦屋面 ---------- */
+  /* ---------- 坡屋顶：沿真实平面轮廓起坡（不再用外接矩形，避免盖住天井/庭院） ---------- */
   for (const b of data.buildings || []) {
     if (b.roof !== 'hip' && b.roof !== 'gable') continue;
     if (!b.outline || b.outline.length < 3) continue;
     const hEave = terrain.sample(b.center[0], b.center[1]) + b.height;
-    let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    const cLon = b.center[0];
+    const cLat = b.center[1];
+    let minLon = Infinity;
+    let maxLon = -Infinity;
+    let minLat = Infinity;
+    let maxLat = -Infinity;
     for (const [lo, la] of b.outline) {
-      minLon = Math.min(minLon, lo); maxLon = Math.max(maxLon, lo);
-      minLat = Math.min(minLat, la); maxLat = Math.max(maxLat, la);
+      minLon = Math.min(minLon, lo);
+      maxLon = Math.max(maxLon, lo);
+      minLat = Math.min(minLat, la);
+      maxLat = Math.max(maxLat, la);
     }
-    const pad = -0.00008;
-    minLon -= pad; maxLon += pad; minLat -= pad; maxLat += pad;
-    const rise = Math.min(2.6, Math.max(1.4, (maxLon - minLon) * 30000));
+    const span = Math.max((maxLon - minLon) * 95000, (maxLat - minLat) * 105000);
+    const rise = Math.min(4.2, Math.max(1.6, span * 0.12));
     const hRidge = hEave + rise;
-    const midLat = (minLat + maxLat) / 2;
-    const midLon = (minLon + maxLon) / 2;
-    const longAxisLon = (maxLon - minLon) * Math.cos((midLat * Math.PI) / 180) > (maxLat - minLat);
+    // 屋脊环：平面轮廓向中心收 62%，形成四坡/多坡的屋面
+    const inset = 0.62;
+    const ringA = b.outline.map(([lo, la]) => [lo, la, hEave + 0.02]);
+    const ringB = b.outline.map(([lo, la]) => [cLon + (lo - cLon) * (1 - inset), cLat + (la - cLat) * (1 - inset), hRidge]);
     const mat = cr(b.roofColor || '#5f6462');
 
-    const quads = longAxisLon
-      ? [
-          [[minLon, minLat, hEave], [maxLon, minLat, hEave], [maxLon, midLat, hRidge], [minLon, midLat, hRidge]],
-          [[maxLon, maxLat, hEave], [minLon, maxLat, hEave], [minLon, midLat, hRidge], [maxLon, midLat, hRidge]],
-          [[maxLon, minLat, hEave], [maxLon, maxLat, hEave], [maxLon, midLat, hRidge]],
-          [[minLon, maxLat, hEave], [minLon, minLat, hEave], [minLon, midLat, hRidge]],
-        ]
-      : [
-          [[minLon, minLat, hEave], [minLon, maxLat, hEave], [midLon, maxLat, hRidge], [midLon, minLat, hRidge]],
-          [[maxLon, maxLat, hEave], [maxLon, minLat, hEave], [midLon, minLat, hRidge], [midLon, maxLat, hRidge]],
-          [[minLon, maxLat, hEave], [maxLon, maxLat, hEave], [midLon, maxLat, hRidge]],
-          [[maxLon, minLat, hEave], [minLon, minLat, hEave], [midLon, minLat, hRidge]],
-        ];
-
-    for (const poly of quads) {
-      const arr = [];
-      for (const [lo, la, h] of poly) arr.push(lo, la, h);
+    for (let i = 0; i < b.outline.length; i++) {
+      const j = (i + 1) % b.outline.length;
+      const arr = [
+        ringA[i], ringA[j], ringB[j], ringB[i],
+      ].flat();
       E.add({
         polygon: {
           hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(arr),
@@ -315,7 +310,18 @@ export function addLandmarks(viewer, data, terrain) {
         properties: { kind: 'landmark', name: (b.name || '') + ' 坡屋顶' },
       });
     }
+    // 脊顶封口
+    E.add({
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(ringB.flat()),
+        perPositionHeight: true,
+        material: new Cesium.Color(mat.red * 0.9, mat.green * 0.9, mat.blue * 0.9, 1),
+        outline: false,
+      },
+      properties: { kind: 'landmark', name: (b.name || '') + ' 屋脊' },
+    });
   }
+
 
   /* ---------- 民国建筑细节：理学院屋顶攒尖亭、工学院六边形塔楼 ---------- */
   const sci = (data.buildings || []).find((b) => b.name === '理学院');
