@@ -1,6 +1,7 @@
 /* 地标构筑物：钟塔 / 大校门 / 寅初亭 / 风雨操场看台 / 思群广场跑道
  * 参数来自 docs/调研-A区建筑资料.md（形制有据，尺寸为合理推测）
  */
+const MLAT = 110540;
 const METER_LAT = 110540;
 const meterLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
 
@@ -223,6 +224,48 @@ export function addLandmarks(viewer, data, terrain) {
         material: cr('#bfb6a2'),
       },
       properties: { kind: 'landmark', name: '风雨操场舞台' },
+    });
+  }
+
+  /* ---------- 入口雨棚：地标建筑最长边中点加悬挑板 ---------- */
+  for (const b of data.buildings || []) {
+    if (!b.landmark || !b.outline || b.outline.length < 3) continue;
+    const hEave = terrain.sample(b.center[0], b.center[1]) + Math.min(b.height, 12);
+    const kLon = 111320 * Math.cos((b.center[1] * Math.PI) / 180);
+    let best = null;
+    for (let i = 0; i < b.outline.length; i++) {
+      const a = b.outline[i];
+      const c = b.outline[(i + 1) % b.outline.length];
+      const dx = (c[0] - a[0]) * kLon;
+      const dy = (c[1] - a[1]) * MLAT;
+      const len = Math.hypot(dx, dy);
+      if (!best || len > best.len) best = { a, c, dx, dy, len };
+    }
+    if (!best || best.len < 4) continue;
+    const mx = (best.a[0] + best.c[0]) / 2;
+    const my = (best.a[1] + best.c[1]) / 2;
+    const nx = -(best.dy / best.len);
+    const ny = best.dx / best.len;
+    const out = 1.6;
+    const halfW = Math.min(2.6, best.len / 3);
+    const pts = [
+      [mx + (nx * -0.2 + (best.dx / best.len) * halfW) / kLon, my + (ny * -0.2 + (best.dy / best.len) * halfW) / MLAT],
+      [mx + (nx * -0.2 - (best.dx / best.len) * halfW) / kLon, my + (ny * -0.2 - (best.dy / best.len) * halfW) / MLAT],
+      [mx + (nx * out - (best.dx / best.len) * halfW) / kLon, my + (ny * out - (best.dy / best.len) * halfW) / MLAT],
+      [mx + (nx * out + (best.dx / best.len) * halfW) / kLon, my + (ny * out + (best.dy / best.len) * halfW) / MLAT],
+    ];
+    const flatC = [];
+    for (const p of pts) flatC.push(p[0], p[1]);
+    E.add({
+      id: 'canopy:' + b.id,
+      polygon: {
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(flatC),
+        height: hEave,
+        extrudedHeight: hEave + 0.22,
+        material: cr('#9aa0a6'),
+        outline: false,
+      },
+      properties: { kind: 'landmark', name: (b.name || '') + ' 入口雨棚' },
     });
   }
 

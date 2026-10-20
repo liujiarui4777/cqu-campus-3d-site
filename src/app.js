@@ -87,6 +87,7 @@ import { addTrees } from './trees.js';
 import { buildRoadGraph, nearestNode, shortestPath } from './nav.js';
 import { addLamps } from './lamps.js';
 import { addRoofProps } from './props.js';
+import { addGates } from './gates.js';
 
 (async () => {
   try {
@@ -110,6 +111,7 @@ import { addRoofProps } from './props.js';
     if (!only || only === 'trees') window.__treeCount = addTrees(viewer, data, terrain);
     if (!only || only === 'lamps') window.__lampCount = addLamps(viewer, data, terrain);
     if (!only || only === 'props') window.__propCount = addRoofProps(viewer, data, terrain);
+    if (!only || only === 'gates') window.__gateCount = addGates(viewer, data, terrain);
     if (!only || only === 'boundary') addBoundary(viewer, data, terrain);
 
     if (dom.stats) {
