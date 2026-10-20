@@ -223,6 +223,17 @@ export function initInteraction(viewer, data, terrain, graph) {
           new Cesium.Color(c.red * f * tint[0], c.green * f * tint[1], c.blue * f * tint[2], 1),
         );
       }
+      const ell = e.ellipsoid;
+      const emat = ell && ell.material && ell.material.color;
+      if (emat) {
+        if (!origColors.has(e)) origColors.set(e, Cesium.Color.clone(emat.getValue(Cesium.JulianDate.now())));
+        const c = origColors.get(e);
+        if (t === 'night' && typeof e.id === 'string' && e.id.startsWith('lamp:')) {
+          emat.setValue(Cesium.Color.fromCssColorString('#ffd27a'));
+        } else {
+          emat.setValue(new Cesium.Color(c.red * f * tint[0], c.green * f * tint[1], c.blue * f * tint[2], 1));
+        }
+      }
       const line = e.polyline;
       const lprop = line && line.material && line.material.color;
       if (lprop) {
@@ -234,7 +245,20 @@ export function initInteraction(viewer, data, terrain, graph) {
   }
 
   // 整屏压暗（覆盖树木/道路/场地等不可单独调色的图元）
-  const nightStage = Cesium.PostProcessStageLibrary.createBrightnessStage(0.42);
+  const nightStage = new Cesium.PostProcessStage({
+    name: 'cqu_night',
+    fragmentShader: `
+uniform sampler2D colorTexture;
+in vec2 v_textureCoordinates;
+uniform float uFactor;
+void main() {
+  vec4 c = texture(colorTexture, v_textureCoordinates);
+  c.rgb *= uFactor;
+  c.rgb = vec3(c.r * 0.9, c.g * 0.95, c.b * 1.14);
+  out_FragColor = c;
+}`,
+    uniforms: { uFactor: 1.0 },
+  });
   nightStage.enabled = false;
   viewer.scene.postProcessStages.add(nightStage);
 
@@ -253,7 +277,7 @@ export function initInteraction(viewer, data, terrain, graph) {
     }
     tuneEntities(t);
     nightStage.enabled = t !== 'day';
-    nightStage.uniforms.brightness = t === 'night' ? 0.58 : 0.78;
+    nightStage.uniforms.uFactor = t === 'night' ? 0.55 : 0.8;
   }
 
   document.querySelectorAll('[data-time]').forEach((btn) => {

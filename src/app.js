@@ -80,6 +80,7 @@ import { createBasemapProvider } from './basemap.js';
 import { initInteraction } from './ui.js';
 import { addTrees } from './trees.js';
 import { buildRoadGraph, nearestNode, shortestPath } from './nav.js';
+import { addLamps } from './lamps.js';
 
 (async () => {
   try {
@@ -101,6 +102,7 @@ import { buildRoadGraph, nearestNode, shortestPath } from './nav.js';
     if (!only || only === 'buildings') addBuildings(viewer, data, terrain);
     if (!only || only === 'landmarks') addLandmarks(viewer, data, terrain);
     if (!only || only === 'trees') window.__treeCount = addTrees(viewer, data, terrain);
+    if (!only || only === 'lamps') window.__lampCount = addLamps(viewer, data, terrain);
     if (!only || only === 'boundary') addBoundary(viewer, data, terrain);
 
     if (dom.stats) {
