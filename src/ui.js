@@ -534,17 +534,48 @@ void main() {
     });
   }
 
-  /* ---------- 影像 / 风格化切换 ---------- */
-  const imgBtn = document.getElementById('imagery-btn');
-  if (imgBtn) {
-    imgBtn.addEventListener('click', () => {
+  /* ---------- 图层面板 ---------- */
+  const panelBtn = document.getElementById('panel-btn');
+  const layerPanel = document.getElementById('layer-panel');
+  if (panelBtn && layerPanel) {
+    panelBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = layerPanel.hidden;
+      layerPanel.hidden = !open;
+      panelBtn.setAttribute('aria-expanded', String(open));
+      panelBtn.classList.toggle('active', open);
+    });
+    document.addEventListener('click', (e) => {
+      if (!layerPanel.hidden && !layerPanel.contains(e.target) && e.target !== panelBtn) {
+        layerPanel.hidden = true;
+        panelBtn.setAttribute('aria-expanded', 'false');
+        panelBtn.classList.remove('active');
+      }
+    });
+  }
+
+  // 卫星影像开关
+  const tglImagery = document.getElementById('toggle-imagery');
+  if (tglImagery) {
+    tglImagery.addEventListener('change', () => {
       const L = window.__layers;
-      if (!L || !L.esri) { setHint('影像层未加载'); return; }
-      const showImagery = !L.esri.show;
-      L.esri.show = showImagery;
-      L.style.show = !showImagery;
-      imgBtn.classList.toggle('active', showImagery);
-      setHint(showImagery ? '真实卫星影像' : '风格化沙盘底图');
+      if (!L || !L.esri) {
+        tglImagery.checked = false;
+        setHint('影像层未加载');
+        return;
+      }
+      L.esri.show = tglImagery.checked;
+      L.style.show = !tglImagery.checked;
+      setHint(tglImagery.checked ? '真实卫星影像' : '风格化沙盘底图');
+    });
+  }
+
+  // 建筑标签开关
+  const tglLabels = document.getElementById('toggle-labels');
+  if (tglLabels) {
+    tglLabels.addEventListener('change', () => {
+      if (window.__labelApi) window.__labelApi.setVisible(tglLabels.checked);
+      setHint(tglLabels.checked ? '建筑标签已开启' : '建筑标签已关闭');
     });
   }
 

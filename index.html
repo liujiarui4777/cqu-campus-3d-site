@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A 区三维校园地图" />
     <title>重庆大学 · 三维校园（官方版）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261020h" />
+    <link rel="stylesheet" href="./src/style.css?v=20261020i" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -76,13 +76,30 @@
       <div class="dock-actions">
         <button id="home-btn" class="dock-btn" title="回到全景视角">全景</button>
         <button id="nav-btn" class="dock-btn" title="选择起点与终点建筑">步行导航</button>
-        <button id="schedule-btn" class="dock-btn" title="导入课表，在地图上显示今天的课">今日课程</button>
-        <button id="imagery-btn" class="dock-btn" title="切换真实卫星影像与风格化底图">影像</button>
-        <button id="shuttle-btn" class="dock-btn" title="校车时刻表">校车</button>
+        <button id="panel-btn" class="dock-btn" title="图层与工具" aria-expanded="false">图层</button>
       </div>
       <div class="guides" id="guides"></div>
-      <div class="dock-status" id="dock-status">点击建筑查看详情 · 拖拽旋转 · 滚轮缩放</div>
+      <div class="dock-status" id="dock-status"></div>
     </footer>
+
+    <div class="layer-panel" id="layer-panel" hidden>
+      <div class="layer-row">
+        <span class="layer-title">显示</span>
+        <label class="layer-switch">
+          <input type="checkbox" id="toggle-labels" checked />
+          <span>建筑标签</span>
+        </label>
+        <label class="layer-switch">
+          <input type="checkbox" id="toggle-imagery" />
+          <span>卫星影像</span>
+        </label>
+      </div>
+      <div class="layer-row">
+        <span class="layer-title">工具</span>
+        <button id="shuttle-btn" class="layer-tool">校车时刻表</button>
+        <button id="schedule-btn" class="layer-tool">今日课程</button>
+      </div>
+    </div>
 
     <section class="shuttle" id="shuttle">
       <button class="shuttle-close" id="shuttle-close" aria-label="关闭">×</button>
@@ -115,6 +132,6 @@
 
     <div class="error" id="error"></div>
 
-    <script type="module" src="./src/app.js?v=20261020h"></script>
+    <script type="module" src="./src/app.js?v=20261020i"></script>
   </body>
 </html>

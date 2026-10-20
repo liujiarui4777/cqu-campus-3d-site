@@ -1,50 +1,58 @@
-/* 建筑标签：用 DOM 覆盖层渲染，字体清晰、可点击、带 hover 效果
- * 位置每帧由 Cesium 投影到屏幕坐标
+/* 建筑与乘车点标签：DOM 覆盖层，清晰、可点击、可开关、按距离分级显示
+ *
+ * 分级规则（避免 108 个标签糊成一片）：
+ *   < 420 m  显示全部建筑
+ *   420–1100 只显示地标与主要建筑
+ *   > 1100 m 只显示地标
  */
+
+import { SHUTTLE_STOPS } from './shuttle.js';
+
+const MAJOR = new Set([
+  '主教学楼',
+  '第一教学楼',
+  '第二教学楼',
+  '第三教学楼',
+  '第五教学楼',
+  '第六教学楼',
+  '理科教学楼',
+  '理工馆',
+  '逸夫图书馆',
+  '博雅书院',
+  '人文社会科学研究院',
+  '理学院',
+  '工学院',
+  '学生一食堂',
+  '学生二食堂',
+  '学生三食堂',
+  '重庆大学A区体育馆',
+  '学生十宿舍',
+  '学生四宿舍',
+]);
 
 export function addBuildingLabels(viewer, data, terrain) {
   const Cesium = window.Cesium;
-  const MAJOR = [
-    '主教学楼',
-    '第一教学楼',
-    '第二教学楼',
-    '第三教学楼',
-    '第五教学楼',
-    '第六教学楼',
-    '理科教学楼',
-    '理工馆',
-    '逸夫图书馆',
-    '博雅书院',
-    '人文社会科学研究院',
-    '理学院',
-    '工学院',
-    '学生一食堂',
-    '学生二食堂',
-    '学生三食堂',
-    '重庆大学A区体育馆',
-    '学生十宿舍',
-    '学生四宿舍',
-    '民主湖',
-  ];
-
   const layer = document.createElement('div');
   layer.className = 'label-layer';
   document.body.appendChild(layer);
 
   const items = [];
   const seen = new Set();
+
+  // ---- 建筑 ----
   for (const b of data.buildings || []) {
-    const name = (b.name || '').replace('重庆大学', '');
-    if (!name || seen.has(name)) continue;
-    if (!(b.landmark || MAJOR.includes(name))) continue;
-    seen.add(name);
+    const raw = b.name || '';
+    if (!raw || raw === '未知建筑') continue;
+    const name = raw.replace('重庆大学', '');
+    const key = name + '@' + Math.round(b.center[0] * 1e5) + ',' + Math.round(b.center[1] * 1e5);
+    if (seen.has(key)) continue;
+    seen.add(key);
 
     const h0 = terrain.sample(b.center[0], b.center[1]);
     const btn = document.createElement('button');
-    btn.className = 'bldg-label' + (b.landmark ? ' landmark' : '');
     btn.type = 'button';
-    btn.innerHTML = `<span>${name}</span>`;
-    btn.dataset.name = name;
+    btn.className = 'bldg-label' + (b.landmark ? ' landmark' : '') + (MAJOR.has(name) ? ' major' : '');
+    btn.textContent = name;
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (window.__focusBuilding) window.__focusBuilding(b);
@@ -54,25 +62,61 @@ export function addBuildingLabels(viewer, data, terrain) {
     items.push({
       el: btn,
       pos: Cesium.Cartesian3.fromDegrees(b.center[0], b.center[1], h0 + b.height + 4),
+      tier: b.landmark ? 0 : MAJOR.has(name) ? 1 : 2,
       b,
     });
   }
 
+  // ---- 校车乘车点 ----
+  for (const s of SHUTTLE_STOPS) {
+    const h0 = terrain.sample(s.lon, s.lat);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'bldg-label shuttle-stop';
+    btn.textContent = '校车 · ' + String(s.name).replace(/^A\s*区?\s*/, '');
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const panel = document.getElementById('shuttle');
+      if (panel && !panel.classList.contains('show')) {
+        document.getElementById('shuttle-btn')?.click();
+      }
+    });
+    layer.appendChild(btn);
+    items.push({
+      el: btn,
+      pos: Cesium.Cartesian3.fromDegrees(s.lon, s.lat, h0 + 6),
+      tier: 0,
+      shuttle: true,
+    });
+  }
+
+  // ---- 每帧投影 ----
   const ST = Cesium.SceneTransforms;
-  const project =
-    ST.worldToWindowCoordinates ? (sc, pos) => ST.worldToWindowCoordinates(sc, pos)
-      : ST.wgs84ToWindowCoordinates ? (sc, pos) => ST.wgs84ToWindowCoordinates(sc, pos)
+  const project = ST.worldToWindowCoordinates
+    ? (sc, pos) => ST.worldToWindowCoordinates(sc, pos)
+    : ST.wgs84ToWindowCoordinates
+      ? (sc, pos) => ST.wgs84ToWindowCoordinates(sc, pos)
       : null;
+
   if (!project) {
-    console.warn('SceneTransforms 投影函数不可用，标签层跳过');
-    return () => {};
+    console.warn('SceneTransforms 投影函数不可用');
+    return { setVisible() {}, isVisible: () => false, dispose() {} };
   }
 
   const canvas = viewer.scene.canvas;
-  const removeHandler = viewer.scene.postRender.addEventListener(() => {
+  let visible = true;
+
+  const stop = viewer.scene.postRender.addEventListener(() => {
+    if (!visible) {
+      if (layer.style.display !== 'none') layer.style.display = 'none';
+      return;
+    }
+    if (layer.style.display !== '') layer.style.display = '';
+
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     const camPos = viewer.camera.positionWC;
+
     for (const it of items) {
       const p = project(viewer.scene, it.pos);
       if (!p) {
@@ -80,20 +124,32 @@ export function addBuildingLabels(viewer, data, terrain) {
         continue;
       }
       const dist = Cesium.Cartesian3.distance(camPos, it.pos);
-      if (dist > 1600 || p.x < -80 || p.x > w + 80 || p.y < -40 || p.y > h + 40) {
+      const maxDist = it.tier === 0 ? 2200 : it.tier === 1 ? 1100 : 420;
+      if (dist > maxDist || p.x < -60 || p.x > w + 60 || p.y < -30 || p.y > h + 30) {
         it.el.style.display = 'none';
         continue;
       }
       it.el.style.display = 'block';
       it.el.style.transform = `translate(-50%, -100%) translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
-      it.el.style.opacity = dist < 750 ? '1' : String(Math.max(0.35, 1 - (dist - 750) / 1100));
+      it.el.style.opacity =
+        dist < maxDist * 0.55 ? '1' : String(Math.max(0.32, 1 - (dist - maxDist * 0.55) / (maxDist * 0.45)));
       it.el.style.zIndex = String(10000 - Math.round(dist / 10));
     }
   });
 
   window.__labelCount = items.length;
-  return () => {
-    removeHandler && removeHandler();
-    layer.remove();
+
+  return {
+    setVisible(v) {
+      visible = !!v;
+      if (!v) layer.style.display = 'none';
+    },
+    isVisible() {
+      return visible;
+    },
+    dispose() {
+      stop && stop();
+      layer.remove();
+    },
   };
 }
