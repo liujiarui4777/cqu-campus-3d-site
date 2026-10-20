@@ -1,0 +1,371 @@
+:root {
+  --paper: #eef2f6;
+  --ink: #1f2a33;
+  --muted: #5d6b78;
+  --line: rgba(31, 42, 51, 0.12);
+  --accent: #2f6f6a;
+  --card: rgba(255, 255, 255, 0.9);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#cesium-root { position: absolute; inset: 0; }
+#cesium-root canvas { outline: none; display: block; }
+.cesium-widget-credits { display: none !important; }
+
+.topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 10px; height: 36px; border-radius: 6px;
+  background: linear-gradient(180deg, #2f6f6a, #8fb3ae);
+}
+.brand h1 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: 0.06em; }
+.brand p { margin: 3px 0 0; font-size: 12px; color: var(--muted); letter-spacing: 0.1em; }
+
+.stats { display: flex; gap: 8px; pointer-events: auto; }
+.stats span {
+  font-size: 12px;
+  color: #33424f;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 11px;
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.04em;
+}
+
+.boot {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.7), rgba(238, 242, 246, 0.97));
+  z-index: 40;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  transition: opacity 0.45s ease;
+}
+.boot-inner { text-align: center; }
+.boot-ring {
+  width: 34px; height: 34px; margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 2px solid #cdd8e2;
+  border-top-color: var(--accent);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error {
+  display: none;
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border: 1px solid #e6c9c6;
+  color: #b3261e;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 13px;
+  max-width: 70vw;
+  z-index: 60;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.hint {
+  position: absolute; left: 22px; bottom: 18px;
+  font-size: 12px; color: var(--muted);
+  letter-spacing: 0.06em;
+  pointer-events: none; z-index: 10;
+}
+
+/* ---------- 地标导览 ---------- */
+.guides {
+  position: absolute;
+  left: 22px;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 12;
+}
+.guide-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: #33424f;
+  font: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  padding: 7px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  text-align: left;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 10px rgba(31, 42, 51, 0.06);
+}
+.guide-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateX(2px);
+}
+
+/* ---------- 昼夜 ---------- */
+.times {
+  position: absolute;
+  right: 22px;
+  top: 96px;
+  display: flex;
+  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  backdrop-filter: blur(8px);
+  z-index: 12;
+}
+.times button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--muted);
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.times button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---------- 信息卡 ---------- */
+.card {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  width: 340px;
+  max-width: calc(100vw - 44px);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px 20px 20px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.card-close {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+.card-sub {
+  margin: 0 0 4px;
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+}
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.card-meta span {
+  font-size: 11.5px;
+  color: #3d4c59;
+  background: #f1f4f6;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.card-tags {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.card-tags .tag {
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 5px;
+  padding: 3px 7px;
+  letter-spacing: 0.05em;
+}
+.card-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #4a5763;
+}
+
+/* ---------- 夜间主题 ---------- */
+html[data-theme='night'] .card {
+  background: rgba(22, 30, 42, 0.92);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #e8eef4;
+}
+html[data-theme='night'] .card h2 { color: #fff; }
+html[data-theme='night'] .card-desc { color: #b7c3cf; }
+html[data-theme='night'] .card-meta span { background: rgba(255, 255, 255, 0.08); color: #c9d5e0; }
+html[data-theme='night'] .guide-btn,
+html[data-theme='night'] .times,
+html[data-theme='night'] .stats span {
+  background: rgba(22, 30, 42, 0.8);
+  color: #d6e0ea;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+html[data-theme='night'] .brand h1 { color: #fff; }
+html[data-theme='night'] .hint { color: #93a3b3; }
+
+
+/* ---------- 搜索 ---------- */
+.search {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  transform: translateX(-50%);
+  width: 320px;
+  z-index: 15;
+}
+.search input {
+  width: 100%;
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 9px 16px;
+  outline: none;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 12px rgba(31, 42, 51, 0.06);
+}
+.search input:focus { border-color: var(--accent); }
+.search-results {
+  display: none;
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.search-results.show { display: block; }
+.sr-item {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(31, 42, 51, 0.06);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 9px 14px;
+  cursor: pointer;
+  text-align: left;
+}
+.sr-item:last-child { border-bottom: 0; }
+.sr-item:hover { background: var(--accent-soft); }
+.sr-item em { font-style: normal; font-size: 11.5px; color: var(--muted); }
+.sr-empty { padding: 10px 14px; font-size: 12.5px; color: var(--muted); }
+
+
+.credit-line {
+  display: block;
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: rgba(93, 107, 120, 0.75);
+  letter-spacing: 0.02em;
+}
+
+
+.card-extra { margin: 0 0 10px; }
+.card-extra p {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #4a5763;
+}
+.card-extra b {
+  display: inline-block;
+  min-width: 34px;
+  margin-right: 8px;
+  font-weight: 600;
+  color: var(--accent);
+}
+html[data-theme='night'] .card-extra p { color: #b7c3cf; }
+
+
+/* ---------- 工具栏 ---------- */
+.tools {
+  position: absolute;
+  left: 22px;
+  top: 96px;
+  z-index: 13;
+}
+.tool-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: #33424f;
+  font: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(31, 42, 51, 0.06);
+}
+.tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tool-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.guides { top: 144px !important; }
