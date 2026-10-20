@@ -123,17 +123,30 @@ export function addTrees(viewer, data, terrain) {
     bottomRadius: 0.3,
     vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
   });
-  const crownGeo = new Cesium.EllipsoidGeometry({
-    radii: new Cesium.Cartesian3(3.0, 3.0, 3.6),
+  const coneGeo = new Cesium.CylinderGeometry({
+    length: 7.2,
+    topRadius: 0.15,
+    bottomRadius: 2.6,
+    slices: 7,
+    vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
+  });
+  const ballGeo = new Cesium.EllipsoidGeometry({
+    radii: new Cesium.Cartesian3(2.4, 2.4, 2.7),
+    stackPartitions: 5,
+    slicePartitions: 9,
     vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
   });
 
-  for (const t of kept) {
+  const greens = ['#4f7a45', '#5c8a50', '#3f6b3c', '#6b9459'];
+  for (let i = 0; i < kept.length; i++) {
+    const t = kept[i];
     const h0 = terrain.sample(t.lon, t.lat);
     const base = Cesium.Cartesian3.fromDegrees(t.lon, t.lat, h0 - 0.3);
     const enu = Cesium.Transforms.eastNorthUpToFixedFrame(base);
+    const conifer = i % 3 === 0;
+    const scale = Math.min(1.25, Math.max(0.75, t.s));
 
-    const tm = Cesium.Matrix4.multiplyByTranslation(enu, new Cesium.Cartesian3(0, 0, 1.7), new Cesium.Matrix4());
+    const tm = Cesium.Matrix4.multiplyByTranslation(enu, new Cesium.Cartesian3(0, 0, 1.7 * scale), new Cesium.Matrix4());
     trunks.push(
       new Cesium.GeometryInstance({
         geometry: trunkGeo,
@@ -142,18 +155,25 @@ export function addTrees(viewer, data, terrain) {
       }),
     );
 
-    const cm = Cesium.Matrix4.multiplyByTranslation(enu, new Cesium.Cartesian3(0, 0, 5.2), new Cesium.Matrix4());
-    crowns.push(
-      new Cesium.GeometryInstance({
-        geometry: crownGeo,
-        modelMatrix: cm,
-        attributes: {
-          color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-            Cesium.Color.fromCssColorString(t.s > 1.05 ? '#84a06d' : '#6d8c58'),
-          ),
-        },
-      }),
+    const cm = Cesium.Matrix4.multiplyByTranslation(
+      enu,
+      new Cesium.Cartesian3(0, 0, conifer ? 4.2 * scale : 4.5 * scale),
+      new Cesium.Matrix4(),
     );
+    const node = new Cesium.GeometryInstance({
+      geometry: conifer ? coneGeo : ballGeo,
+      modelMatrix: Cesium.Matrix4.multiply(
+        cm,
+        Cesium.Matrix4.fromUniformScale(scale),
+        new Cesium.Matrix4(),
+      ),
+      attributes: {
+        color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+          Cesium.Color.fromCssColorString(greens[i % greens.length]),
+        ),
+      },
+    });
+    crowns.push(node);
   }
 
   viewer.scene.primitives.add(

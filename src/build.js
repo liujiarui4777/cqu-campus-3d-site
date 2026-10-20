@@ -1,5 +1,11 @@
 /* 场景构件：区域 / 道路 / 建筑 / 边界 */
 
+function flatLonLat(ring) {
+  const out = [];
+  for (const [lon, lat] of ring) out.push(lon, lat);
+  return out;
+}
+
 const ringPositions = (Cesium, ring, height) =>
   ring.map(([lon, lat]) => Cesium.Cartesian3.fromDegrees(lon, lat, height));
 
@@ -38,9 +44,13 @@ export function addBuildings(viewer, data, terrain) {
     const h0 = terrain.sample(b.center[0], b.center[1]);
     const bottom = h0 - 8;
     const top = h0 + b.height;
+    // 底部按每个顶点采样地形，贴合坡地，避免悬空/埋地
     const flat = [];
-    for (const [lon, lat] of b.outline) flat.push(lon, lat);
-    const hierarchy = Cesium.Cartesian3.fromDegreesArray(flat);
+    for (const [lon, lat] of b.outline) {
+      const h = terrain.sample(lon, lat);
+      flat.push(lon, lat, h - 0.8);
+    }
+    const hierarchy = Cesium.Cartesian3.fromDegreesArrayHeights(flat);
 
     const wall = Cesium.Color.fromCssColorString(b.wall || '#e1dcd0');
     const roof = Cesium.Color.fromCssColorString(b.roofColor || '#a8a49b');
@@ -51,11 +61,10 @@ export function addBuildings(viewer, data, terrain) {
       position: Cesium.Cartesian3.fromDegrees(b.center[0], b.center[1], top),
       polygon: {
         hierarchy,
-        height: bottom,
+        perPositionHeight: true,
         extrudedHeight: top,
         material: wall,
         outline: false,
-        perPositionHeight: false,
       },
       properties: { kind: 'building', data: b },
     });
@@ -68,7 +77,7 @@ export function addBuildings(viewer, data, terrain) {
       id: 'base:' + b.id,
       polygon: {
         hierarchy,
-        height: bottom,
+        perPositionHeight: true,
         extrudedHeight: bottom + baseH,
         material: dark,
         outline: false,
@@ -114,7 +123,7 @@ export function addBuildings(viewer, data, terrain) {
     store.add({
       id: 'r:' + b.id,
       polygon: {
-        hierarchy,
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(flatLonLat(b.outline)),
         height: top + 0.06,
         material: roof,
         outline: false,
@@ -205,6 +214,22 @@ export function addRoads(viewer, data) {
     return ring;
   }
 
+  function offsetPath(path, dist) {
+    const out = [];
+    for (let i = 0; i < path.length; i++) {
+      const p0 = path[Math.max(0, i - 1)];
+      const p1 = path[Math.min(path.length - 1, i + 1)];
+      const lat = path[i][1];
+      const dx = (p1[0] - p0[0]) * mLon(lat);
+      const dy = (p1[1] - p0[1]) * MLAT;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+      out.push([path[i][0] + (nx * dist) / mLon(lat), path[i][1] + (ny * dist) / MLAT]);
+    }
+    return out;
+  }
+
   function ringToPositions(ring, h) {
     const arr = [];
     for (const [lon, lat] of ring) arr.push(lon, lat, h);
@@ -261,23 +286,28 @@ export function addRoads(viewer, data) {
       }),
     );
 
-    // 中心线：双车道及以上、非步行道
+    // 车道分道线：按车道数在路面内均分
     if (!isWalk && r.lanes >= 2 && r.path.length >= 2) {
-      const arr = [];
-      for (const [lon, lat] of r.path) arr.push(lon, lat);
-      centerLines.push(
-        new Cesium.GeometryInstance({
-          geometry: new Cesium.GroundPolylineGeometry({
-            positions: Cesium.Cartesian3.fromDegreesArray(arr),
-            width: 1.3,
+      for (let i = 1; i < r.lanes; i++) {
+        const off = -w / 2 + (w / r.lanes) * i;
+        const isCenter = Math.abs(off) < 0.2;
+        const line = offsetPath(r.path, off);
+        const arr = [];
+        for (const [lon, lat] of line) arr.push(lon, lat);
+        centerLines.push(
+          new Cesium.GeometryInstance({
+            geometry: new Cesium.GroundPolylineGeometry({
+              positions: Cesium.Cartesian3.fromDegreesArray(arr),
+              width: isCenter ? 2.4 : 1.5,
+            }),
+            attributes: {
+              color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+                Cesium.Color.fromCssColorString(isCenter ? '#e6d29a' : '#f2f0e6'),
+              ),
+            },
           }),
-          attributes: {
-            color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-              Cesium.Color.fromCssColorString(r.oneway ? '#e8e2d0' : '#e6d29a'),
-            ),
-          },
-        }),
-      );
+        );
+      }
     }
   }
 
