@@ -106,7 +106,7 @@ import { addSports } from './sports.js';
 
     if (!only || only === 'areas') addAreas(viewer, data, terrain);
     if (!only || only === 'river') addRiver(viewer, data, terrain);
-    if (!only || only === 'roads') addRoads(viewer, data);
+    if (!only || only === 'roads') addRoads(viewer, data, terrain);
     if (!only || only === 'buildings') addBuildings(viewer, data, terrain);
     if (!only || only === 'landmarks') addLandmarks(viewer, data, terrain);
     if (!only || only === 'trees') window.__treeCount = addTrees(viewer, data, terrain);

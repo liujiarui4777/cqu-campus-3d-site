@@ -280,6 +280,11 @@ void main() {
     }
     tuneEntities(t);
     nightStage.enabled = t !== 'day';
+    if (window.__lampPrims) {
+      const night = t === 'night';
+      window.__lampPrims.day.show = !night;
+      window.__lampPrims.night.show = night;
+    }
     nightStage.uniforms.uFactor = t === 'night' ? 0.55 : 0.8;
   }
 

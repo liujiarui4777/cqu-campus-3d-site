@@ -64,18 +64,50 @@ export function addLamps(viewer, data, terrain) {
     }),
   );
 
-  // 灯头（Entity，便于夜间发亮）
-  spots.forEach((s, i) => {
-    viewer.entities.add({
-      id: 'lamp:' + i,
-      position: Cesium.Cartesian3.fromDegrees(s.lon, s.lat, s.h + 7.8),
-      ellipsoid: {
-        radii: new Cesium.Cartesian3(0.3, 0.3, 0.34),
-        material: Cesium.Color.fromCssColorString('#8b8f94'),
-      },
-      properties: { kind: 'lamp' },
-    });
+  // 灯头：两个共享几何的 Primitive（白天灰 / 夜间亮），切换 show
+  const headGeo = new Cesium.EllipsoidGeometry({
+    radii: new Cesium.Cartesian3(0.32, 0.32, 0.36),
+    stackPartitions: 4,
+    slicePartitions: 6,
+    vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
   });
+  const dayHeads = [];
+  const nightHeads = [];
+  const gray = Cesium.Color.fromCssColorString('#8b8f94');
+  const warm = Cesium.Color.fromCssColorString('#ffd27a');
+  for (const s of spots) {
+    const m = Cesium.Transforms.eastNorthUpToFixedFrame(
+      Cesium.Cartesian3.fromDegrees(s.lon, s.lat, s.h + 7.8),
+    );
+    dayHeads.push(
+      new Cesium.GeometryInstance({
+        geometry: headGeo,
+        modelMatrix: m,
+        attributes: { color: Cesium.ColorGeometryInstanceAttribute.fromColor(gray) },
+      }),
+    );
+    nightHeads.push(
+      new Cesium.GeometryInstance({
+        geometry: headGeo,
+        modelMatrix: m,
+        attributes: { color: Cesium.ColorGeometryInstanceAttribute.fromColor(warm) },
+      }),
+    );
+  }
+  const dayPrim = new Cesium.Primitive({
+    geometryInstances: dayHeads,
+    appearance: new Cesium.PerInstanceColorAppearance({ translucent: false, closed: true }),
+    asynchronous: true,
+  });
+  const nightPrim = new Cesium.Primitive({
+    geometryInstances: nightHeads,
+    appearance: new Cesium.PerInstanceColorAppearance({ translucent: false, closed: true }),
+    asynchronous: true,
+  });
+  nightPrim.show = false;
+  viewer.scene.primitives.add(dayPrim);
+  viewer.scene.primitives.add(nightPrim);
+  window.__lampPrims = { day: dayPrim, night: nightPrim };
 
   return spots.length;
 }

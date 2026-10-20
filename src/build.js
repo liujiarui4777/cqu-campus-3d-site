@@ -1,5 +1,13 @@
 const MLAT = 110540;
 
+function ringWithHeights(Cesium, ring, terrain, offset) {
+  const arr = [];
+  for (const [lon, lat] of ring) {
+    arr.push(lon, lat, terrain.sample(lon, lat) + offset);
+  }
+  return Cesium.Cartesian3.fromDegreesArrayHeights(arr);
+}
+
 /* 场景构件：区域 / 道路 / 建筑 / 边界 */
 
 function flatLonLat(ring) {
@@ -102,7 +110,7 @@ export function addBuildings(viewer, data, terrain) {
       const expPos = [];
       for (const [lo, la] of exp) expPos.push(lo, la);
       const expHierarchy = Cesium.Cartesian3.fromDegreesArray(expPos);
-      const bands = Math.max(1, Math.min(14, Math.floor(b.levels)));
+      const bands = Math.max(1, Math.min(8, Math.floor(b.levels / 2)));
       const span = top - bottom;
       const glass = Cesium.Color.fromCssColorString('#7d8b96');
       for (let i = 1; i <= bands; i++) {
@@ -200,7 +208,8 @@ export function addAreas(viewer, data, terrain) {
     if (a.kind === 'river') continue;
     const inst = new Cesium.GeometryInstance({
       geometry: new Cesium.PolygonGeometry({
-        polygonHierarchy: new Cesium.PolygonHierarchy(ringPositions(Cesium, a.outline, 0)),
+        polygonHierarchy: new Cesium.PolygonHierarchy(ringWithHeights(Cesium, a.outline, terrain, 0.65)),
+        perPositionHeight: true,
         vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
       }),
       attributes: {
@@ -252,10 +261,9 @@ export function addAreas(viewer, data, terrain) {
   const add = (insts) => {
     if (!insts.length) return;
     viewer.scene.primitives.add(
-      new Cesium.GroundPrimitive({
+      new Cesium.Primitive({
         geometryInstances: insts,
         appearance: new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }),
-        classificationType: Cesium.ClassificationType.TERRAIN,
         asynchronous: true,
       }),
     );
@@ -265,7 +273,7 @@ export function addAreas(viewer, data, terrain) {
   add(water);
 }
 
-export function addRoads(viewer, data) {
+export function addRoads(viewer, data, terrain) {
   const Cesium = window.Cesium;
   const MLAT = 110540;
   const mLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
@@ -322,6 +330,12 @@ export function addRoads(viewer, data) {
     const isWalk = r.cls === 'footway' || r.cls === 'steps' || r.lanes === 0;
     const w = isWalk ? 2.4 : Math.max(3, r.width);
 
+    const isMajorRoad = ['primary', 'secondary', 'tertiary', 'primary_link', 'secondary_link'].includes(r.cls);
+    if (!isMajorRoad) {
+      // 支路/服务道：已烘焙进底图，这里不再生成几何（大幅降低贴地多边形数量）
+      continue;
+    }
+
     if (!isWalk && w > 4) {
       // 路缘石：路面两侧各一条 0.44m 宽的石条
       for (const side of [-1, 1]) {
@@ -331,7 +345,8 @@ export function addRoads(viewer, data) {
         walks.push(
           new Cesium.GeometryInstance({
             geometry: new Cesium.PolygonGeometry({
-              polygonHierarchy: new Cesium.PolygonHierarchy(ringToPositions(ring, 0.02)),
+              polygonHierarchy: new Cesium.PolygonHierarchy(ringPositions(Cesium, ring, 0)),
+              perPositionHeight: true,
               vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
             }),
             attributes: {
@@ -434,20 +449,20 @@ export function addRoads(viewer, data) {
     }
   }
 
-  const add = (insts, appearance, classification) => {
+  const add = (insts, appearance) => {
     if (!insts.length) return;
     viewer.scene.primitives.add(
       new Cesium.GroundPrimitive({
         geometryInstances: insts,
         appearance,
-        classificationType: classification,
+        classificationType: Cesium.ClassificationType.TERRAIN,
         asynchronous: true,
       }),
     );
   };
 
-  add(walks, new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }), Cesium.ClassificationType.TERRAIN);
-  add(surfaces, new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }), Cesium.ClassificationType.TERRAIN);
+  add(walks, new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }));
+  add(surfaces, new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }));
   if (centerLines.length) {
     viewer.scene.primitives.add(
       new Cesium.GroundPolylinePrimitive({

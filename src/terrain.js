@@ -70,7 +70,8 @@ export async function loadTerrain(base, Cesium) {
   };
 
   const tilingScheme = new Cesium.GeographicTilingScheme();
-  const N = 65;
+  const N = 49;
+  const tileCache = new Map();
   const b = coarse ? coarse.meta : m;
   const clampLon = (v) => (v < b.west ? b.west : v > b.east ? b.east : v);
   const clampLat = (v) => (v < b.south ? b.south : v > b.north ? b.north : v);
@@ -80,6 +81,9 @@ export async function loadTerrain(base, Cesium) {
     height: N,
     tilingScheme,
     callback: (x, y, level) => {
+      const key = level + '/' + x + '/' + y;
+      const hit = tileCache.get(key);
+      if (hit) return hit;
       const rect = tilingScheme.tileXYToRectangle(x, y, level);
       const west = Cesium.Math.toDegrees(rect.west);
       const east = Cesium.Math.toDegrees(rect.east);
@@ -96,6 +100,8 @@ export async function loadTerrain(base, Cesium) {
           out[r * N + c] = sample(clampLon(lon), clampLat(lat));
         }
       }
+      if (tileCache.size > 4000) tileCache.clear();
+      tileCache.set(key, out);
       return out;
     },
   });
