@@ -1,3 +1,4 @@
+import { parseSchedule, matchBuilding, todayIndex, save as saveSchedule, load as loadSchedule, DAY_NAMES } from './schedule.js';
 import { nearestNode, shortestPath } from './nav.js';
 /* 交互：点击建筑 → 信息卡；地标导览；昼夜主题 */
 
@@ -343,6 +344,96 @@ void main() {
       if (!e.target.closest('.search')) results.classList.remove('show');
     });
   }
+
+  /* ---------- 今日课程 ---------- */
+  const schedBtn = document.getElementById('schedule-btn');
+  const schedPanel = document.getElementById('schedule');
+  const schedList = document.getElementById('schedule-list');
+  const schedInput = document.getElementById('schedule-input');
+  const schedDate = document.getElementById('schedule-date');
+  let schedule = loadSchedule();
+  const markers = [];
+
+  function renderSchedule() {
+    if (!schedPanel) return;
+    const today = todayIndex();
+    const toMin = (t) => {
+      const p = String(t).split(':');
+      return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0);
+    };
+    const rows = schedule
+      .filter((r) => r.day === today)
+      .sort((a, b) => toMin(a.start) - toMin(b.start));
+    if (schedDate) {
+      schedDate.textContent = DAY_NAMES[today] + ' · ' + new Date().toLocaleDateString('zh-CN');
+    }
+    for (const m of markers) viewer.entities.remove(m);
+    markers.length = 0;
+    schedList.innerHTML = '';
+    if (!rows.length) {
+      schedList.innerHTML = '<p class="sched-empty">今天没有课。在下方粘贴课表后点「导入课表」。</p>';
+      return;
+    }
+    for (const r of rows) {
+      const b = matchBuilding(data.buildings || [], r.place);
+      const item = document.createElement('button');
+      item.className = 'sched-item';
+      item.innerHTML =
+        '<b>' + r.start + '–' + r.end + '</b><span>' + r.name + '</span><em>' +
+        (b ? b.name : (r.place || '地点未匹配')) + '</em>';
+      if (b) {
+        item.addEventListener('click', () => show({ properties: { data: { getValue: () => b } } }));
+      }
+      schedList.appendChild(item);
+      if (b) {
+        const h0 = terrain.sample(b.center[0], b.center[1]);
+        markers.push(
+          viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(b.center[0], b.center[1], h0 + b.height + 14),
+            label: {
+              text: r.name + '  ' + r.start,
+              font: '13px system-ui, sans-serif',
+              fillColor: Cesium.Color.fromCssColorString('#1f2a33'),
+              showBackground: true,
+              backgroundColor: Cesium.Color.fromCssColorString('#ffffff').withAlpha(0.88),
+              pixelOffset: new Cesium.Cartesian2(0, -12),
+              scale: 1,
+            },
+            ellipse: {
+              semiMajorAxis: 20,
+              semiMinorAxis: 20,
+              height: h0 + 0.4,
+              material: Cesium.Color.fromCssColorString('#e8b84b').withAlpha(0.32),
+            },
+          }),
+        );
+      }
+    }
+  }
+
+  if (schedBtn) {
+    schedBtn.addEventListener('click', () => {
+      schedPanel.classList.toggle('show');
+      renderSchedule();
+    });
+  }
+  const schedClose = document.getElementById('schedule-close');
+  if (schedClose) schedClose.addEventListener('click', () => schedPanel.classList.remove('show'));
+  const schedSave = document.getElementById('schedule-save');
+  if (schedSave) {
+    schedSave.addEventListener('click', () => {
+      const rows = parseSchedule(schedInput.value);
+      if (!rows.length) {
+        setHint('没有解析到课程，格式示例：周一 8:00-9:40 高等数学 第一教学楼');
+        return;
+      }
+      schedule = rows;
+      saveSchedule(rows);
+      renderSchedule();
+      setHint('已导入 ' + rows.length + ' 门课，今天的课已标在地图上');
+    });
+  }
+  renderSchedule();
 
   /* ---------- 回到全景 ---------- */
   function flyHome(msg) {

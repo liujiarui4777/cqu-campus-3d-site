@@ -9,6 +9,26 @@
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
     <link rel="stylesheet" href="./src/style.css" />
     <script>
+      window.addEventListener('error', function (e) {
+        try {
+          var el = document.getElementById('error');
+          if (el) {
+            el.style.display = 'block';
+            el.textContent = 'JS 错误: ' + (e.message || '') + ' @ ' + (e.filename || '') + ':' + (e.lineno || '');
+          }
+        } catch (err) {}
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        try {
+          var el = document.getElementById('error');
+          if (el) {
+            el.style.display = 'block';
+            el.textContent = 'Promise 错误: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
+          }
+        } catch (err) {}
+      });
+    </script>
+    <script>
       window.CESIUM_BASE_URL = new URL('./cesium/', document.baseURI).href;
     </script>
     <script src="./cesium/Cesium.js"></script>
@@ -56,10 +76,20 @@
       <div class="dock-actions">
         <button id="home-btn" class="dock-btn" title="回到全景视角">全景</button>
         <button id="nav-btn" class="dock-btn" title="选择起点与终点建筑">步行导航</button>
+        <button id="schedule-btn" class="dock-btn" title="导入课表，在地图上显示今天的课">今日课程</button>
       </div>
       <div class="guides" id="guides"></div>
       <div class="dock-status" id="dock-status">点击建筑查看详情 · 拖拽旋转 · 滚轮缩放</div>
     </footer>
+
+    <section class="schedule" id="schedule">
+      <button class="schedule-close" id="schedule-close" aria-label="关闭">×</button>
+      <h3>今日课程</h3>
+      <p class="schedule-date" id="schedule-date"></p>
+      <div class="schedule-list" id="schedule-list"></div>
+      <textarea id="schedule-input" placeholder="粘贴课表，每行一门课，例如：&#10;周一 8:00-9:40 高等数学 第一教学楼&#10;周一 10:00-11:40 大学物理 理科教学楼"></textarea>
+      <button class="schedule-save" id="schedule-save">导入课表</button>
+    </section>
 
     <div class="boot" id="boot">
       <div class="boot-inner">
