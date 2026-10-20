@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A 区三维校园地图" />
     <title>重庆大学 · 三维校园（官方版）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261020f" />
+    <link rel="stylesheet" href="./src/style.css?v=20261020g" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -78,10 +78,23 @@
         <button id="nav-btn" class="dock-btn" title="选择起点与终点建筑">步行导航</button>
         <button id="schedule-btn" class="dock-btn" title="导入课表，在地图上显示今天的课">今日课程</button>
         <button id="imagery-btn" class="dock-btn" title="切换真实卫星影像与风格化底图">影像</button>
+        <button id="shuttle-btn" class="dock-btn" title="校车时刻表">校车</button>
       </div>
       <div class="guides" id="guides"></div>
       <div class="dock-status" id="dock-status">点击建筑查看详情 · 拖拽旋转 · 滚轮缩放</div>
     </footer>
+
+    <section class="shuttle" id="shuttle">
+      <button class="shuttle-close" id="shuttle-close" aria-label="关闭">×</button>
+      <h3>校车 · 沙坪坝 ⇄ 科学城</h3>
+      <p class="shuttle-next" id="shuttle-next"></p>
+      <div class="shuttle-tabs">
+        <button data-dir="outbound" class="active">沙坪坝 → 科学城</button>
+        <button data-dir="inbound">科学城 → 沙坪坝</button>
+      </div>
+      <p class="shuttle-stops" id="shuttle-stops"></p>
+      <div class="shuttle-list" id="shuttle-list"></div>
+    </section>
 
     <section class="schedule" id="schedule">
       <button class="schedule-close" id="schedule-close" aria-label="关闭">×</button>
@@ -102,6 +115,6 @@
 
     <div class="error" id="error"></div>
 
-    <script type="module" src="./src/app.js?v=20261020f"></script>
+    <script type="module" src="./src/app.js?v=20261020g"></script>
   </body>
 </html>

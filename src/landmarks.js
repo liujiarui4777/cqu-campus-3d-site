@@ -370,54 +370,92 @@ export function addLandmarks(viewer, data, terrain) {
     });
   }
 
-  /* ---------- 思群广场：400m 标准跑道 ---------- */
+  /* ---------- 思群广场：400m 标准跑道（带洞多边形，避免自交） ---------- */
   const track = data.track;
   if (track) {
     const [clon, clat] = track.center;
     const h0 = terrain.sample(clon, clat);
-    const bearing = (track.bearing || 0) * (Math.PI / 180);
-    // 400m 半圆式：直道 84.39m、弯道半径 36.5m、道宽 9.76m（8 道）
-    const R = 36.5;
-    const L = 84.39;
-    const W = 9.76;
-    // 外圈与内圈分成两个环，用带洞多边形，避免自交
-    const outerPts = trackRing(R, L, W, 28, true);
-    const innerPts = trackRing(R, L, W, 28, false);
-    const outerDeg = outerPts.map(([x, y]) => {
-      const [rx, ry] = rotate(x, y, bearing);
-      return offset(clon, clat, rx, ry);
-    });
-    const innerDeg = innerPts.map(([x, y]) => {
-      const [rx, ry] = rotate(x, y, bearing);
-      return offset(clon, clat, rx, ry);
-    });
-    const outerPos = [];
-    for (const [lo, la] of outerDeg) outerPos.push(lo, la);
-    const innerPos = [];
-    for (const [lo, la] of innerDeg) innerPos.push(lo, la);
+    const bearing = ((90 - (track.bearing || 0)) * Math.PI) / 180; // 方位角(从北顺时针) → 数学角(从东逆时针)
+    const R = 36.5;   // 内沿弯道半径
+    const L = 84.39;  // 直道长度
+    const W = 9.76;   // 8 道总宽
+    const N = 24;     // 每个半圆的采样段数
+
+    const ring = (radius, n) => {
+      const half = L / 2;
+      const pts = [];
+      for (let i = 0; i <= n; i++) {
+        const a = -Math.PI / 2 + (Math.PI * i) / n;
+        pts.push([half + Math.cos(a) * radius, Math.sin(a) * radius]);
+      }
+      for (let i = 0; i <= n; i++) {
+        const a = Math.PI / 2 + (Math.PI * i) / n;
+        pts.push([-half + Math.cos(a) * radius, Math.sin(a) * radius]);
+      }
+      return pts;
+    };
+    const toDeg = (pts) =>
+      pts.map(([x, y]) => {
+        const [rx, ry] = rotate(x, y, bearing);
+        return offset(clon, clat, rx, ry);
+      });
+    const flat = (pts) => {
+      const out = [];
+      for (const [lo, la] of pts) out.push(lo, la);
+      return out;
+    };
+
+    // 跑道：外沿带内沿洞
+    const outerDeg = toDeg(ring(R + W, N));
+    const innerDeg = toDeg(ring(R, N));
     E.add({
       polygon: {
-        hierarchy: new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(outerPos)),
+        hierarchy: new Cesium.PolygonHierarchy(
+          Cesium.Cartesian3.fromDegreesArray(flat(outerDeg)),
+          [new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(flat(innerDeg)))],
+        ),
         height: h0 + 0.26,
         material: cr('#b4573f'),
       },
       properties: { kind: 'landmark', name: '思群广场 400m 跑道' },
     });
-    // 内场草地（覆盖跑道内侧，形成环形观感）
-    const innerOutline = trackRing(R - 0.35, L - 0.35, 0, 28, true).map(([x, y]) => {
+
+    // 内场：105 × 68 矩形草皮
+    const FW = 68;
+    const FL = 105;
+    const fieldPts = [
+      [-FL / 2, -FW / 2],
+      [FL / 2, -FW / 2],
+      [FL / 2, FW / 2],
+      [-FL / 2, FW / 2],
+    ].map(([x, y]) => {
       const [rx, ry] = rotate(x, y, bearing);
       return offset(clon, clat, rx, ry);
     });
-    const innerFlat = [];
-    for (const [lo, la] of innerOutline) innerFlat.push(lo, la);
     E.add({
       polygon: {
-        hierarchy: Cesium.Cartesian3.fromDegreesArray(innerFlat),
+        hierarchy: Cesium.Cartesian3.fromDegreesArray(flat(fieldPts)),
         height: h0 + 0.34,
         material: cr('#6f9a5e'),
       },
       properties: { kind: 'landmark', name: '思群广场内场' },
     });
+
+    // 分道线：8 道，每 1.22 m 一条
+    for (let lane = 1; lane <= 7; lane++) {
+      const r = R + lane * 1.22;
+      const pts = toDeg(ring(r, N));
+      const line = [];
+      for (const [lo, la] of pts) line.push(lo, la, h0 + 0.42);
+      E.add({
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights(line),
+          width: 1,
+          material: Cesium.Color.WHITE.withAlpha(0.5),
+        },
+        properties: { kind: 'landmark' },
+      });
+    }
   }
 }
 

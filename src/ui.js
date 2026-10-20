@@ -1,3 +1,4 @@
+import { SHUTTLE, SHUTTLE_STOPS, todaySchedule, nextBus } from './shuttle.js';
 import { parseSchedule, matchBuilding, todayIndex, save as saveSchedule, load as loadSchedule, DAY_NAMES } from './schedule.js';
 import { nearestNode, shortestPath } from './nav.js';
 /* 交互：点击建筑 → 信息卡；地标导览；昼夜主题 */
@@ -459,6 +460,79 @@ void main() {
     });
   }
   // 启动时不渲染课表标记，只有打开「今日课程」面板才显示
+
+  /* ---------- 校车时刻表 ---------- */
+  const shuttleBtn = document.getElementById('shuttle-btn');
+  const shuttlePanel = document.getElementById('shuttle');
+  const shuttleNext = document.getElementById('shuttle-next');
+  const shuttleList = document.getElementById('shuttle-list');
+  const shuttleStops = document.getElementById('shuttle-stops');
+  let shuttleDir = 'outbound';
+
+  function renderShuttle() {
+    const t = SHUTTLE[shuttleDir];
+    const stopIdx = shuttleDir === 'outbound' ? 1 : 2;
+    const nb = nextBus(stopIdx, shuttleDir);
+    if (shuttleNext) {
+      shuttleNext.textContent = nb
+        ? '下一班 ' + nb.time + '（' + nb.inMin + ' 分钟后）· ' + t.stops[stopIdx]
+        : '今日班次已结束';
+    }
+    if (shuttleStops) shuttleStops.textContent = '经停：' + t.stops.join(' · ');
+    if (shuttleList) {
+      shuttleList.innerHTML = todaySchedule(stopIdx, shuttleDir)
+        .map(
+          (x) =>
+            '<div class="shuttle-item' + (x.passed ? ' past' : '') + '"><b>' + x.time +
+            '</b><span>' + (x.passed ? '已发车' : x.inMin + ' 分钟后') + '</span></div>',
+        )
+        .join('');
+    }
+  }
+
+  document.querySelectorAll('.shuttle-tabs button').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.shuttle-tabs button').forEach((x) => x.classList.remove('active'));
+      b.classList.add('active');
+      shuttleDir = b.getAttribute('data-dir');
+      renderShuttle();
+    });
+  });
+  if (shuttleBtn) {
+    shuttleBtn.addEventListener('click', () => {
+      const open = shuttlePanel.classList.toggle('show');
+      if (open) renderShuttle();
+    });
+  }
+  const shuttleClose = document.getElementById('shuttle-close');
+  if (shuttleClose) shuttleClose.addEventListener('click', () => shuttlePanel.classList.remove('show'));
+
+  // 地图上标记 A 区乘车点
+  for (const s of SHUTTLE_STOPS) {
+    const h0 = terrain.sample(s.lon, s.lat);
+    viewer.entities.add({
+      id: s.id,
+      position: Cesium.Cartesian3.fromDegrees(s.lon, s.lat, h0 + 3),
+      point: {
+        pixelSize: 9,
+        color: Cesium.Color.fromCssColorString('#2f6f6a'),
+        outlineColor: Cesium.Color.WHITE,
+        outlineWidth: 2,
+      },
+      label: {
+        text: '校车 · ' + s.name,
+        font: '11px system-ui, sans-serif',
+        fillColor: Cesium.Color.fromCssColorString('#1f2a33'),
+        showBackground: true,
+        backgroundColor: Cesium.Color.fromCssColorString('#e2ecea').withAlpha(0.9),
+        backgroundPadding: new Cesium.Cartesian2(5, 2),
+        pixelOffset: new Cesium.Cartesian2(0, -16),
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 2500),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      properties: { kind: 'shuttle', name: s.name },
+    });
+  }
 
   /* ---------- 影像 / 风格化切换 ---------- */
   const imgBtn = document.getElementById('imagery-btn');

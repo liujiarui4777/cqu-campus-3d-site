@@ -539,3 +539,54 @@ html[data-theme='night'] .schedule textarea {
   padding: 7px 0; border-radius: 10px; cursor: pointer;
 }
 .schedule-clear:hover { border-color: #b3261e; color: #b3261e; }
+
+
+/* ---------------- 校车面板 ---------------- */
+.shuttle {
+  position: absolute;
+  right: 20px;
+  bottom: 96px;
+  width: 340px;
+  max-width: calc(100vw - 40px);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px 20px 16px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  z-index: 26;
+  display: none;
+  max-height: 70vh;
+  overflow: hidden;
+}
+.shuttle.show { display: block; animation: pop 0.22s ease both; }
+.shuttle h3 { margin: 0 0 6px; font-size: 16px; font-weight: 650; }
+.shuttle-close {
+  position: absolute; right: 12px; top: 10px;
+  border: 0; background: transparent; font-size: 20px; line-height: 1;
+  color: var(--muted); cursor: pointer;
+}
+.shuttle-next {
+  margin: 0 0 10px; font-size: 13px; color: var(--accent); font-weight: 600;
+}
+.shuttle-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.shuttle-tabs button {
+  flex: 1; appearance: none; border: 1px solid var(--line); background: transparent;
+  font: inherit; font-size: 11.5px; color: var(--muted);
+  padding: 6px 4px; border-radius: 8px; cursor: pointer;
+}
+.shuttle-tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.shuttle-stops { margin: 0 0 8px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+.shuttle-list { max-height: 240px; overflow-y: auto; }
+.shuttle-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 2px; border-bottom: 1px solid rgba(31,42,51,0.05); font-size: 12.5px;
+}
+.shuttle-item b { font-weight: 600; color: var(--accent); }
+.shuttle-item span { font-size: 11.5px; color: var(--muted); }
+.shuttle-item.past { opacity: 0.42; }
+html[data-theme='night'] .shuttle {
+  background: rgba(20, 28, 40, 0.95);
+  border-color: rgba(255,255,255,0.1);
+  color: #e8eef4;
+}
