@@ -412,7 +412,7 @@ export function addLandmarks(viewer, data, terrain) {
       polygon: {
         hierarchy: new Cesium.PolygonHierarchy(
           Cesium.Cartesian3.fromDegreesArray(flat(outerDeg)),
-          [new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(flat(innerDeg)))],
+          [new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(flat(innerDeg.slice().reverse())))],
         ),
         height: h0 + 0.26,
         material: cr('#b4573f'),
@@ -420,15 +420,8 @@ export function addLandmarks(viewer, data, terrain) {
       properties: { kind: 'landmark', name: '思群广场 400m 跑道' },
     });
 
-    // 内场：105 × 68 矩形草皮
-    const FW = 68;
-    const FL = 105;
-    const fieldPts = [
-      [-FL / 2, -FW / 2],
-      [FL / 2, -FW / 2],
-      [FL / 2, FW / 2],
-      [-FL / 2, FW / 2],
-    ].map(([x, y]) => {
+    // 内场：与跑道内圈同心，略收缩 1.2 m
+    const fieldPts = ring(R - 1.2, N).map(([x, y]) => {
       const [rx, ry] = rotate(x, y, bearing);
       return offset(clon, clat, rx, ry);
     });

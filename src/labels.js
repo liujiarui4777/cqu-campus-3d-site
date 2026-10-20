@@ -1,4 +1,6 @@
-/* 主要建筑名称标签：小字号、半透明底，近距离才显示，不干扰整体观感 */
+/* 建筑标签：用 DOM 覆盖层渲染，字体清晰、可点击、带 hover 效果
+ * 位置每帧由 Cesium 投影到屏幕坐标
+ */
 
 export function addBuildingLabels(viewer, data, terrain) {
   const Cesium = window.Cesium;
@@ -22,35 +24,76 @@ export function addBuildingLabels(viewer, data, terrain) {
     '重庆大学A区体育馆',
     '学生十宿舍',
     '学生四宿舍',
+    '民主湖',
   ];
 
-  let count = 0;
+  const layer = document.createElement('div');
+  layer.className = 'label-layer';
+  document.body.appendChild(layer);
+
+  const items = [];
+  const seen = new Set();
   for (const b of data.buildings || []) {
-    const name = b.name || '';
-    if (!name) continue;
-    const isMajor = b.landmark || MAJOR.includes(name);
-    if (!isMajor) continue;
+    const name = (b.name || '').replace('重庆大学', '');
+    if (!name || seen.has(name)) continue;
+    if (!(b.landmark || MAJOR.includes(name))) continue;
+    seen.add(name);
+
     const h0 = terrain.sample(b.center[0], b.center[1]);
-    viewer.entities.add({
-      id: 'label:' + b.id,
-      position: Cesium.Cartesian3.fromDegrees(b.center[0], b.center[1], h0 + b.height + 6),
-      label: {
-        text: name.replace('重庆大学', ''),
-        font: '11px system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif',
-        fillColor: Cesium.Color.fromCssColorString('#2c3a46'),
-        showBackground: true,
-        backgroundColor: Cesium.Color.fromCssColorString('#ffffff').withAlpha(0.62),
-        backgroundPadding: new Cesium.Cartesian2(5, 2),
-        pixelOffset: new Cesium.Cartesian2(0, -4),
-        scale: 1,
-        // 只在 1.6 km 内显示，避免全景时满屏小字
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1600),
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        translucencyByDistance: new Cesium.NearFarScalar(700, 1.0, 1600, 0.15),
-      },
-      properties: { kind: 'building', data: b },
+    const btn = document.createElement('button');
+    btn.className = 'bldg-label' + (b.landmark ? ' landmark' : '');
+    btn.type = 'button';
+    btn.innerHTML = `<span>${name}</span>`;
+    btn.dataset.name = name;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (window.__focusBuilding) window.__focusBuilding(b);
     });
-    count++;
+    layer.appendChild(btn);
+
+    items.push({
+      el: btn,
+      pos: Cesium.Cartesian3.fromDegrees(b.center[0], b.center[1], h0 + b.height + 4),
+      b,
+    });
   }
-  return count;
+
+  const ST = Cesium.SceneTransforms;
+  const project =
+    ST.worldToWindowCoordinates ? (sc, pos) => ST.worldToWindowCoordinates(sc, pos)
+      : ST.wgs84ToWindowCoordinates ? (sc, pos) => ST.wgs84ToWindowCoordinates(sc, pos)
+      : null;
+  if (!project) {
+    console.warn('SceneTransforms 投影函数不可用，标签层跳过');
+    return () => {};
+  }
+
+  const canvas = viewer.scene.canvas;
+  const removeHandler = viewer.scene.postRender.addEventListener(() => {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    const camPos = viewer.camera.positionWC;
+    for (const it of items) {
+      const p = project(viewer.scene, it.pos);
+      if (!p) {
+        it.el.style.display = 'none';
+        continue;
+      }
+      const dist = Cesium.Cartesian3.distance(camPos, it.pos);
+      if (dist > 1600 || p.x < -80 || p.x > w + 80 || p.y < -40 || p.y > h + 40) {
+        it.el.style.display = 'none';
+        continue;
+      }
+      it.el.style.display = 'block';
+      it.el.style.transform = `translate(-50%, -100%) translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
+      it.el.style.opacity = dist < 750 ? '1' : String(Math.max(0.35, 1 - (dist - 750) / 1100));
+      it.el.style.zIndex = String(10000 - Math.round(dist / 10));
+    }
+  });
+
+  window.__labelCount = items.length;
+  return () => {
+    removeHandler && removeHandler();
+    layer.remove();
+  };
 }

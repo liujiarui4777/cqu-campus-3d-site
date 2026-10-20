@@ -590,3 +590,61 @@ html[data-theme='night'] .shuttle {
   border-color: rgba(255,255,255,0.1);
   color: #e8eef4;
 }
+
+
+/* ---------------- 建筑标签（DOM 覆盖层） ---------------- */
+.label-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 6;
+}
+.bldg-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  appearance: none;
+  border: 1px solid rgba(31, 42, 51, 0.1);
+  background: rgba(255, 255, 255, 0.94);
+  color: #23303c;
+  font: 600 11.5px/1.25 system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  letter-spacing: 0.02em;
+  padding: 4px 8px 4.5px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(20, 30, 40, 0.12), 0 6px 14px rgba(20, 30, 40, 0.06);
+  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, scale 0.16s ease;
+  will-change: transform;
+  margin-top: -6px;
+  user-select: none;
+}
+.bldg-label:hover {
+  background: #2f6f6a;
+  border-color: #2f6f6a;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(47, 111, 106, 0.35), 0 10px 22px rgba(47, 111, 106, 0.22);
+  scale: 1.04;
+  z-index: 9999 !important;
+}
+.bldg-label.landmark {
+  background: rgba(255, 252, 244, 0.96);
+  border-color: rgba(180, 87, 63, 0.35);
+  color: #8c3f2c;
+}
+.bldg-label.landmark:hover {
+  background: #b4573f;
+  border-color: #b4573f;
+  color: #fff;
+}
+html[data-theme='night'] .bldg-label {
+  background: rgba(24, 32, 44, 0.92);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #dfe8f0;
+}
+html[data-theme='night'] .bldg-label:hover { background: #3f8f87; border-color: #3f8f87; color: #fff; }
+@media (max-width: 640px) {
+  .bldg-label { font-size: 10px; padding: 3px 6px; }
+}

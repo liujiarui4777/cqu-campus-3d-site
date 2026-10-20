@@ -127,7 +127,7 @@ import { addBuildingLabels } from './labels.js';
     if (!only || only === 'gates') window.__gateCount = addGates(viewer, data, terrain);
     if (!only || only === 'sports') window.__sportCount = addSports(viewer, data, terrain);
     if (!only || only === 'surroundings') window.__surroundCount = await addSurroundings(viewer, BASE, terrain);
-    if (!only || only === 'labels') window.__labelCount = addBuildingLabels(viewer, data, terrain);
+    if (!only || only === 'labels') window.__labelCleanup = addBuildingLabels(viewer, data, terrain);
     if (!only || only === 'boundary') addBoundary(viewer, data, terrain);
 
     if (dom.stats) {
