@@ -203,16 +203,64 @@ export function initInteraction(viewer, data, terrain, graph) {
 
   /* ---------- 昼夜 ---------- */
   const root = document.documentElement;
+  const origColors = new WeakMap();
+
+  function tuneEntities(t) {
+    const f = t === 'day' ? 1 : t === 'dusk' ? 0.78 : 0.42;
+    const tint = t === 'night' ? [0.82, 0.86, 1.0] : [1, 1, 1];
+    for (const e of viewer.entities.values) {
+      const poly = e.polygon;
+      const prop = poly && poly.material && poly.material.color;
+      if (prop) {
+        if (t === 'night' && typeof e.id === 'string' && e.id.startsWith('win:')) {
+          prop.setValue(Cesium.Color.fromCssColorString('#ffd8a0'));
+          if (!origColors.has(e)) origColors.set(e, Cesium.Color.fromCssColorString('#7d8b96'));
+          continue;
+        }
+        if (!origColors.has(e)) origColors.set(e, Cesium.Color.clone(prop.getValue(Cesium.JulianDate.now())));
+        const c = origColors.get(e);
+        prop.setValue(
+          new Cesium.Color(c.red * f * tint[0], c.green * f * tint[1], c.blue * f * tint[2], 1),
+        );
+      }
+      const line = e.polyline;
+      const lprop = line && line.material && line.material.color;
+      if (lprop) {
+        if (!origColors.has(e)) origColors.set(e, Cesium.Color.clone(lprop.getValue(Cesium.JulianDate.now())));
+        const c = origColors.get(e);
+        lprop.setValue(new Cesium.Color(c.red * f * tint[0], c.green * f * tint[1], c.blue * f * tint[2], 1));
+      }
+    }
+  }
+
+  // 整屏压暗（覆盖树木/道路/场地等不可单独调色的图元）
+  const nightStage = Cesium.PostProcessStageLibrary.createBrightnessStage(0.42);
+  nightStage.enabled = false;
+  viewer.scene.postProcessStages.add(nightStage);
+
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    const bg = t === 'night' ? '#0e1520' : t === 'dusk' ? '#26324a' : '#e9e6de';
+    viewer.scene.backgroundColor = Cesium.Color.fromCssColorString(bg);
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString(bg);
+    // 底图调暗/去饱和，让夜间整体统一
+    for (let i = 0; i < viewer.imageryLayers.length; i++) {
+      const layer = viewer.imageryLayers.get(i);
+      layer.brightness = t === 'day' ? 1 : t === 'dusk' ? 0.68 : 0.3;
+      layer.saturation = t === 'day' ? 1 : t === 'dusk' ? 0.7 : 0.25;
+      layer.gamma = t === 'day' ? 1 : t === 'dusk' ? 1.05 : 1.25;
+      layer.contrast = t === 'day' ? 1 : t === 'dusk' ? 1.05 : 1.15;
+    }
+    tuneEntities(t);
+    nightStage.enabled = t !== 'day';
+    nightStage.uniforms.brightness = t === 'night' ? 0.58 : 0.78;
+  }
+
   document.querySelectorAll('[data-time]').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-time]').forEach((x) => x.classList.remove('active'));
       btn.classList.add('active');
-      const t = btn.getAttribute('data-time');
-      root.setAttribute('data-theme', t);
-      const bg =
-        t === 'night' ? '#0e1520' : t === 'dusk' ? '#26324a' : '#e9e6de';
-      viewer.scene.backgroundColor = Cesium.Color.fromCssColorString(bg);
-      viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString(bg);
+      applyTheme(btn.getAttribute('data-time'));
     });
   });
 
