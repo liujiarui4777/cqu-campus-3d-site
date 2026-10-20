@@ -1,8 +1,18 @@
 /* 地形：预下载的 DEM（细网格 + 外围粗网格）→ Cesium 本地地形，不依赖在线服务 */
 
+async function fetchBin(base, name) {
+  const gz = await fetch(`${base}data/${name}.bin.gz`);
+  if (gz.ok && typeof DecompressionStream !== 'undefined') {
+    const compressed = await gz.arrayBuffer();
+    const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return await new Response(stream).arrayBuffer();
+  }
+  return await fetch(`${base}data/${name}.bin`).then((r) => r.arrayBuffer());
+}
+
 async function loadGrid(base, name) {
   const meta = await fetch(`${base}data/${name}.json`).then((r) => r.json());
-  const buf = await fetch(`${base}data/${name}.bin`).then((r) => r.arrayBuffer());
+  const buf = await fetchBin(base, name);
   const q = new Int16Array(buf);
   const W = meta.width;
   const H = meta.height;
