@@ -404,7 +404,7 @@ export function addLandmarks(viewer, data, terrain) {
       properties: { kind: 'landmark', name: '思群广场 400m 跑道' },
     });
     // 内场草地（覆盖跑道内侧，形成环形观感）
-    const innerOutline = trackRing(R, L, 0, 28, true).map(([x, y]) => {
+    const innerOutline = trackRing(R - 0.35, L - 0.35, 0, 28, true).map(([x, y]) => {
       const [rx, ry] = rotate(x, y, bearing);
       return offset(clon, clat, rx, ry);
     });

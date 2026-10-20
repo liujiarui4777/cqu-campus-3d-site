@@ -347,6 +347,48 @@ export function addRoads(viewer, data) {
     );
 
     // 车道分道线：按车道数在路面内均分
+    // 台阶：每 1.3m 一条横向踏步线
+    if (r.cls === 'steps' && r.path.length >= 2) {
+      for (let i = 0; i < r.path.length - 1; i++) {
+        const lon0 = r.path[i][0];
+        const lat0 = r.path[i][1];
+        const lon1 = r.path[i + 1][0];
+        const lat1 = r.path[i + 1][1];
+        const dx = (lon1 - lon0) * mLon(lat0);
+        const dy = (lat1 - lat0) * MLAT;
+        const len = Math.hypot(dx, dy);
+        if (len < 1) continue;
+        const n = Math.max(1, Math.floor(len / 1.3));
+        const nx = -dy / len;
+        const ny = dx / len;
+        const half = 1.7;
+        for (let k = 0; k <= n; k++) {
+          const t = k / n;
+          const lon = lon0 + (lon1 - lon0) * t;
+          const lat = lat0 + (lat1 - lat0) * t;
+          const a = [
+            lon + (nx * half) / mLon(lat),
+            lat + (ny * half) / MLAT,
+            lon - (nx * half) / mLon(lat),
+            lat - (ny * half) / MLAT,
+          ];
+          centerLines.push(
+            new Cesium.GeometryInstance({
+              geometry: new Cesium.GroundPolylineGeometry({
+                positions: Cesium.Cartesian3.fromDegreesArray(a),
+                width: 1.4,
+              }),
+              attributes: {
+                color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+                  Cesium.Color.fromCssColorString('#9a9486'),
+                ),
+              },
+            }),
+          );
+        }
+      }
+    }
+
     if (!isWalk && r.lanes >= 2 && r.path.length >= 2) {
       for (let i = 1; i < r.lanes; i++) {
         const off = -w / 2 + (w / r.lanes) * i;
