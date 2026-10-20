@@ -181,48 +181,131 @@ export function addAreas(viewer, data, terrain) {
 
 export function addRoads(viewer, data) {
   const Cesium = window.Cesium;
-  const major = [];
-  const minor = [];
+  const MLAT = 110540;
+  const mLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
+
+  // 按真实米宽生成道路带（Cesium 的 polyline 宽度是像素，不能用）
+  function bufferRing(path, halfWidth) {
+    const left = [];
+    const right = [];
+    for (let i = 0; i < path.length; i++) {
+      const p0 = path[Math.max(0, i - 1)];
+      const p1 = path[Math.min(path.length - 1, i + 1)];
+      const lat = path[i][1];
+      const dx = (p1[0] - p0[0]) * mLon(lat);
+      const dy = (p1[1] - p0[1]) * MLAT;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+      left.push([path[i][0] + (nx * halfWidth) / mLon(lat), path[i][1] + (ny * halfWidth) / MLAT]);
+      right.push([path[i][0] - (nx * halfWidth) / mLon(lat), path[i][1] - (ny * halfWidth) / MLAT]);
+    }
+    const ring = left.slice();
+    for (let i = right.length - 1; i >= 0; i--) ring.push(right[i]);
+    return ring;
+  }
+
+  function ringToPositions(ring, h) {
+    const arr = [];
+    for (const [lon, lat] of ring) arr.push(lon, lat, h);
+    return Cesium.Cartesian3.fromDegreesArrayHeights(arr);
+  }
+
+  const surfaces = [];
+  const walks = [];
+  const centerLines = [];
 
   for (const r of data.roads) {
     if (!r.path || r.path.length < 2) continue;
-    const isMajor = ['primary', 'secondary', 'tertiary', 'primary_link', 'secondary_link'].includes(
-      r.cls,
-    );
-    const pos = [];
-    for (const [lon, lat] of r.path) pos.push(lon, lat);
-    const color = isMajor
-      ? Cesium.Color.fromCssColorString('#c6bfb0')
-      : r.cls === 'footway' || r.cls === 'steps'
-        ? Cesium.Color.fromCssColorString('#d7d1c3').withAlpha(0.9)
-        : Cesium.Color.fromCssColorString('#d2ccbe');
+    const isWalk = r.cls === 'footway' || r.cls === 'steps' || r.lanes === 0;
+    const w = isWalk ? 2.4 : Math.max(3, r.width);
 
-    const inst = new Cesium.GeometryInstance({
-      geometry: new Cesium.GroundPolylineGeometry({
-        positions: Cesium.Cartesian3.fromDegreesArray(pos),
-        width: Math.max(1.6, r.width * 0.5),
+    if (!isWalk) {
+      // 人行道：比路面宽 4.4m 的垫层
+      const walkRing = bufferRing(r.path, w / 2 + 2.2);
+      walks.push(
+        new Cesium.GeometryInstance({
+          geometry: new Cesium.PolygonGeometry({
+            polygonHierarchy: new Cesium.PolygonHierarchy(ringToPositions(walkRing, 0)),
+            vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
+          }),
+          attributes: {
+            color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+              Cesium.Color.fromCssColorString(r.bridge ? '#b9b4a8' : '#d0c9ba'),
+            ),
+          },
+        }),
+      );
+    }
+
+    // 路面
+    const roadRing = bufferRing(r.path, w / 2);
+    const roadColor = isWalk
+      ? '#d6d0c1'
+      : r.tunnel
+        ? '#3a3f45'
+        : r.bridge
+          ? '#5a5f66'
+          : '#4b5057';
+    surfaces.push(
+      new Cesium.GeometryInstance({
+        geometry: new Cesium.PolygonGeometry({
+          polygonHierarchy: new Cesium.PolygonHierarchy(ringToPositions(roadRing, 0.06)),
+          vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
+        }),
+        attributes: {
+          color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+            Cesium.Color.fromCssColorString(roadColor),
+          ),
+        },
       }),
-      attributes: { color: Cesium.ColorGeometryInstanceAttribute.fromColor(color) },
-    });
-    (isMajor ? major : minor).push(inst);
+    );
+
+    // 中心线：双车道及以上、非步行道
+    if (!isWalk && r.lanes >= 2 && r.path.length >= 2) {
+      const arr = [];
+      for (const [lon, lat] of r.path) arr.push(lon, lat);
+      centerLines.push(
+        new Cesium.GeometryInstance({
+          geometry: new Cesium.GroundPolylineGeometry({
+            positions: Cesium.Cartesian3.fromDegreesArray(arr),
+            width: 1.3,
+          }),
+          attributes: {
+            color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+              Cesium.Color.fromCssColorString(r.oneway ? '#e8e2d0' : '#e6d29a'),
+            ),
+          },
+        }),
+      );
+    }
   }
 
-  const add = (insts) => {
+  const add = (insts, appearance, classification) => {
     if (!insts.length) return;
     viewer.scene.primitives.add(
-      new Cesium.GroundPolylinePrimitive({
+      new Cesium.GroundPrimitive({
         geometryInstances: insts,
+        appearance,
+        classificationType: classification,
+        asynchronous: true,
+      }),
+    );
+  };
+
+  add(walks, new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }), Cesium.ClassificationType.TERRAIN);
+  add(surfaces, new Cesium.PerInstanceColorAppearance({ translucent: false, closed: false }), Cesium.ClassificationType.TERRAIN);
+  if (centerLines.length) {
+    viewer.scene.primitives.add(
+      new Cesium.GroundPolylinePrimitive({
+        geometryInstances: centerLines,
         appearance: new Cesium.PolylineColorAppearance({ translucent: true }),
         classificationType: Cesium.ClassificationType.TERRAIN,
         asynchronous: true,
       }),
     );
-  };
-  add(major);
-  add(minor);
+  }
 }
-
-
 
 /* 嘉陵江：用固定水面高程的多边形，避免贴地后被岸边地形切碎 */
 export function addRiver(viewer, data, terrain) {
