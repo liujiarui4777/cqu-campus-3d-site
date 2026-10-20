@@ -90,6 +90,7 @@ import { addRoofProps } from './props.js';
 import { addGates } from './gates.js';
 import { addSports } from './sports.js';
 import { addSurroundings } from './surroundings.js';
+import { addBuildingLabels } from './labels.js';
 
 (async () => {
   try {
@@ -126,6 +127,7 @@ import { addSurroundings } from './surroundings.js';
     if (!only || only === 'gates') window.__gateCount = addGates(viewer, data, terrain);
     if (!only || only === 'sports') window.__sportCount = addSports(viewer, data, terrain);
     if (!only || only === 'surroundings') window.__surroundCount = await addSurroundings(viewer, BASE, terrain);
+    if (!only || only === 'labels') window.__labelCount = addBuildingLabels(viewer, data, terrain);
     if (!only || only === 'boundary') addBoundary(viewer, data, terrain);
 
     if (dom.stats) {

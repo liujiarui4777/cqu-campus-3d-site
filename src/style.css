@@ -530,3 +530,12 @@ html[data-theme='night'] .schedule textarea {
   .card, .schedule { bottom: 132px; left: 8px; right: 8px; width: auto; }
   .card h2 { font-size: 18px; }
 }
+
+
+.schedule-clear {
+  width: 100%; margin-top: 6px; appearance: none;
+  border: 1px solid rgba(31, 42, 51, 0.16); background: transparent; color: var(--muted);
+  font: inherit; font-size: 12.5px; letter-spacing: 0.06em;
+  padding: 7px 0; border-radius: 10px; cursor: pointer;
+}
+.schedule-clear:hover { border-color: #b3261e; color: #b3261e; }

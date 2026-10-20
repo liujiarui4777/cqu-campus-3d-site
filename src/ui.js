@@ -416,14 +416,34 @@ void main() {
     }
   }
 
+  function clearMarkers() {
+    for (const m of markers) viewer.entities.remove(m);
+    markers.length = 0;
+  }
   if (schedBtn) {
     schedBtn.addEventListener('click', () => {
-      schedPanel.classList.toggle('show');
-      renderSchedule();
+      const open = schedPanel.classList.toggle('show');
+      if (open) renderSchedule();
+      else clearMarkers();
     });
   }
   const schedClose = document.getElementById('schedule-close');
-  if (schedClose) schedClose.addEventListener('click', () => schedPanel.classList.remove('show'));
+  if (schedClose) {
+    schedClose.addEventListener('click', () => {
+      schedPanel.classList.remove('show');
+      clearMarkers();
+    });
+  }
+  const schedClear = document.getElementById('schedule-clear');
+  if (schedClear) {
+    schedClear.addEventListener('click', () => {
+      schedule = [];
+      saveSchedule([]);
+      clearMarkers();
+      renderSchedule();
+      setHint('已清除课表');
+    });
+  }
   const schedSave = document.getElementById('schedule-save');
   if (schedSave) {
     schedSave.addEventListener('click', () => {
@@ -438,7 +458,7 @@ void main() {
       setHint('已导入 ' + rows.length + ' 门课，今天的课已标在地图上');
     });
   }
-  renderSchedule();
+  // 启动时不渲染课表标记，只有打开「今日课程」面板才显示
 
   /* ---------- 影像 / 风格化切换 ---------- */
   const imgBtn = document.getElementById('imagery-btn');
