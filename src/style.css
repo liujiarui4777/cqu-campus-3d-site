@@ -369,3 +369,12 @@ html[data-theme='night'] .card-extra p { color: #b7c3cf; }
 .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
 .tool-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .guides { top: 144px !important; }
+
+
+.copyright-line {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  color: rgba(93, 107, 120, 0.6);
+  letter-spacing: 0.02em;
+}
