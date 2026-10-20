@@ -143,7 +143,10 @@ export function addTrees(viewer, data, terrain) {
     const h0 = terrain.sample(t.lon, t.lat);
     const base = Cesium.Cartesian3.fromDegrees(t.lon, t.lat, h0 - 0.3);
     const enu = Cesium.Transforms.eastNorthUpToFixedFrame(base);
-    const conifer = i % 3 === 0;
+    // 民主湖周边以阔叶（垂柳）为主，北侧松林坡以针叶为主
+    const dLake = Math.hypot((t.lon - 106.46599) * 96000, (t.lat - 29.56635) * 110540);
+    const dNorth = Math.hypot((t.lon - 106.4625) * 96000, (t.lat - 29.5725) * 110540);
+    const conifer = dNorth < 260 ? i % 4 !== 0 : dLake < 300 ? i % 7 === 0 : i % 3 === 0;
     const scale = Math.min(1.25, Math.max(0.75, t.s));
 
     const tm = Cesium.Matrix4.multiplyByTranslation(enu, new Cesium.Cartesian3(0, 0, 1.7 * scale), new Cesium.Matrix4());

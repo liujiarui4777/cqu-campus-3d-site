@@ -212,6 +212,27 @@ export function addAreas(viewer, data, terrain) {
     });
     if (a.kind === 'water') {
       const h0 = terrain.sample(a.center[0], a.center[1]);
+      // 岸线石条：沿水面轮廓外扩 1.3m 的深色环
+      const kLon = 111320 * Math.cos((a.center[1] * Math.PI) / 180);
+      const expRing = a.outline.map(([lon, lat]) => {
+        const dx = (lon - a.center[0]) * kLon;
+        const dy = (lat - a.center[1]) * MLAT;
+        const len = Math.hypot(dx, dy) || 1;
+        const off = 1.3;
+        return [lon + ((dx / len) * off) / kLon, lat + ((dy / len) * off) / MLAT];
+      });
+      const bankFlat = [];
+      for (const [lo, la] of expRing) bankFlat.push(lo, la);
+      viewer.entities.add({
+        id: 'bank:' + a.id,
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArray(bankFlat),
+          height: h0 + 0.02,
+          material: Cesium.Color.fromCssColorString('#b9b2a2'),
+          outline: false,
+        },
+        properties: { kind: 'area' },
+      });
       viewer.entities.add({
         id: 'water:' + a.id,
         polygon: {
