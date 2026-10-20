@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="theme-color" content="#eef2f6" />
     <meta name="description" content="重庆大学 A 区三维校园地图" />
-    <title>重庆大学 · 三维校园</title>
+    <title>重庆大学 · 三维校园（官方版）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
     <link rel="stylesheet" href="./src/style.css" />
     <script>
@@ -19,30 +19,27 @@
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark"></span>
-        <div>
+        <div class="brand-text">
           <h1>重庆大学 · 三维校园</h1>
           <p>A 区（沙坪坝正街 174 号）</p>
         </div>
       </div>
-      <div class="stats" id="stats"></div>
+
+      <div class="search">
+        <span class="search-icon">⌕</span>
+        <input id="search-input" type="search" placeholder="搜索建筑：主教 / 民主湖 / 图书馆…" autocomplete="off" />
+        <div class="search-results" id="search-results"></div>
+      </div>
+
+      <div class="topright">
+        <div class="stats" id="stats"></div>
+        <div class="times">
+          <button data-time="day" class="active">日</button>
+          <button data-time="dusk">昏</button>
+          <button data-time="night">夜</button>
+        </div>
+      </div>
     </header>
-
-    <div class="search">
-      <input id="search-input" type="search" placeholder="搜索建筑：主教 / 民主湖 / 图书馆…" autocomplete="off" />
-      <div class="search-results" id="search-results"></div>
-    </div>
-
-    <div class="tools">
-      <button id="nav-btn" class="tool-btn">步行导航</button>
-    </div>
-
-    <div class="guides" id="guides"></div>
-
-    <div class="times">
-      <button data-time="day" class="active">日</button>
-      <button data-time="dusk">昏</button>
-      <button data-time="night">夜</button>
-    </div>
 
     <section class="card" id="card">
       <button class="card-close" id="card-close" aria-label="关闭">×</button>
@@ -52,7 +49,17 @@
       <div class="card-tags" id="card-tags"></div>
       <div class="card-extra" id="card-extra"></div>
       <p class="card-desc" id="card-desc"></p>
+      <button class="card-back" id="card-back">← 返回全景</button>
     </section>
+
+    <footer class="dock">
+      <div class="dock-actions">
+        <button id="home-btn" class="dock-btn" title="回到全景视角">全景</button>
+        <button id="nav-btn" class="dock-btn" title="选择起点与终点建筑">步行导航</button>
+      </div>
+      <div class="guides" id="guides"></div>
+      <div class="dock-status" id="dock-status">点击建筑查看详情 · 拖拽旋转 · 滚轮缩放</div>
+    </footer>
 
     <div class="boot" id="boot">
       <div class="boot-inner">
@@ -62,12 +69,6 @@
     </div>
 
     <div class="error" id="error"></div>
-
-    <footer class="hint">
-      点击建筑查看详情 · 左键拖拽旋转 · 滚轮缩放 · 右键平移
-      <span class="credit-line">建筑轮廓 © OpenStreetMap 贡献者（ODbL） · 地形 AWS Terrain Tiles · 考据：重庆市文旅委 / 重庆大学公开资料</span>
-      <span class="copyright-line">© 2026 本作品保留所有权利 · 唯一官方地址 liujiarui4777.github.io/cqu-campus-3d-site</span>
-    </footer>
 
     <script type="module" src="./src/app.js"></script>
   </body>

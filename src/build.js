@@ -245,7 +245,7 @@ export function addRoads(viewer, data) {
     const isWalk = r.cls === 'footway' || r.cls === 'steps' || r.lanes === 0;
     const w = isWalk ? 2.4 : Math.max(3, r.width);
 
-    if (!isWalk) {
+    if (false) {
       // 人行道：比路面宽 4.4m 的垫层
       const walkRing = bufferRing(r.path, w / 2 + 2.2);
       walks.push(
@@ -256,7 +256,7 @@ export function addRoads(viewer, data) {
           }),
           attributes: {
             color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-              Cesium.Color.fromCssColorString(r.bridge ? '#b9b4a8' : '#d0c9ba'),
+              Cesium.Color.fromCssColorString(r.bridge ? '#8d887d' : '#9a958a'),
             ),
           },
         }),
@@ -271,7 +271,7 @@ export function addRoads(viewer, data) {
         ? '#3a3f45'
         : r.bridge
           ? '#5a5f66'
-          : '#4b5057';
+          : '#575c63';
     surfaces.push(
       new Cesium.GeometryInstance({
         geometry: new Cesium.PolygonGeometry({
@@ -298,11 +298,11 @@ export function addRoads(viewer, data) {
           new Cesium.GeometryInstance({
             geometry: new Cesium.GroundPolylineGeometry({
               positions: Cesium.Cartesian3.fromDegreesArray(arr),
-              width: isCenter ? 2.4 : 1.5,
+              width: isCenter ? 1.5 : 0.9,
             }),
             attributes: {
               color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-                Cesium.Color.fromCssColorString(isCenter ? '#e6d29a' : '#f2f0e6'),
+                Cesium.Color.fromCssColorString(isCenter ? '#cbb98a' : '#cfc9b8'),
               ),
             },
           }),

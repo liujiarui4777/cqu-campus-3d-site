@@ -60,18 +60,23 @@ scene.screenSpaceCameraController.maximumZoomDistance = 4200;
 const credit = viewer.cesiumWidget.creditContainer;
 if (credit) credit.style.display = 'none';
 
-function overview() {
-  const center = Cesium.Cartesian3.fromDegrees(CENTER[0], CENTER[1] - 0.0006, 250);
-  viewer.camera.lookAt(
-    center,
-    new Cesium.HeadingPitchRange(
-      Cesium.Math.toRadians(10),
-      Cesium.Math.toRadians(-38),
-      1350,
-    ),
-  );
+const HOME_VIEW = {
+  destination: Cesium.Cartesian3.fromDegrees(106.4648, 29.5568, 1250),
+  orientation: {
+    heading: Cesium.Math.toRadians(6),
+    pitch: Cesium.Math.toRadians(-44),
+    roll: 0,
+  },
+};
+
+function overview(animate) {
+  if (animate) {
+    viewer.camera.flyTo({ ...HOME_VIEW, duration: 1.7 });
+  } else {
+    viewer.camera.setView(HOME_VIEW);
+  }
 }
-overview();
+overview(false);
 
 import { loadTerrain } from './terrain.js';
 import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js';
@@ -110,7 +115,7 @@ import { addLamps } from './lamps.js';
     }
     if (dom.boot) dom.boot.style.display = 'none';
     const graph = buildRoadGraph(data.roads);
-    initInteraction(viewer, data, terrain, graph);
+    initInteraction(viewer, data, terrain, graph, overview);
     window.__CQU__ = { viewer, data, terrain, graph, nav: { nearestNode, shortestPath } };
   } catch (e) {
     showError(e);

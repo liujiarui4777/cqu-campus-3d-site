@@ -14,7 +14,7 @@ const KIND_LABEL = {
   landmark: '地标',
 };
 
-export function initInteraction(viewer, data, terrain, graph) {
+export function initInteraction(viewer, data, terrain, graph, overview) {
   const card = document.getElementById('card');
   const cardTitle = document.getElementById('card-title');
   const cardSub = document.getElementById('card-sub');
@@ -29,6 +29,7 @@ export function initInteraction(viewer, data, terrain, graph) {
     card.classList.remove('show');
     current = null;
     if (viewer.scene.canvas) viewer.scene.canvas.style.cursor = 'grab';
+    setHint(BASE_STATUS);
   }
 
   function show(entity) {
@@ -94,11 +95,12 @@ export function initInteraction(viewer, data, terrain, graph) {
   let navMode = false;
   let navFrom = null;
   let navLine = null;
-  const hintEl = document.querySelector('.hint');
-  const baseHint = hintEl ? hintEl.firstChild.textContent : '';
+  const statusEl = document.getElementById('dock-status');
+  const BASE_STATUS = '点击建筑查看详情 · 拖拽旋转 · 滚轮缩放';
   function setHint(text) {
-    if (!hintEl) return;
-    hintEl.innerHTML = text + '<span class="credit-line">建筑轮廓 © OpenStreetMap 贡献者（ODbL） · 地形 AWS Terrain Tiles · 考据：重庆市文旅委 / 重庆大学公开资料</span>';
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.title = text;
   }
   const navBtn = document.getElementById('nav-btn');
   const navMod = {};
@@ -341,6 +343,20 @@ void main() {
       if (!e.target.closest('.search')) results.classList.remove('show');
     });
   }
+
+  /* ---------- 回到全景 ---------- */
+  function flyHome(msg) {
+    hide();
+    if (typeof overview === 'function') overview(true);
+    if (msg) setHint(msg);
+  }
+  const homeBtn = document.getElementById('home-btn');
+  if (homeBtn) homeBtn.addEventListener('click', () => flyHome('已回到全景视角'));
+  const cardBack = document.getElementById('card-back');
+  if (cardBack) cardBack.addEventListener('click', () => flyHome('已回到全景视角'));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') flyHome('已回到全景视角');
+  });
 
   return { hide };
 }
