@@ -440,6 +440,20 @@ void main() {
   }
   renderSchedule();
 
+  /* ---------- 影像 / 风格化切换 ---------- */
+  const imgBtn = document.getElementById('imagery-btn');
+  if (imgBtn) {
+    imgBtn.addEventListener('click', () => {
+      const L = window.__layers;
+      if (!L || !L.esri) { setHint('影像层未加载'); return; }
+      const showImagery = !L.esri.show;
+      L.esri.show = showImagery;
+      L.style.show = !showImagery;
+      imgBtn.classList.toggle('active', showImagery);
+      setHint(showImagery ? '真实卫星影像' : '风格化沙盘底图');
+    });
+  }
+
   /* ---------- 回到全景 ---------- */
   function flyHome(msg) {
     hide();

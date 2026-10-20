@@ -99,7 +99,16 @@ import { addSurroundings } from './surroundings.js';
 
     setStatus('正在铺设地面…');
     const basemap = await createBasemapProvider(BASE, Cesium, terrain.meta, 'basemap.jpg');
-    viewer.scene.imageryLayers.addImageryProvider(basemap);
+    const styleLayer = viewer.scene.imageryLayers.addImageryProvider(basemap);
+    let esriLayer = null;
+    try {
+      const esri = await createBasemapProvider(BASE, Cesium, terrain.meta, 'esri.jpg');
+      esriLayer = viewer.scene.imageryLayers.addImageryProvider(esri);
+      esriLayer.show = false;
+    } catch (e) {
+      console.warn('影像层加载失败', e);
+    }
+    window.__layers = { style: styleLayer, esri: esriLayer };
 
     setStatus('正在生成建筑…');
     const data = await fetch(BASE + 'data/scene.json').then((r) => r.json());
