@@ -44,7 +44,7 @@ export function addTrees(viewer, data, terrain) {
       maxLat = Math.max(maxLat, la);
     }
     const area = (maxLon - minLon) * mLon(minLat) * (maxLat - minLat) * MLAT;
-    const want = Math.min(90, Math.max(6, Math.round(area / 260)));
+    const want = Math.min(55, Math.max(4, Math.round(area / 420)));
     let tries = 0;
     let placed = 0;
     while (placed < want && tries < want * 12) {

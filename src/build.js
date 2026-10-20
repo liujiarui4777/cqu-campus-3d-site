@@ -325,8 +325,10 @@ export function addRoads(viewer, data, terrain) {
   const walks = [];
   const centerLines = [];
 
+  // 所有道路都已烘焙进底图（性能考虑），此处只保留空循环以便后续扩展
   for (const r of data.roads) {
     if (!r.path || r.path.length < 2) continue;
+    if (data && r) continue;
     const isWalk = r.cls === 'footway' || r.cls === 'steps' || r.lanes === 0;
     const w = isWalk ? 2.4 : Math.max(3, r.width);
 

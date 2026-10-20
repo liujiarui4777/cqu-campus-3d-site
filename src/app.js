@@ -53,7 +53,7 @@ scene.skyBox.show = false;
 scene.skyAtmosphere.show = false;
 scene.fog.enabled = false;
 scene.backgroundColor = Cesium.Color.fromCssColorString('#e9e6de');
-scene.globe.maximumScreenSpaceError = 1.1;
+scene.globe.maximumScreenSpaceError = 2.4;
 scene.screenSpaceCameraController.minimumZoomDistance = 18;
 scene.screenSpaceCameraController.maximumZoomDistance = 4200;
 
