@@ -73,7 +73,7 @@ export function addBuildings(viewer, data, terrain) {
 
     // 基座：底部一段深色，让楼"立"在地面上
     const wallC = Cesium.Color.fromCssColorString(b.wall || '#e1dcd0');
-    const dark = new Cesium.Color(wallC.red * 0.86, wallC.green * 0.86, wallC.blue * 0.86, 1, wallC._colorSpace);
+    const dark = new Cesium.Color(wallC.red * 0.86, wallC.green * 0.86, wallC.blue * 0.86, 1);
     const baseH = Math.min(4.2, Math.max(1.2, (top - bottom) * 0.16));
     store.add({
       id: 'base:' + b.id,
@@ -167,7 +167,7 @@ export function addBuildings(viewer, data, terrain) {
             hierarchy: Cesium.Cartesian3.fromDegreesArray(fp),
             height: bottom + 1.4,
             extrudedHeight: top - 0.8,
-            material: new Cesium.Color(dark.red * 0.82, dark.green * 0.82, dark.blue * 0.82, 1, dark._colorSpace),
+            material: new Cesium.Color(dark.red * 0.82, dark.green * 0.82, dark.blue * 0.82, 1),
             outline: false,
           },
           properties: { kind: 'building', data: b },
