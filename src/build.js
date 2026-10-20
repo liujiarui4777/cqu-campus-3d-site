@@ -100,7 +100,7 @@ export function addBuildings(viewer, data, terrain) {
       const expPos = [];
       for (const [lo, la] of exp) expPos.push(lo, la);
       const expHierarchy = Cesium.Cartesian3.fromDegreesArray(expPos);
-      const bands = Math.max(1, Math.min(6, Math.floor(b.levels / 2)));
+      const bands = Math.max(1, Math.min(14, Math.floor(b.levels)));
       const span = top - bottom;
       const glass = Cesium.Color.fromCssColorString('#7d8b96');
       for (let i = 1; i <= bands; i++) {
