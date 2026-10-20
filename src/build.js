@@ -1,3 +1,5 @@
+const MLAT = 110540;
+
 /* 场景构件：区域 / 道路 / 建筑 / 边界 */
 
 function flatLonLat(ring) {
@@ -112,6 +114,60 @@ export function addBuildings(viewer, data, terrain) {
             height: y,
             extrudedHeight: y + Math.min(1.5, span / (bands + 1) * 0.5),
             material: glass,
+            outline: false,
+          },
+          properties: { kind: 'building', data: b },
+        });
+      }
+    }
+
+    // 地标建筑：沿立面每 4.5m 加一道竖向窗间柱（形成竖窗格感）
+    if (b.landmark && b.outline.length >= 3) {
+      const kLon = 111320 * Math.cos((b.center[1] * Math.PI) / 180);
+      const ring = b.outline;
+      const segs = [];
+      let per = 0;
+      for (let i = 0; i < ring.length; i++) {
+        const a = ring[i];
+        const c = ring[(i + 1) % ring.length];
+        const dx = (c[0] - a[0]) * kLon;
+        const dy = (c[1] - a[1]) * MLAT;
+        const len = Math.hypot(dx, dy);
+        if (len < 0.5) continue;
+        segs.push({ a, c, tx: dx / len, ty: dy / len, len, start: per });
+        per += len;
+      }
+      const step = 4.5;
+      const n = Math.max(3, Math.floor(per / step));
+      for (let k = 0; k < n; k++) {
+        const target = (k + 0.5) * (per / n);
+        let seg = segs[segs.length - 1];
+        for (const s of segs) {
+          if (target >= s.start && target < s.start + s.len) { seg = s; break; }
+        }
+        if (!seg) continue;
+        const t = Math.max(0, Math.min(1, (target - seg.start) / seg.len));
+        const px = seg.a[0] + (seg.c[0] - seg.a[0]) * t;
+        const py = seg.a[1] + (seg.c[1] - seg.a[1]) * t;
+        const nx = -seg.ty;
+        const ny = seg.tx;
+        const halfW = 0.34;
+        const out = 0.1;
+        const pts = [
+          [px + (nx * out + seg.tx * halfW) / kLon, py + (ny * out + seg.ty * halfW) / MLAT],
+          [px + (nx * out - seg.tx * halfW) / kLon, py + (ny * out - seg.ty * halfW) / MLAT],
+          [px + (nx * (out + 0.2) - seg.tx * halfW) / kLon, py + (ny * (out + 0.2) - seg.ty * halfW) / MLAT],
+          [px + (nx * (out + 0.2) + seg.tx * halfW) / kLon, py + (ny * (out + 0.2) + seg.ty * halfW) / MLAT],
+        ];
+        const fp = [];
+        for (const p of pts) fp.push(p[0], p[1]);
+        store.add({
+          id: 'pier:' + b.id + ':' + k,
+          polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArray(fp),
+            height: bottom + 1.4,
+            extrudedHeight: top - 0.8,
+            material: new Cesium.Color(dark.red * 0.82, dark.green * 0.82, dark.blue * 0.82, 1, dark._colorSpace),
             outline: false,
           },
           properties: { kind: 'building', data: b },

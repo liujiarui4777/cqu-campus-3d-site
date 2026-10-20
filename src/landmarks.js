@@ -236,9 +236,9 @@ export function addLandmarks(viewer, data, terrain) {
       minLon = Math.min(minLon, lo); maxLon = Math.max(maxLon, lo);
       minLat = Math.min(minLat, la); maxLat = Math.max(maxLat, la);
     }
-    const pad = 0.00012;
+    const pad = -0.00008;
     minLon -= pad; maxLon += pad; minLat -= pad; maxLat += pad;
-    const rise = Math.min(3.4, Math.max(1.8, (maxLon - minLon) * 40000));
+    const rise = Math.min(2.6, Math.max(1.4, (maxLon - minLon) * 30000));
     const hRidge = hEave + rise;
     const midLat = (minLat + maxLat) / 2;
     const midLon = (minLon + maxLon) / 2;
