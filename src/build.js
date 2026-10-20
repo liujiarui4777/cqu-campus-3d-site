@@ -301,22 +301,26 @@ export function addRoads(viewer, data) {
     const isWalk = r.cls === 'footway' || r.cls === 'steps' || r.lanes === 0;
     const w = isWalk ? 2.4 : Math.max(3, r.width);
 
-    if (false) {
-      // 人行道：比路面宽 4.4m 的垫层
-      const walkRing = bufferRing(r.path, w / 2 + 2.2);
-      walks.push(
-        new Cesium.GeometryInstance({
-          geometry: new Cesium.PolygonGeometry({
-            polygonHierarchy: new Cesium.PolygonHierarchy(ringToPositions(walkRing, 0)),
-            vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
+    if (!isWalk && w > 4) {
+      // 路缘石：路面两侧各一条 0.44m 宽的石条
+      for (const side of [-1, 1]) {
+        const line = offsetPath(r.path, side * (w / 2 + 0.24));
+        const ring = bufferRing(line, 0.22);
+        if (ring.length < 4) continue;
+        walks.push(
+          new Cesium.GeometryInstance({
+            geometry: new Cesium.PolygonGeometry({
+              polygonHierarchy: new Cesium.PolygonHierarchy(ringToPositions(ring, 0.02)),
+              vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
+            }),
+            attributes: {
+              color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+                Cesium.Color.fromCssColorString('#b3ada0'),
+              ),
+            },
           }),
-          attributes: {
-            color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-              Cesium.Color.fromCssColorString(r.bridge ? '#8d887d' : '#9a958a'),
-            ),
-          },
-        }),
-      );
+        );
+      }
     }
 
     // 路面
