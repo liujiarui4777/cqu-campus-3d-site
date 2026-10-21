@@ -173,11 +173,13 @@ import { addBuildingLabels } from './labels.js';
         } catch (e) {
           console.warn('10 km 底图加载失败', e);
         }
-        try {
-          const coarseBase = await createBasemapProvider(BASE, Cesium, ext.coarseMeta, 'basemap_coarse.jpg', ASSET_V);
-          layers.coarse = viewer.scene.imageryLayers.addImageryProvider(coarseBase, 0);
-        } catch (e) {
-          console.warn('外围底图加载失败', e);
+        if (ext.hasCoarse) {
+          try {
+            const coarseBase = await createBasemapProvider(BASE, Cesium, ext.coarseMeta, 'basemap_coarse.jpg', ASSET_V);
+            layers.coarse = viewer.scene.imageryLayers.addImageryProvider(coarseBase, 0);
+          } catch (e) {
+            console.warn('外围底图加载失败', e);
+          }
         }
       } catch (e) {
         console.warn('外围地形加载失败', e);
@@ -211,6 +213,7 @@ import { addBuildingLabels } from './labels.js';
     showError(e);
   }
 })();
+
 
 
 
