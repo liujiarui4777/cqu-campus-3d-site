@@ -1,6 +1,6 @@
 {
-  "width": 1024,
-  "height": 1024,
+  "width": 768,
+  "height": 768,
   "west": 106.384,
   "south": 29.5017,
   "east": 106.539,
@@ -9,6 +9,6 @@
   "unit": "m",
   "rows": "north-to-south",
   "source": "AWS Terrain Tiles (terrarium) zoom 14",
-  "min": 149.66844177246094,
-  "max": 659.9049682617188
+  "min": 149.80685424804688,
+  "max": 658.7650146484375
 }
