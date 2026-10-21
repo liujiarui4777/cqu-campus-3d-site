@@ -4,6 +4,8 @@
 export async function createBasemapProvider(base, Cesium, meta, file = 'basemap.jpg', version = '') {
   const img = await new Promise((resolve, reject) => {
     const i = new Image();
+    // 线上底图来自 jsDelivr（跨域），必须带 CORS 声明，否则 canvas 会被污染、WebGL 上传纹理报 SecurityError
+    i.crossOrigin = 'anonymous';
     i.onload = () => resolve(i);
     i.onerror = () => reject(new Error('底图加载失败：' + file));
     // 大图必须带版本号，否则浏览器会一直用缓存里的旧影像（改了图也看不到）
