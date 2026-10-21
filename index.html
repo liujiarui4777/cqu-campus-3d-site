@@ -8,6 +8,12 @@
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
     <link rel="stylesheet" href="./src/style.css?v=20261026a" />
+    <!-- 首屏资源预加载：与 Cesium.js 并行下载，缩短可交互时间 -->
+    <link rel="preload" href="./data/terrain.json" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./data/terrain.bin.gz" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./data/scene.json?v=20261027b" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./data/surroundings.json?v=20261027b" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./data/basemap.jpg" as="image" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -118,7 +124,8 @@
 
     <div class="error" id="error"></div>
 
-    <script type="module" src="./src/app.js?v=20261027a"></script>
+    <script type="module" src="./src/app.js?v=20261027b"></script>
   </body>
 </html>
+
 
