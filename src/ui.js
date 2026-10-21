@@ -1,4 +1,4 @@
-import { SHUTTLE, SHUTTLE_STOPS, todaySchedule, nextBus } from './shuttle.js';
+﻿import { SHUTTLE, SHUTTLE_STOPS, todaySchedule, nextBus } from './shuttle.js';
 import { parseSchedule, matchBuilding, todayIndex, save as saveSchedule, load as loadSchedule, DAY_NAMES } from './schedule.js';
 import { nearestNode, shortestPath } from './nav.js';
 /* 交互：点击建筑 → 信息卡；地标导览；昼夜主题 */
@@ -81,7 +81,7 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
     card.classList.remove('show');
     current = null;
     if (viewer.scene.canvas) viewer.scene.canvas.style.cursor = 'grab';
-    setHint(BASE_STATUS);
+    setHint('在地图上依次点击起点、终点建筑');
   }
 
   function show(entity) {
@@ -754,3 +754,4 @@ void main() {
 
   return { hide };
 }
+
