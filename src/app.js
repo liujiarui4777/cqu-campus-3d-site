@@ -108,21 +108,9 @@ import { addBuildingLabels } from './labels.js';
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261020d';
-    // 三层底图：10 km 中图打底，A/B 区细节图覆盖在上，边缘自然过渡
+    const ASSET_V = '20261027a';
     const layers = {};
-    try {
-      const coarseBase = await createBasemapProvider(BASE, Cesium, terrain.coarseMeta, 'basemap_coarse.jpg', ASSET_V);
-      layers.coarse = viewer.scene.imageryLayers.addImageryProvider(coarseBase);
-    } catch (e) {
-      console.warn('外围底图加载失败', e);
-    }
-    try {
-      const midBase = await createBasemapProvider(BASE, Cesium, terrain.midMeta, 'basemap_mid.jpg', ASSET_V);
-      layers.mid = viewer.scene.imageryLayers.addImageryProvider(midBase);
-    } catch (e) {
-      console.warn('10 km 底图加载失败', e);
-    }
+    // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
     const basemap = await createBasemapProvider(BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V);
     layers.style = viewer.scene.imageryLayers.addImageryProvider(basemap);
     let esriLayer = null;
@@ -142,8 +130,15 @@ import { addBuildingLabels } from './labels.js';
     window.__layers = layers;
 
     setStatus('正在生成建筑…');
-    const data = await fetch(BASE + 'data/scene.json').then((r) => r.json());
     const only = new URLSearchParams(location.search).get('only');
+    // 白模与场景数据并行拉取，白模不阻塞首屏
+    const whiteP = !only || only === 'surroundings'
+      ? addSurroundings(viewer, BASE, terrain).then((n) => {
+          window.__surroundCount = n;
+          return n;
+        }).catch(() => 0)
+      : Promise.resolve(0);
+    const data = await fetch(BASE + 'data/scene.json?v=' + ASSET_V).then((r) => r.json());
 
     if (!only || only === 'areas') addAreas(viewer, data, terrain);
     if (!only || only === 'river') addRiver(viewer, data, terrain);
@@ -156,7 +151,6 @@ import { addBuildingLabels } from './labels.js';
     if (!only || only === 'props') window.__propCount = addRoofProps(viewer, data, terrain);
     if (!only || only === 'gates') window.__gateCount = addGates(viewer, data, terrain);
     if (!only || only === 'sports') window.__sportCount = addSports(viewer, data, terrain);
-    if (!only || only === 'surroundings') window.__surroundCount = await addSurroundings(viewer, BASE, terrain);
     if (!only || only === 'labels') window.__labelApi = addBuildingLabels(viewer, data, terrain);
     if (!only || only === 'boundary') addBoundary(viewer, data, terrain);
 
@@ -167,6 +161,29 @@ import { addBuildingLabels } from './labels.js';
       dom.stats.innerHTML = `<span>${data.buildings.length} 栋建筑（A ${a} / B ${b} / C ${c}）</span><span>${data.roads.length} 条道路</span><span>${data.areas.length} 处场地</span>`;
     }
     if (dom.boot) dom.boot.style.display = 'none';
+
+    // 首屏出现后，后台补全 15 km 地形与两层底图（不阻塞交互）
+    setTimeout(async () => {
+      try {
+        const ext = await terrain.loadExtended();
+        viewer.scene.terrainProvider = terrain.rebuild();
+        try {
+          const midBase = await createBasemapProvider(BASE, Cesium, ext.midMeta, 'basemap_mid.jpg', ASSET_V);
+          layers.mid = viewer.scene.imageryLayers.addImageryProvider(midBase, 0);
+        } catch (e) {
+          console.warn('10 km 底图加载失败', e);
+        }
+        try {
+          const coarseBase = await createBasemapProvider(BASE, Cesium, ext.coarseMeta, 'basemap_coarse.jpg', ASSET_V);
+          layers.coarse = viewer.scene.imageryLayers.addImageryProvider(coarseBase, 0);
+        } catch (e) {
+          console.warn('外围底图加载失败', e);
+        }
+      } catch (e) {
+        console.warn('外围地形加载失败', e);
+      }
+    }, 700);
+
     const graph = buildRoadGraph(data.roads);
     // glTF 建筑（试验）
     if (new URLSearchParams(location.search).get('glb') === '1') {
@@ -194,4 +211,5 @@ import { addBuildingLabels } from './labels.js';
     showError(e);
   }
 })();
+
 
