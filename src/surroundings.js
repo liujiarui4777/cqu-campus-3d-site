@@ -6,7 +6,7 @@
  */
 export async function addSurroundings(viewer, base, terrain) {
   const Cesium = window.Cesium;
-  const data = await fetch(`${base}data/surroundings.json?v=20261027b`).then((r) => r.json());
+  const data = await fetch(`${base}data/surroundings.json?v=20261027c`).then((r) => r.json());
   const items = data.items || [];
   if (!items.length) return 0;
 
@@ -83,6 +83,7 @@ export async function addSurroundings(viewer, base, terrain) {
 
   return bodies.length;
 }
+
 
 
 

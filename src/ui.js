@@ -1,4 +1,4 @@
-﻿import { SHUTTLE, SHUTTLE_STOPS, todaySchedule, nextBus } from './shuttle.js';
+import { SHUTTLE, SHUTTLE_STOPS, BUS_INFO, todaySchedule, nextBus } from './shuttle.js';
 import { parseSchedule, matchBuilding, todayIndex, save as saveSchedule, load as loadSchedule, DAY_NAMES } from './schedule.js';
 import { nearestNode, shortestPath } from './nav.js';
 /* 交互：点击建筑 → 信息卡；地标导览；昼夜主题 */
@@ -164,20 +164,18 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
   let navFrom = null;
   let navTo = null;
   let navLine = null;
-  let navPicking = 'from';
   const navBtn = document.getElementById('nav-btn');
   const navPanel = document.getElementById('nav-panel');
-  const navFromEl = document.getElementById('nav-from');
-  const navToEl = document.getElementById('nav-to');
   const navResult = document.getElementById('nav-result');
-  const navFromPick = document.getElementById('nav-pick-from');
-  const navToPick = document.getElementById('nav-pick-to');
   const navClear = document.getElementById('nav-clear');
   const navClose = document.getElementById('nav-close');
+  const fromInput = document.getElementById('nav-from-input');
+  const toInput = document.getElementById('nav-to-input');
+  const fromSuggest = document.getElementById('nav-from-suggest');
+  const toSuggest = document.getElementById('nav-to-suggest');
 
   function setHint(text) {
     if (navResult) navResult.textContent = text;
-    else console.log(text);
   }
 
   function clearNavLine() {
@@ -187,21 +185,63 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
     }
   }
 
+  const campusName = (c) => (c === 'B' ? 'B 区' : c === 'C' ? 'C 区' : 'A 区');
+  const navAll = (data.buildings || []).filter((b) => b.name);
+
+  function hideSuggest(box) {
+    if (!box) return;
+    box.classList.remove('show');
+    box.innerHTML = '';
+  }
+
+  function renderSuggest(input, box, which) {
+    if (!input || !box) return;
+    const q = input.value.trim().toLowerCase();
+    if (!q) {
+      hideSuggest(box);
+      return;
+    }
+    const hits = navAll
+      .filter((b) => (b.name || '').toLowerCase().includes(q) || (b.alias || '').toLowerCase().includes(q))
+      .slice(0, 8);
+    box.innerHTML = '';
+    if (!hits.length) {
+      box.innerHTML = '<div class="nav-empty">没有匹配的建筑</div>';
+      box.classList.add('show');
+      return;
+    }
+    for (const b of hits) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'nav-sitem';
+      btn.innerHTML =
+        '<b>' + (b.name || '') + '</b><small>' + campusName(b.campus) + ' · ' + (b.levels || 0) + ' 层</small>';
+      btn.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        chooseNav(which, b);
+        hideSuggest(box);
+      });
+      box.appendChild(btn);
+    }
+    box.classList.add('show');
+  }
+
   function resetNav() {
     clearNavLine();
     navFrom = null;
     navTo = null;
-    navPicking = 'from';
-    if (navFromEl) navFromEl.textContent = '点击地图选择';
-    if (navToEl) navToEl.textContent = '点击地图选择';
-    if (navResult) navResult.textContent = '在地图上依次点击起点、终点建筑';
+    if (fromInput) fromInput.value = '';
+    if (toInput) toInput.value = '';
+    hideSuggest(fromSuggest);
+    hideSuggest(toSuggest);
+    setHint('输入起点、终点，或直接点击地图上的建筑');
   }
 
-  function openNav(picking) {
+  function openNav() {
     if (navPanel) navPanel.hidden = false;
     if (navBtn) navBtn.classList.add('active');
-    navPicking = picking || 'from';
-    setHint(navPicking === 'from' ? '请在地图上点击起点建筑' : '请在地图上点击终点建筑');
+    if (fromInput) setTimeout(() => fromInput.focus(), 120);
+    setHint('输入起点、终点，或直接点击地图上的建筑');
   }
 
   function closeNav() {
@@ -212,90 +252,147 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
 
   if (navBtn) {
     navBtn.addEventListener('click', () => {
-      if (navPanel && navPanel.hidden) openNav('from');
+      if (navPanel && navPanel.hidden) openNav();
       else closeNav();
     });
   }
-  if (navFromPick) navFromPick.addEventListener('click', () => { navPicking = 'from'; setHint('请在地图上点击起点建筑'); });
-  if (navToPick) navToPick.addEventListener('click', () => { navPicking = 'to'; setHint('请在地图上点击终点建筑'); });
   if (navClear) navClear.addEventListener('click', resetNav);
   if (navClose) navClose.addEventListener('click', closeNav);
 
-  function setNavPoint(b) {
-    if (navPicking === 'from') {
+  if (fromInput) {
+    fromInput.addEventListener('input', () => renderSuggest(fromInput, fromSuggest, 'from'));
+    fromInput.addEventListener('focus', () => renderSuggest(fromInput, fromSuggest, 'from'));
+    fromInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const first = fromSuggest && fromSuggest.querySelector('.nav-sitem');
+        if (first) first.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      }
+      if (e.key === 'Escape') hideSuggest(fromSuggest);
+    });
+  }
+  if (toInput) {
+    toInput.addEventListener('input', () => renderSuggest(toInput, toSuggest, 'to'));
+    toInput.addEventListener('focus', () => renderSuggest(toInput, toSuggest, 'to'));
+    toInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const first = toSuggest && toSuggest.querySelector('.nav-sitem');
+        if (first) first.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      }
+      if (e.key === 'Escape') hideSuggest(toSuggest);
+    });
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nav-search')) {
+      hideSuggest(fromSuggest);
+      hideSuggest(toSuggest);
+    }
+  });
+
+  function chooseNav(which, b) {
+    if (which === 'from') {
       navFrom = b;
-      if (navFromEl) navFromEl.textContent = b.name || '未命名建筑';
-      navPicking = 'to';
-      setHint('已选起点，请在地图上点击终点建筑');
-      clearNavLine();
-      return;
+      if (fromInput) fromInput.value = b.name || '';
+      if (navTo) computeRoute();
+      else {
+        setHint('已选起点，再选终点');
+        if (toInput) setTimeout(() => toInput.focus(), 60);
+      }
+    } else {
+      navTo = b;
+      if (toInput) toInput.value = b.name || '';
+      if (navFrom) computeRoute();
+      else {
+        setHint('已选终点，再选起点');
+        if (fromInput) fromInput.focus();
+      }
     }
-    navTo = b;
-    if (navToEl) navToEl.textContent = b.name || '未命名建筑';
-    if (!navFrom) {
-      navPicking = 'from';
-      setHint('请先选择起点');
-      return;
-    }
+  }
+
+  function addRouteMarker(b, color, text) {
+    const h0 = terrain.sample(b.center[0], b.center[1]);
+    return viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(b.center[0], b.center[1], h0 + 4),
+      point: {
+        pixelSize: 14,
+        color: Cesium.Color.fromCssColorString(color),
+        outlineColor: Cesium.Color.WHITE,
+        outlineWidth: 2.5,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: {
+        text,
+        font: '12px system-ui, sans-serif',
+        fillColor: Cesium.Color.WHITE,
+        showBackground: true,
+        backgroundColor: Cesium.Color.fromCssColorString(color).withAlpha(0.92),
+        backgroundPadding: new Cesium.Cartesian2(6, 3),
+        pixelOffset: new Cesium.Cartesian2(0, -22),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+  }
+
+  function computeRoute() {
+    if (!navFrom || !navTo || !graph) return;
     const s = nearestNode(graph, navFrom.center[0], navFrom.center[1]);
-    const t = nearestNode(graph, b.center[0], b.center[1]);
-    const res = graph ? shortestPath(graph, s.id, t.id) : null;
+    const t = nearestNode(graph, navTo.center[0], navTo.center[1]);
+    const res = shortestPath(graph, s.id, t.id);
     clearNavLine();
     if (!res) {
       setHint('这两点之间没有找到步行路线');
       return;
     }
     const arr = [];
-    for (const n of res.path) arr.push(n.lon, n.lat);
-    const glow = new Cesium.PolylineGlowMaterialProperty({
-      glowPower: 0.3,
-      color: Cesium.Color.fromCssColorString('#00c2ff'),
-    });
-    const line = viewer.entities.add({
+    for (const n of res.path) arr.push(n.lon, n.lat, terrain.sample(n.lon, n.lat) + 2.4);
+    const positions = Cesium.Cartesian3.fromDegreesArrayHeights(arr);
+
+    // 三层路径：深色描边 → 发光主线 → 方向箭头（用带高度折线，保证线宽生效）
+    const casing = viewer.entities.add({
       polyline: {
-        positions: Cesium.Cartesian3.fromDegreesArray(arr),
-        width: 10,
-        material: glow,
-        clampToGround: true,
+        positions,
+        width: 24,
+        material: Cesium.Color.fromCssColorString('#0a2a38').withAlpha(0.55),
       },
     });
-    const startMarker = viewer.entities.add({
-      position: Cesium.Cartesian3.fromDegrees(
-        navFrom.center[0],
-        navFrom.center[1],
-        terrain.sample(navFrom.center[0], navFrom.center[1]) + 4,
-      ),
-      point: {
-        pixelSize: 12,
-        color: Cesium.Color.fromCssColorString('#22b573'),
-        outlineColor: Cesium.Color.WHITE,
-        outlineWidth: 2,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    const glow = viewer.entities.add({
+      polyline: {
+        positions,
+        width: 14,
+        material: new Cesium.PolylineGlowMaterialProperty({
+          glowPower: 0.25,
+          color: Cesium.Color.fromCssColorString('#00f0ff'),
+        }),
       },
     });
-    const endMarker = viewer.entities.add({
-      position: Cesium.Cartesian3.fromDegrees(
-        b.center[0],
-        b.center[1],
-        terrain.sample(b.center[0], b.center[1]) + 4,
-      ),
-      point: {
-        pixelSize: 12,
-        color: Cesium.Color.fromCssColorString('#e2574c'),
-        outlineColor: Cesium.Color.WHITE,
-        outlineWidth: 2,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    const arrows = viewer.entities.add({
+      polyline: {
+        positions,
+        width: 18,
+        material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.fromCssColorString('#dfffff')),
       },
     });
-    navLine = [line, startMarker, endMarker];
+    const start = addRouteMarker(navFrom, '#22b573', '起点');
+    const end = addRouteMarker(navTo, '#e2574c', '终点');
+    navLine = [casing, glow, arrows, start, end];
+
     const dist = Math.round(res.length);
     const min = Math.max(1, Math.round(dist / 75));
     if (navResult) {
       navResult.innerHTML =
-        '全程 <b>' + dist + ' m</b> · 步行约 <b>' + min + ' 分钟</b><br>' +
-        (navFrom.name || '起点') + ' → ' + (b.name || '终点');
+        '<div class="nr-main">全程 <b>' + dist + ' m</b> · 步行约 <b>' + min + ' 分钟</b></div>' +
+        '<div class="nr-sub">' +
+        (navFrom.name || '起点') +
+        ' → ' +
+        (navTo.name || '终点') +
+        ' · ' +
+        res.path.length +
+        ' 个路点</div>';
     }
-    navPicking = 'to';
+  }
+
+  function setNavPoint(b) {
+    if (!navFrom) chooseNav('from', b);
+    else chooseNav('to', b);
   }
 
   const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -580,24 +677,78 @@ void main() {
   }
   // 启动时不渲染课表标记，只有打开「今日课程」面板才显示
 
-  /* ---------- 校车时刻表 ---------- */
+  /* ---------- 校园巴士 ---------- */
   const shuttleBtn = document.getElementById('bus-btn') || document.getElementById('shuttle-btn');
   const shuttlePanel = document.getElementById('shuttle');
-  const shuttleNext = document.getElementById('shuttle-next');
+  const busNextTime = document.getElementById('bus-next-time');
+  const busNextMeta = document.getElementById('bus-next-meta');
+  const busCount = document.getElementById('bus-count');
   const shuttleList = document.getElementById('shuttle-list');
   const shuttleStops = document.getElementById('shuttle-stops');
+  const busMeta = document.getElementById('bus-meta');
+  const busTips = document.getElementById('bus-tips');
+  const busSource = document.getElementById('bus-source');
+  const campusMeta = document.getElementById('campus-meta');
+  const campusTips = document.getElementById('campus-tips');
+  const campusSource = document.getElementById('campus-source');
+  const busBodyCommuter = document.getElementById('bus-body-commuter');
+  const busBodyCampus = document.getElementById('bus-body-campus');
   let shuttleDir = 'outbound';
+  let shuttleStopIdx = 1;
+  let busTab = 'commuter';
+  let busTimer = null;
+
+  function renderBusInfo() {
+    const c = BUS_INFO.commuter;
+    if (busMeta) {
+      busMeta.innerHTML =
+        '<div><span>单程</span><b>' + c.duration + '</b></div>' +
+        '<div><span>距离</span><b>' + c.distance + '</b></div>' +
+        '<div><span>票价</span><b>' + c.fare + '</b></div>' +
+        '<div><span>电话</span><b>' + c.phone + '</b></div>';
+    }
+    if (busTips) busTips.innerHTML = c.tips.map((t) => '<li>' + t + '</li>').join('');
+    if (busSource) busSource.textContent = '来源：' + c.source;
+    const s = BUS_INFO.campus;
+    if (campusMeta) {
+      campusMeta.innerHTML =
+        '<div><span>线路</span><b>' + s.route + '</b></div>' +
+        '<div><span>单程</span><b>' + s.duration + '</b></div>' +
+        '<div><span>票价</span><b>' + s.fare + '</b></div>' +
+        '<div><span>电话</span><b>' + s.phone + '</b></div>';
+    }
+    if (campusTips) campusTips.innerHTML = s.tips.map((t) => '<li>' + t + '</li>').join('');
+    if (campusSource) campusSource.textContent = '来源：' + s.source;
+  }
 
   function renderShuttle() {
     const t = SHUTTLE[shuttleDir];
-    const stopIdx = shuttleDir === 'outbound' ? 1 : 2;
+    const stopIdx = Math.min(shuttleStopIdx, t.stops.length - 1);
     const nb = nextBus(stopIdx, shuttleDir);
-    if (shuttleNext) {
-      shuttleNext.textContent = nb
-        ? '下一班 ' + nb.time + '（' + nb.inMin + ' 分钟后）· ' + t.stops[stopIdx]
-        : '今日班次已结束';
+    if (busNextTime) busNextTime.textContent = nb ? nb.time : t.times[0][stopIdx];
+    if (busNextMeta) {
+      busNextMeta.textContent = nb
+        ? nb.inMin + ' 分钟后 · ' + t.stops[stopIdx] + ' 上车'
+        : '今日已结束 · 明日首班 ' + t.times[0][stopIdx] + '（' + t.stops[stopIdx] + '）';
     }
-    if (shuttleStops) shuttleStops.textContent = '经停：' + t.stops.join(' · ');
+    if (shuttleStops) {
+      shuttleStops.innerHTML = t.stops
+        .map(
+          (name, i) =>
+            '<button type="button" class="bus-stop' + (i === stopIdx ? ' current' : '') + '" data-idx="' + i + '">' +
+            '<span class="bus-stop-idx">' + (i + 1) + '</span>' +
+            '<span class="bus-stop-name">' + name + '</span>' +
+            (i === stopIdx ? '<span class="bus-stop-tag">在此上车</span>' : '') +
+            '</button>',
+        )
+        .join('');
+      shuttleStops.querySelectorAll('.bus-stop').forEach((el) => {
+        el.addEventListener('click', () => {
+          shuttleStopIdx = Number(el.getAttribute('data-idx'));
+          renderShuttle();
+        });
+      });
+    }
     if (shuttleList) {
       shuttleList.innerHTML = todaySchedule(stopIdx, shuttleDir)
         .map(
@@ -607,24 +758,56 @@ void main() {
         )
         .join('');
     }
+    if (busCount) {
+      busCount.textContent = '共 ' + t.times.length + ' 班 · ' + t.stops[stopIdx] + ' 发车';
+    }
   }
+
+  function startBusTimer() {
+    if (busTimer) clearInterval(busTimer);
+    busTimer = setInterval(() => {
+      if (shuttlePanel && shuttlePanel.classList.contains('show') && busTab === 'commuter') renderShuttle();
+    }, 30000);
+  }
+
+  document.querySelectorAll('.bus-tabs button').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.bus-tabs button').forEach((x) => x.classList.remove('active'));
+      b.classList.add('active');
+      busTab = b.getAttribute('data-bus');
+      if (busBodyCommuter) busBodyCommuter.hidden = busTab !== 'commuter';
+      if (busBodyCampus) busBodyCampus.hidden = busTab !== 'campus';
+    });
+  });
 
   document.querySelectorAll('.shuttle-tabs button').forEach((b) => {
     b.addEventListener('click', () => {
       document.querySelectorAll('.shuttle-tabs button').forEach((x) => x.classList.remove('active'));
       b.classList.add('active');
       shuttleDir = b.getAttribute('data-dir');
+      shuttleStopIdx = shuttleDir === 'outbound' ? 1 : 2;
       renderShuttle();
     });
   });
+
   if (shuttleBtn) {
     shuttleBtn.addEventListener('click', () => {
       const open = shuttlePanel.classList.toggle('show');
-      if (open) renderShuttle();
+      if (open) {
+        renderBusInfo();
+        renderShuttle();
+        startBusTimer();
+      }
     });
   }
   const shuttleClose = document.getElementById('shuttle-close');
-  if (shuttleClose) shuttleClose.addEventListener('click', () => shuttlePanel.classList.remove('show'));
+  if (shuttleClose) {
+    shuttleClose.addEventListener('click', () => {
+      shuttlePanel.classList.remove('show');
+      if (busTimer) clearInterval(busTimer);
+      busTimer = null;
+    });
+  }
 
   // 地图上标记 A 区乘车点（只留圆点，不再显示旧“校车 ·”文字标签）
   for (const s of SHUTTLE_STOPS) {
@@ -694,10 +877,47 @@ void main() {
     });
   }
 
+  /* ---------- 固定视角：全景 / A 区 / B 区 / C 区 ---------- */
+  const viewsNav = document.getElementById('views');
+  const viewBtns = viewsNav ? Array.from(viewsNav.querySelectorAll('[data-view]')) : [];
+  const backHomeBtn = document.getElementById('back-home');
+  const HOME_POS = { lon: 106.4585, lat: 29.5520, h: 1950 };
+
+  function setActiveView(key) {
+    for (const b of viewBtns) b.classList.toggle('active', b.getAttribute('data-view') === key);
+  }
+  function goView(key, msg) {
+    hide();
+    if (window.__flyToView) window.__flyToView(key);
+    setActiveView(key);
+    if (msg) setHint(msg);
+  }
+  for (const b of viewBtns) {
+    b.addEventListener('click', () => goView(b.getAttribute('data-view')));
+  }
+  if (backHomeBtn) backHomeBtn.addEventListener('click', () => goView('all', '已回到全景视角'));
+
+  // 相机离开全景机位（放大、拖走、点了某栋楼）时，右上角出现「返回全景」
+  let lastCamCheck = 0;
+  viewer.scene.postRender.addEventListener(() => {
+    const now = performance.now();
+    if (now - lastCamCheck < 300) return;
+    lastCamCheck = now;
+    const c = viewer.camera.positionCartographic;
+    const lon = Cesium.Math.toDegrees(c.longitude);
+    const lat = Cesium.Math.toDegrees(c.latitude);
+    const away =
+      Math.abs(c.height - HOME_POS.h) > 260 ||
+      Math.abs(lon - HOME_POS.lon) > 0.0045 ||
+      Math.abs(lat - HOME_POS.lat) > 0.0035;
+    if (backHomeBtn) backHomeBtn.classList.toggle('show', away);
+  });
+
   /* ---------- 回到全景 ---------- */
   function flyHome(msg) {
     hide();
     if (typeof overview === 'function') overview(true);
+    setActiveView('all');
     if (msg) setHint(msg);
   }
   const homeBtn = document.getElementById('brand-home');
@@ -754,4 +974,6 @@ void main() {
 
   return { hide };
 }
+
+
 

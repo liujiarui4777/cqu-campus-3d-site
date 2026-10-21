@@ -1,4 +1,4 @@
-﻿/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
+/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
 const Cesium = window.Cesium;
 
 const CENTER = [106.4615, 29.5695];
@@ -55,7 +55,7 @@ scene.skyAtmosphere.show = false;
 scene.fog.enabled = false;
 scene.backgroundColor = Cesium.Color.fromCssColorString('#e9e6de');
 scene.globe.maximumScreenSpaceError = 1.6;
-scene.screenSpaceCameraController.minimumZoomDistance = 18;
+scene.screenSpaceCameraController.minimumZoomDistance = 140; // 不允许钻进建筑内部
 // 地图覆盖 15 km，允许拉到能看全整张底图的高度
 scene.screenSpaceCameraController.maximumZoomDistance = 22000;
 
@@ -68,15 +68,27 @@ window.addEventListener('resize', () => {
   viewer.scene.requestRender();
 });
 
-// 全景：A 区 + B 区 + C 区居中，约 2.5 km 视野
-const HOME_VIEW = {
-  destination: Cesium.Cartesian3.fromDegrees(106.4585, 29.5520, 1950),
-  orientation: {
-    heading: Cesium.Math.toRadians(4),
-    pitch: Cesium.Math.toRadians(-47),
-    roll: 0,
-  },
+// 固定机位：全景 + A/B/C 三个校区。相机只在这些机位之间切换，避免钻进楼里迷路
+const VIEWS = {
+  all: { lon: 106.4585, lat: 29.5520, h: 1950, heading: 4, pitch: -47 },
+  a: { lon: 106.4618, lat: 29.5612, h: 1250, heading: 6, pitch: -46 },
+  b: { lon: 106.4540, lat: 29.5642, h: 1000, heading: 4, pitch: -45 },
+  c: { lon: 106.4522, lat: 29.5620, h: 600, heading: 3, pitch: -42 },
 };
+
+function viewFor(key) {
+  const v = VIEWS[key] || VIEWS.all;
+  return {
+    destination: Cesium.Cartesian3.fromDegrees(v.lon, v.lat, v.h),
+    orientation: {
+      heading: Cesium.Math.toRadians(v.heading),
+      pitch: Cesium.Math.toRadians(v.pitch),
+      roll: 0,
+    },
+  };
+}
+
+const HOME_VIEW = viewFor('all');
 
 function overview(animate) {
   if (animate) {
@@ -86,6 +98,16 @@ function overview(animate) {
   }
 }
 overview(false);
+
+// 供 ui.js 调用：切换到指定机位
+function flyToView(key, animate = true) {
+  const target = viewFor(key);
+  if (animate) {
+    viewer.camera.flyTo({ ...target, duration: 1.6 });
+  } else {
+    viewer.camera.setView(target);
+  }
+}
 
 import { loadTerrain } from './terrain.js';
 import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js';
@@ -109,7 +131,7 @@ import { addBuildingLabels } from './labels.js';
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261027b';
+    const ASSET_V = '20261027c';
     const layers = {};
     // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
     const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V);
@@ -118,9 +140,8 @@ import { addBuildingLabels } from './labels.js';
     // 卫星影像按需加载：默认不下载 4 MB 的 esri.jpg，第一次打开「卫星影像」时才拉取
     async function ensureEsri() {
       if (esriLayer) return esriLayer;
-      // data/esri.jpg 的实际范围（比精细底图稍大，偏移约 100 m，必须单独指定）
-      const ESRI_META = { west: 106.4500, south: 29.5530, east: 106.4800, north: 29.5820 };
-      const esri = await createBasemapProvider(ASSET_BASE, Cesium, ESRI_META, 'esri.jpg', ASSET_V);
+      // 影像必须与精细底图/地形用同一范围（data/terrain.json），否则整体错位
+      const esri = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'esri.jpg', ASSET_V);
       esriLayer = viewer.scene.imageryLayers.addImageryProvider(esri);
       esriLayer.show = false;
       layers.esri = esriLayer;
@@ -209,11 +230,13 @@ import { addBuildingLabels } from './labels.js';
     }
 
     initInteraction(viewer, data, terrain, graph, overview);
+    window.__flyToView = flyToView;
     window.__CQU__ = { viewer, data, terrain, graph, nav: { nearestNode, shortestPath } };
   } catch (e) {
     showError(e);
   }
 })();
+
 
 
 

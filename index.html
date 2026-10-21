@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261027c" />
+    <link rel="stylesheet" href="./src/style.css?v=20261028e" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -74,6 +74,15 @@
         </div>
       </div>
     </header>
+
+    <nav class="views" id="views" aria-label="视角切换">
+      <button data-view="all" class="active">全景</button>
+      <button data-view="a">A 区</button>
+      <button data-view="b">B 区</button>
+      <button data-view="c">C 区</button>
+    </nav>
+
+    <button class="back-home" id="back-home" title="返回全景视角（Esc）">↩ 返回全景</button>
 
     <section class="card" id="card">
       <button class="card-close" id="card-close" aria-label="关闭">×</button>
@@ -159,7 +168,7 @@
 
     <div class="error" id="error"></div>
 
-    <script type="module" src="./src/app.js?v=20261027c"></script>
+    <script type="module" src="./src/app.js?v=20261028e"></script>
   </body>
 </html>
 
