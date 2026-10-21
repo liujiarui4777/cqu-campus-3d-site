@@ -1,4 +1,4 @@
-/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
+﻿/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
 const Cesium = window.Cesium;
 
 const CENTER = [106.4615, 29.5695];
@@ -108,7 +108,7 @@ import { addBuildingLabels } from './labels.js';
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261027a';
+    const ASSET_V = '20261027b';
     const layers = {};
     // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
     const basemap = await createBasemapProvider(BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V);
@@ -211,5 +211,6 @@ import { addBuildingLabels } from './labels.js';
     showError(e);
   }
 })();
+
 
 
