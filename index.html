@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN" data-theme="day">
   <head>
     <meta charset="utf-8" />
@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261026a" />
+    <link rel="stylesheet" href="./src/style.css?v=20261027c" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -32,7 +32,7 @@
       // 线上走 jsDelivr CDN（GitHub Pages 国内带宽很差），本地走相对路径
       (function () {
         var isGh = location.hostname.endsWith('github.io');
-        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@main/';
+        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@23f06ebe67e16ac875ea386da77d4938be7e045b/';
         window.__ASSET_BASE = isGh ? cdn : new URL('./', document.baseURI).href;
         window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
         document.write(
@@ -91,30 +91,63 @@
     <section class="nav-panel" id="nav-panel" hidden>
       <button class="nav-close" id="nav-close" aria-label="关闭">×</button>
       <h3>步行导航</h3>
-      <div class="nav-row">
+      <div class="nav-search">
         <span class="nav-dot start"></span>
-        <div class="nav-info"><small>起点</small><b id="nav-from">点击地图选择</b></div>
-        <button class="nav-pick" id="nav-pick-from">点选</button>
+        <input id="nav-from-input" type="search" placeholder="搜索起点建筑" autocomplete="off" />
+        <button class="nav-x" id="nav-from-clear" aria-label="清空">×</button>
+        <div class="nav-suggest" id="nav-from-suggest"></div>
       </div>
-      <div class="nav-row">
+      <div class="nav-search">
         <span class="nav-dot end"></span>
-        <div class="nav-info"><small>终点</small><b id="nav-to">点击地图选择</b></div>
-        <button class="nav-pick" id="nav-pick-to">点选</button>
+        <input id="nav-to-input" type="search" placeholder="搜索终点建筑" autocomplete="off" />
+        <button class="nav-x" id="nav-to-clear" aria-label="清空">×</button>
+        <div class="nav-suggest" id="nav-to-suggest"></div>
       </div>
-      <div class="nav-result" id="nav-result">在地图上依次点击起点、终点建筑</div>
+      <div class="nav-result" id="nav-result">输入起点、终点，或直接点击地图上的建筑</div>
       <button class="nav-clear" id="nav-clear">清除路线</button>
     </section>
 
     <section class="shuttle" id="shuttle">
       <button class="shuttle-close" id="shuttle-close" aria-label="关闭">×</button>
-      <h3>校园巴士 · 沙坪坝 ⇄ 科学城</h3>
-      <p class="shuttle-next" id="shuttle-next"></p>
-      <div class="shuttle-tabs">
-        <button data-dir="outbound" class="active">沙坪坝 → 科学城</button>
-        <button data-dir="inbound">科学城 → 沙坪坝</button>
+      <h3>校园巴士</h3>
+
+      <div class="bus-tabs">
+        <button data-bus="commuter" class="active">校区交通车</button>
+        <button data-bus="campus">校园穿梭巴士</button>
       </div>
-      <p class="shuttle-stops" id="shuttle-stops"></p>
-      <div class="shuttle-list" id="shuttle-list"></div>
+
+      <div class="bus-body" id="bus-body-commuter">
+        <div class="bus-next">
+          <div class="bus-next-label">下一班</div>
+          <div class="bus-next-time" id="bus-next-time">--:--</div>
+          <div class="bus-next-meta" id="bus-next-meta">正在读取时刻表…</div>
+        </div>
+
+        <div class="shuttle-tabs">
+          <button data-dir="outbound" class="active">沙坪坝 → 科学城</button>
+          <button data-dir="inbound">科学城 → 沙坪坝</button>
+        </div>
+
+        <div class="bus-section-title">今日时刻 <span id="bus-count"></span></div>
+        <div class="shuttle-list" id="shuttle-list"></div>
+
+        <div class="bus-section-title">经停站点</div>
+        <div class="bus-stops" id="shuttle-stops"></div>
+
+        <div class="bus-meta" id="bus-meta"></div>
+        <div class="bus-tips" id="bus-tips"></div>
+        <div class="bus-source" id="bus-source"></div>
+      </div>
+
+      <div class="bus-body" id="bus-body-campus" hidden>
+        <div class="bus-hero">
+          <b>D260</b>
+          <span>校区间循环 · 免费</span>
+        </div>
+        <div class="bus-meta" id="campus-meta"></div>
+        <div class="bus-tips" id="campus-tips"></div>
+        <div class="bus-source" id="campus-source"></div>
+      </div>
     </section>
 
     <div class="boot" id="boot">
@@ -126,8 +159,10 @@
 
     <div class="error" id="error"></div>
 
-    <script type="module" src="./src/app.js?v=20261027b"></script>
+    <script type="module" src="./src/app.js?v=20261027c"></script>
   </body>
 </html>
+
+
 
 
