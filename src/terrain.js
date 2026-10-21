@@ -1,4 +1,4 @@
-/* 地形：预下载的 DEM（A/B/C 区细网格 + 10 km 中网格 + 外围粗网格）→ Cesium 本地地形
+﻿/* 地形：预下载的 DEM（A/B/C 区细网格 + 10 km 中网格 + 外围粗网格）→ Cesium 本地地形
  *
  * 首屏只加载 A/B/C 区细网格（约 1.6 MB），10 km / 20 km 网格在首屏出现后后台加载，
  * 加载完成由 app.js 调 rebuild() 重建 provider 并补全外围地形。
@@ -144,8 +144,9 @@ export async function loadTerrain(base, Cesium) {
       state.coarse = c;
       terrain.midMeta = m ? m.meta : fine.meta;
       terrain.coarseMeta = c ? c.meta : m ? m.meta : fine.meta;
-      return { midMeta: terrain.midMeta, coarseMeta: terrain.coarseMeta };
+      return { midMeta: terrain.midMeta, coarseMeta: terrain.coarseMeta, hasCoarse: !!c };
     },
   };
   return terrain;
 }
+
