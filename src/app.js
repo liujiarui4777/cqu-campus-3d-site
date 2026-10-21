@@ -3,6 +3,7 @@ const Cesium = window.Cesium;
 
 const CENTER = [106.4615, 29.5695];
 const BASE = new URL('./', document.baseURI).href;
+const ASSET_BASE = window.__ASSET_BASE || BASE;
 
 const dom = {
   boot: document.getElementById('boot'),
@@ -103,7 +104,7 @@ import { addBuildingLabels } from './labels.js';
 (async () => {
   try {
     setStatus('正在加载地形…');
-    const terrain = await loadTerrain(BASE, Cesium);
+    const terrain = await loadTerrain(ASSET_BASE, Cesium);
     viewer.scene.terrainProvider = terrain.provider;
 
     setStatus('正在铺设地面…');
@@ -111,7 +112,7 @@ import { addBuildingLabels } from './labels.js';
     const ASSET_V = '20261027b';
     const layers = {};
     // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
-    const basemap = await createBasemapProvider(BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V);
+    const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V);
     layers.style = viewer.scene.imageryLayers.addImageryProvider(basemap);
     let esriLayer = null;
     // 卫星影像按需加载：默认不下载 4 MB 的 esri.jpg，第一次打开「卫星影像」时才拉取
@@ -119,7 +120,7 @@ import { addBuildingLabels } from './labels.js';
       if (esriLayer) return esriLayer;
       // data/esri.jpg 的实际范围（比精细底图稍大，偏移约 100 m，必须单独指定）
       const ESRI_META = { west: 106.4500, south: 29.5530, east: 106.4800, north: 29.5820 };
-      const esri = await createBasemapProvider(BASE, Cesium, ESRI_META, 'esri.jpg', ASSET_V);
+      const esri = await createBasemapProvider(ASSET_BASE, Cesium, ESRI_META, 'esri.jpg', ASSET_V);
       esriLayer = viewer.scene.imageryLayers.addImageryProvider(esri);
       esriLayer.show = false;
       layers.esri = esriLayer;
@@ -133,12 +134,12 @@ import { addBuildingLabels } from './labels.js';
     const only = new URLSearchParams(location.search).get('only');
     // 白模与场景数据并行拉取，白模不阻塞首屏
     const whiteP = !only || only === 'surroundings'
-      ? addSurroundings(viewer, BASE, terrain).then((n) => {
+      ? addSurroundings(viewer, ASSET_BASE, terrain).then((n) => {
           window.__surroundCount = n;
           return n;
         }).catch(() => 0)
       : Promise.resolve(0);
-    const data = await fetch(BASE + 'data/scene.json?v=' + ASSET_V).then((r) => r.json());
+    const data = await fetch(ASSET_BASE + 'data/scene.json?v=' + ASSET_V).then((r) => r.json());
 
     if (!only || only === 'areas') addAreas(viewer, data, terrain);
     if (!only || only === 'river') addRiver(viewer, data, terrain);
@@ -168,14 +169,14 @@ import { addBuildingLabels } from './labels.js';
         const ext = await terrain.loadExtended();
         viewer.scene.terrainProvider = terrain.rebuild();
         try {
-          const midBase = await createBasemapProvider(BASE, Cesium, ext.midMeta, 'basemap_mid.jpg', ASSET_V);
+          const midBase = await createBasemapProvider(ASSET_BASE, Cesium, ext.midMeta, 'basemap_mid.jpg', ASSET_V);
           layers.mid = viewer.scene.imageryLayers.addImageryProvider(midBase, 0);
         } catch (e) {
           console.warn('10 km 底图加载失败', e);
         }
         if (ext.hasCoarse) {
           try {
-            const coarseBase = await createBasemapProvider(BASE, Cesium, ext.coarseMeta, 'basemap_coarse.jpg', ASSET_V);
+            const coarseBase = await createBasemapProvider(ASSET_BASE, Cesium, ext.coarseMeta, 'basemap_coarse.jpg', ASSET_V);
             layers.coarse = viewer.scene.imageryLayers.addImageryProvider(coarseBase, 0);
           } catch (e) {
             console.warn('外围底图加载失败', e);
@@ -191,7 +192,7 @@ import { addBuildingLabels } from './labels.js';
     if (new URLSearchParams(location.search).get('glb') === '1') {
       try {
         const model = await Cesium.Model.fromGltfAsync({
-          url: BASE + 'data/buildings.glb',
+          url: ASSET_BASE + 'data/buildings.glb',
           modelMatrix: Cesium.Transforms.eastNorthUpToFixedFrame(
             Cesium.Cartesian3.fromDegrees(106.4648, 29.5672, 0),
           ),
@@ -213,6 +214,7 @@ import { addBuildingLabels } from './labels.js';
     showError(e);
   }
 })();
+
 
 
 
