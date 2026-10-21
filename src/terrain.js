@@ -1,9 +1,7 @@
-/* 地形：预下载的 DEM（A/B 区细网格 + 10 km 中网格 + 外围粗网格）→ Cesium 本地地形
+/* 地形：预下载的 DEM（A/B/C 区细网格 + 10 km 中网格 + 外围粗网格）→ Cesium 本地地形
  *
- * 三级网格，边界处 400 m 线性混合，避免接缝断崖：
- *   terrain         A/B 区 3.4 km，约 1.3 m/px
- *   terrain_mid     10 km × 10 km，约 4.9 m/px
- *   terrain_coarse  外围 13.5 km，约 13 m/px
+ * 首屏只加载 A/B/C 区细网格（约 1.6 MB），10 km / 20 km 网格在首屏出现后后台加载，
+ * 加载完成由 app.js 调 rebuild() 重建 provider 并补全外围地形。
  */
 
 async function fetchBin(base, name) {
@@ -52,18 +50,7 @@ async function loadGrid(base, name) {
 
 export async function loadTerrain(base, Cesium) {
   const fine = await loadGrid(base, 'terrain');
-  let mid = null;
-  let coarse = null;
-  try {
-    mid = await loadGrid(base, 'terrain_mid');
-  } catch (e) {
-    console.warn('10 km 中网格地形缺失', e);
-  }
-  try {
-    coarse = await loadGrid(base, 'terrain_coarse');
-  } catch (e) {
-    console.warn('外围地形缺失', e);
-  }
+  const state = { fine, mid: null, coarse: null };
 
   const MLAT = 110540;
   const mLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
@@ -79,16 +66,17 @@ export async function loadTerrain(base, Cesium) {
   const blendDist = 400;
 
   const sample = (lon, lat) => {
+    const { mid, coarse } = state;
     const dF = edgeDist(fine.meta, lon, lat);
-    if (!mid) {
-      if (!coarse) return fine.sample(lon, lat);
-      const dC = edgeDist(coarse.meta, lon, lat);
-      if (dF >= blendDist) return fine.sample(lon, lat);
-      if (dF >= 0) return lerp(coarse.sample(lon, lat), fine.sample(lon, lat), dF / blendDist);
-      return dC >= 0 ? coarse.sample(lon, lat) : coarse.sample(lon, lat);
-    }
     if (dF >= blendDist) return fine.sample(lon, lat);
-    if (dF >= 0) return lerp(mid.sample(lon, lat), fine.sample(lon, lat), dF / blendDist);
+    if (dF >= 0) {
+      if (mid) return lerp(mid.sample(lon, lat), fine.sample(lon, lat), dF / blendDist);
+      if (coarse) return lerp(coarse.sample(lon, lat), fine.sample(lon, lat), dF / blendDist);
+      return fine.sample(lon, lat);
+    }
+    if (!mid) {
+      return coarse ? coarse.sample(lon, lat) : fine.sample(lon, lat);
+    }
     const dM = edgeDist(mid.meta, lon, lat);
     if (dM >= blendDist) return mid.sample(lon, lat);
     if (dM >= 0 && coarse) return lerp(coarse.sample(lon, lat), mid.sample(lon, lat), dM / blendDist);
@@ -97,47 +85,67 @@ export async function loadTerrain(base, Cesium) {
 
   const tilingScheme = new Cesium.GeographicTilingScheme();
   const N = 49;
-  const tileCache = new Map();
-  const b = coarse ? coarse.meta : mid ? mid.meta : fine.meta;
-  const clampLon = (v) => (v < b.west ? b.west : v > b.east ? b.east : v);
-  const clampLat = (v) => (v < b.south ? b.south : v > b.north ? b.north : v);
 
-  const provider = new Cesium.CustomHeightmapTerrainProvider({
-    width: N,
-    height: N,
-    tilingScheme,
-    callback: (x, y, level) => {
-      const key = level + '/' + x + '/' + y;
-      const hit = tileCache.get(key);
-      if (hit) return hit;
-      const rect = tilingScheme.tileXYToRectangle(x, y, level);
-      const west = Cesium.Math.toDegrees(rect.west);
-      const east = Cesium.Math.toDegrees(rect.east);
-      const south = Cesium.Math.toDegrees(rect.south);
-      const north = Cesium.Math.toDegrees(rect.north);
-      const out = new Float32Array(N * N);
-      const dLon = (east - west) / (N - 1);
-      const dLat = (north - south) / (N - 1);
-      for (let r = 0; r < N; r++) {
-        const lat = north - dLat * r;
-        for (let c = 0; c < N; c++) {
-          const lon = west + dLon * c;
-          // 覆盖范围外按边界值延展，避免断崖式孤岛
-          out[r * N + c] = sample(clampLon(lon), clampLat(lat));
+  function makeProvider() {
+    const tileCache = new Map();
+    const b = state.coarse ? state.coarse.meta : state.mid ? state.mid.meta : fine.meta;
+    const clampLon = (v) => (v < b.west ? b.west : v > b.east ? b.east : v);
+    const clampLat = (v) => (v < b.south ? b.south : v > b.north ? b.north : v);
+
+    return new Cesium.CustomHeightmapTerrainProvider({
+      width: N,
+      height: N,
+      tilingScheme,
+      callback: (x, y, level) => {
+        const key = level + '/' + x + '/' + y;
+        const hit = tileCache.get(key);
+        if (hit) return hit;
+        const rect = tilingScheme.tileXYToRectangle(x, y, level);
+        const west = Cesium.Math.toDegrees(rect.west);
+        const east = Cesium.Math.toDegrees(rect.east);
+        const south = Cesium.Math.toDegrees(rect.south);
+        const north = Cesium.Math.toDegrees(rect.north);
+        const out = new Float32Array(N * N);
+        const dLon = (east - west) / (N - 1);
+        const dLat = (north - south) / (N - 1);
+        for (let r = 0; r < N; r++) {
+          const lat = north - dLat * r;
+          for (let c = 0; c < N; c++) {
+            const lon = west + dLon * c;
+            // 覆盖范围外按边界值延展，避免断崖式孤岛
+            out[r * N + c] = sample(clampLon(lon), clampLat(lat));
+          }
         }
-      }
-      if (tileCache.size > 4000) tileCache.clear();
-      tileCache.set(key, out);
-      return out;
-    },
-  });
+        if (tileCache.size > 4000) tileCache.clear();
+        tileCache.set(key, out);
+        return out;
+      },
+    });
+  }
 
-  return {
-    provider,
+  const terrain = {
+    provider: makeProvider(),
     meta: fine.meta,
-    midMeta: mid ? mid.meta : fine.meta,
-    coarseMeta: coarse ? coarse.meta : mid ? mid.meta : fine.meta,
+    midMeta: fine.meta,
+    coarseMeta: fine.meta,
     sample,
     inRange: fine.inRange,
+    // 后台补全 10 km / 20 km 地形后重建 provider
+    rebuild() {
+      terrain.provider = makeProvider();
+      return terrain.provider;
+    },
+    async loadExtended() {
+      const [m, c] = await Promise.all([
+        loadGrid(base, 'terrain_mid').catch(() => null),
+        loadGrid(base, 'terrain_coarse').catch(() => null),
+      ]);
+      state.mid = m;
+      state.coarse = c;
+      terrain.midMeta = m ? m.meta : fine.meta;
+      terrain.coarseMeta = c ? c.meta : m ? m.meta : fine.meta;
+      return { midMeta: terrain.midMeta, coarseMeta: terrain.coarseMeta };
+    },
   };
+  return terrain;
 }
