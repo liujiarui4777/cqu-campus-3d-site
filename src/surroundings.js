@@ -1,4 +1,4 @@
-/* 非重庆大学建筑：15 km 范围内的白色体块（白模），按高德城市白模观感。
+﻿/* 非重庆大学建筑：15 km 范围内的白色体块（白模），按高德城市白模观感。
  *
  * 用 OSM 建筑 bbox 做盒式白模（稳定、单 draw call）：
  * - 主体：近白侧墙；顶盖：另加一层更白的薄板，无光照也能看出体量；
@@ -6,7 +6,7 @@
  */
 export async function addSurroundings(viewer, base, terrain) {
   const Cesium = window.Cesium;
-  const data = await fetch(`${base}data/surroundings.json?v=20261027a`).then((r) => r.json());
+  const data = await fetch(`${base}data/surroundings.json?v=20261027b`).then((r) => r.json());
   const items = data.items || [];
   if (!items.length) return 0;
 
@@ -83,6 +83,7 @@ export async function addSurroundings(viewer, base, terrain) {
 
   return bodies.length;
 }
+
 
 
 
