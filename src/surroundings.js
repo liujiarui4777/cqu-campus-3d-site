@@ -1,4 +1,4 @@
-﻿/* 非重庆大学建筑：15 km 范围内的白色体块（白模），按高德城市白模观感。
+/* 非重庆大学建筑：15 km 范围内的白色体块（白模），按高德城市白模观感。
  *
  * 用 OSM 建筑 bbox 做盒式白模（稳定、单 draw call）：
  * - 主体：近白侧墙；顶盖：另加一层更白的薄板，无光照也能看出体量；
@@ -6,7 +6,7 @@
  */
 export async function addSurroundings(viewer, base, terrain) {
   const Cesium = window.Cesium;
-  const data = await fetch(`${base}data/surroundings.json`).then((r) => r.json());
+  const data = await fetch(`${base}data/surroundings.json?v=20261027a`).then((r) => r.json());
   const items = data.items || [];
   if (!items.length) return 0;
 
@@ -28,10 +28,19 @@ export async function addSurroundings(viewer, base, terrain) {
     const h = Math.max(6, b.h || 12) * 1.15;
     const w = Math.max(5, b.w || 10);
     const d = Math.max(5, b.d || 10);
-    // 取 bbox 轮廓上最高的地形作为基面，避免坡地上白模被地形“切掉”成白板
+    // 取 bbox 四角最高地形作为基面，避免坡地上白模被地形“切掉”成白板
+    const kLon = 111320 * Math.cos((b.lat * Math.PI) / 180);
+    const kLat = 110540;
+    const dLon = w / 2 / kLon;
+    const dLat = d / 2 / kLat;
     let h0 = -Infinity;
-    for (const [lon, lat] of b.outline || []) {
-      const g = terrain.sample(lon, lat);
+    for (const [cx, cy] of [
+      [b.lon - dLon, b.lat - dLat],
+      [b.lon + dLon, b.lat - dLat],
+      [b.lon - dLon, b.lat + dLat],
+      [b.lon + dLon, b.lat + dLat],
+    ]) {
+      const g = terrain.sample(cx, cy);
       if (g > h0) h0 = g;
     }
     if (!isFinite(h0)) h0 = terrain.sample(b.lon, b.lat);
@@ -74,6 +83,7 @@ export async function addSurroundings(viewer, base, terrain) {
 
   return bodies.length;
 }
+
 
 
 
