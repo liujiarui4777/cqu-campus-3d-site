@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN" data-theme="day">
   <head>
     <meta charset="utf-8" />
@@ -8,12 +8,6 @@
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
     <link rel="stylesheet" href="./src/style.css?v=20261026a" />
-    <!-- 首屏资源预加载：与 Cesium.js 并行下载，缩短可交互时间 -->
-    <link rel="preload" href="./data/terrain.json" as="fetch" crossorigin="anonymous" />
-    <link rel="preload" href="./data/terrain.bin.gz" as="fetch" crossorigin="anonymous" />
-    <link rel="preload" href="./data/scene.json?v=20261027b" as="fetch" crossorigin="anonymous" />
-    <link rel="preload" href="./data/surroundings.json?v=20261027b" as="fetch" crossorigin="anonymous" />
-    <link rel="preload" href="./data/basemap.jpg" as="image" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -35,9 +29,17 @@
       });
     </script>
     <script>
-      window.CESIUM_BASE_URL = new URL('./cesium/', document.baseURI).href;
+      // 线上走 jsDelivr CDN（GitHub Pages 国内带宽很差），本地走相对路径
+      (function () {
+        var isGh = location.hostname.endsWith('github.io');
+        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@main/';
+        window.__ASSET_BASE = isGh ? cdn : new URL('./', document.baseURI).href;
+        window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
+        document.write(
+          '<script src="' + (isGh ? cdn + 'cesium/Cesium.js' : './cesium/Cesium.js') + '"><\/script>',
+        );
+      })();
     </script>
-    <script src="./cesium/Cesium.js"></script>
   </head>
   <body>
     <div id="cesium-root"></div>
