@@ -61,6 +61,12 @@ scene.screenSpaceCameraController.maximumZoomDistance = 22000;
 const credit = viewer.cesiumWidget.creditContainer;
 if (credit) credit.style.display = 'none';
 
+// 窗口尺寸变化时强制重算画布，保证地图始终铺满浏览器
+window.addEventListener('resize', () => {
+  viewer.resize();
+  viewer.scene.requestRender();
+});
+
 // 全景：A 区 + B 区 + C 区居中，约 2.5 km 视野
 const HOME_VIEW = {
   destination: Cesium.Cartesian3.fromDegrees(106.4585, 29.5520, 1950),
@@ -123,8 +129,9 @@ import { addBuildingLabels } from './labels.js';
     // 卫星影像按需加载：默认不下载 4 MB 的 esri.jpg，第一次打开「卫星影像」时才拉取
     async function ensureEsri() {
       if (esriLayer) return esriLayer;
-      // 影像与精细底图共用同一范围（data/terrain.json），保证和建筑/道路严格对齐
-      const esri = await createBasemapProvider(BASE, Cesium, terrain.meta, 'esri.jpg', ASSET_V);
+      // data/esri.jpg 的实际范围（比精细底图稍大，偏移约 100 m，必须单独指定）
+      const ESRI_META = { west: 106.4500, south: 29.5530, east: 106.4800, north: 29.5820 };
+      const esri = await createBasemapProvider(BASE, Cesium, ESRI_META, 'esri.jpg', ASSET_V);
       esriLayer = viewer.scene.imageryLayers.addImageryProvider(esri);
       esriLayer.show = false;
       layers.esri = esriLayer;
@@ -187,3 +194,4 @@ import { addBuildingLabels } from './labels.js';
     showError(e);
   }
 })();
+

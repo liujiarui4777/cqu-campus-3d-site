@@ -1,12 +1,10 @@
-/* 建筑与乘车点标签：DOM 覆盖层，清晰、可点击、可开关、按距离分级显示
+/* 建筑标签：DOM 覆盖层，清晰、可点击、可开关、按距离分级显示
  *
  * 分级规则（避免 170+ 个标签糊成一片）：
  *   < 650 m  显示全部建筑
  *   650–2200 只显示地标与主要建筑
  *   > 2200 m 只显示地标
  */
-
-import { SHUTTLE_STOPS } from './shuttle.js';
 
 const MAJOR = new Set([
   '主教学楼',
@@ -79,29 +77,6 @@ export function addBuildingLabels(viewer, data, terrain) {
       pos: Cesium.Cartesian3.fromDegrees(b.center[0], b.center[1], h0 + b.height + 4),
       tier: b.landmark ? 0 : MAJOR.has(name) ? 1 : 2,
       b,
-    });
-  }
-
-  // ---- 校车乘车点 ----
-  for (const s of SHUTTLE_STOPS) {
-    const h0 = terrain.sample(s.lon, s.lat);
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'bldg-label shuttle-stop';
-    btn.textContent = '校车 · ' + String(s.name).replace(/^A\s*区?\s*/, '');
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const panel = document.getElementById('shuttle');
-      if (panel && !panel.classList.contains('show')) {
-        document.getElementById('shuttle-btn')?.click();
-      }
-    });
-    layer.appendChild(btn);
-    items.push({
-      el: btn,
-      pos: Cesium.Cartesian3.fromDegrees(s.lon, s.lat, h0 + 6),
-      tier: 0,
-      shuttle: true,
     });
   }
 

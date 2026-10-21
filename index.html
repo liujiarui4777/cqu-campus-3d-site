@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN" data-theme="day">
   <head>
     <meta charset="utf-8" />
@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261025c" />
+    <link rel="stylesheet" href="./src/style.css?v=20261026a" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -37,13 +37,13 @@
     <div id="cesium-root"></div>
 
     <header class="topbar">
-      <div class="brand">
+      <button class="brand" id="brand-home" title="回到全景">
         <span class="brand-mark"></span>
-        <div class="brand-text">
+        <span class="brand-text">
           <h1>重庆大学 · 三维校园</h1>
-          <p>A / B / C 区 · 15 km 城市白模</p>
-        </div>
-      </div>
+          <p>A / B / C 区 · 15 km</p>
+        </span>
+      </button>
 
       <div class="search">
         <span class="search-icon">⌕</span>
@@ -51,18 +51,25 @@
         <div class="search-results" id="search-results"></div>
       </div>
 
-      <div class="topright">
-        <div class="stats" id="stats"></div>
-        <div class="times">
+      <div class="tools">
+        <button id="nav-btn" class="tool-btn" title="步行导航">导航</button>
+        <button id="sat-btn" class="tool-btn" title="切换卫星影像">卫星</button>
+        <button id="bus-btn" class="tool-btn" title="校园巴士时刻表">校园巴士</button>
+        <div class="times" title="昼夜">
           <button data-time="day" class="active">日</button>
           <button data-time="dusk">昏</button>
           <button data-time="night">夜</button>
+        </div>
+        <div class="weather" id="weather" title="沙坪坝天气">
+          <span class="w-icon" id="weather-icon">☀</span>
+          <span id="weather-text">--°</span>
         </div>
       </div>
     </header>
 
     <section class="card" id="card">
       <button class="card-close" id="card-close" aria-label="关闭">×</button>
+      <div class="card-photo" id="card-photo-wrap" hidden><img id="card-photo" alt="" /></div>
       <p class="card-sub" id="card-sub"></p>
       <h2 id="card-title"></h2>
       <div class="card-meta" id="card-meta"></div>
@@ -73,38 +80,26 @@
       <button class="card-back" id="card-back">← 返回全景</button>
     </section>
 
-    <footer class="dock">
-      <div class="dock-actions">
-        <button id="home-btn" class="dock-btn" title="回到全景视角">全景</button>
-        <button id="nav-btn" class="dock-btn" title="选择起点与终点建筑">步行导航</button>
-        <button id="panel-btn" class="dock-btn" title="图层与工具" aria-expanded="false">图层</button>
+    <section class="nav-panel" id="nav-panel" hidden>
+      <button class="nav-close" id="nav-close" aria-label="关闭">×</button>
+      <h3>步行导航</h3>
+      <div class="nav-row">
+        <span class="nav-dot start"></span>
+        <div class="nav-info"><small>起点</small><b id="nav-from">点击地图选择</b></div>
+        <button class="nav-pick" id="nav-pick-from">点选</button>
       </div>
-      <div class="guides" id="guides"></div>
-      <div class="dock-status" id="dock-status"></div>
-    </footer>
-
-    <div class="layer-panel" id="layer-panel" hidden>
-      <div class="layer-row">
-        <span class="layer-title">显示</span>
-        <label class="layer-switch">
-          <input type="checkbox" id="toggle-labels" checked />
-          <span>建筑标签</span>
-        </label>
-        <label class="layer-switch">
-          <input type="checkbox" id="toggle-imagery" />
-          <span>卫星影像</span>
-        </label>
+      <div class="nav-row">
+        <span class="nav-dot end"></span>
+        <div class="nav-info"><small>终点</small><b id="nav-to">点击地图选择</b></div>
+        <button class="nav-pick" id="nav-pick-to">点选</button>
       </div>
-      <div class="layer-row">
-        <span class="layer-title">工具</span>
-        <button id="shuttle-btn" class="layer-tool">校车时刻表</button>
-        <button id="schedule-btn" class="layer-tool">今日课程</button>
-      </div>
-    </div>
+      <div class="nav-result" id="nav-result">在地图上依次点击起点、终点建筑</div>
+      <button class="nav-clear" id="nav-clear">清除路线</button>
+    </section>
 
     <section class="shuttle" id="shuttle">
       <button class="shuttle-close" id="shuttle-close" aria-label="关闭">×</button>
-      <h3>校车 · 沙坪坝 ⇄ 科学城</h3>
+      <h3>校园巴士 · 沙坪坝 ⇄ 科学城</h3>
       <p class="shuttle-next" id="shuttle-next"></p>
       <div class="shuttle-tabs">
         <button data-dir="outbound" class="active">沙坪坝 → 科学城</button>
@@ -112,16 +107,6 @@
       </div>
       <p class="shuttle-stops" id="shuttle-stops"></p>
       <div class="shuttle-list" id="shuttle-list"></div>
-    </section>
-
-    <section class="schedule" id="schedule">
-      <button class="schedule-close" id="schedule-close" aria-label="关闭">×</button>
-      <h3>今日课程</h3>
-      <p class="schedule-date" id="schedule-date"></p>
-      <div class="schedule-list" id="schedule-list"></div>
-      <textarea id="schedule-input" placeholder="粘贴课表，每行一门课，例如：&#10;周一 8:00-9:40 高等数学 第一教学楼&#10;周一 10:00-11:40 大学物理 理科教学楼"></textarea>
-      <button class="schedule-save" id="schedule-save">导入课表</button>
-      <button class="schedule-clear" id="schedule-clear">清除课表</button>
     </section>
 
     <div class="boot" id="boot">
@@ -133,8 +118,6 @@
 
     <div class="error" id="error"></div>
 
-    <script type="module" src="./src/app.js?v=20261025c"></script>
+    <script type="module" src="./src/app.js?v=20261026a"></script>
   </body>
 </html>
-
-

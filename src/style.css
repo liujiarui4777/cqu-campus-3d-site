@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --paper: #eef2f6;
   --ink: #1f2a33;
   --muted: #5d6b78;
@@ -501,7 +501,7 @@ html[data-theme='night'] .brand h1 { color: #fff; }
 html[data-theme='night'] .dock-status { color: #93a3b3; }
 
 /* ---------------- 窄屏 ---------------- */
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .stats { display: none; }
   .brand p { display: none; }
   .search { max-width: 220px; }
@@ -765,3 +765,137 @@ html[data-theme='night'] .layer-tool {
   border-color: rgba(255,255,255,0.14);
   color: #dfe8f0;
 }
+
+/* ============ 2026-10：简洁工具条 + 导航面板 + 建筑图片 ============ */
+.brand { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.brand:hover h1 { color: var(--accent); }
+.tools { display: flex; align-items: center; gap: 7px; margin-left: auto; flex: none; }
+.tool-btn {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 8px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(31, 42, 51, 0.08);
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+.tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tool-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.weather {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(31, 42, 51, 0.08);
+  white-space: nowrap;
+}
+.weather .w-icon { font-size: 14px; }
+
+/* 卡片：图片 + 更贴底 */
+.card { bottom: 20px; }
+.card-photo {
+  margin: -20px -20px 12px;
+  border-radius: 17px 17px 0 0;
+  overflow: hidden;
+  height: 150px;
+  background: #dfe6e4;
+}
+.card-photo[hidden] { display: none; }
+.card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* 步行导航面板 */
+.nav-panel {
+  position: absolute;
+  right: 20px;
+  top: 78px;
+  width: 292px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 16px 14px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  z-index: 26;
+}
+.nav-panel[hidden] { display: none; }
+.nav-panel h3 { margin: 0 0 12px; font-size: 15px; font-weight: 650; }
+.nav-close { position: absolute; right: 10px; top: 8px; border: 0; background: none; font-size: 19px; color: var(--muted); cursor: pointer; }
+.nav-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px solid rgba(31, 42, 51, 0.07); }
+.nav-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.nav-dot.start { background: #22b573; }
+.nav-dot.end { background: #e2574c; }
+.nav-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.nav-info small { font-size: 10.5px; color: var(--muted); }
+.nav-info b { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-pick {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--accent);
+}
+.nav-pick:hover { border-color: var(--accent); }
+.nav-result { margin: 10px 0; font-size: 12px; line-height: 1.6; color: var(--muted); min-height: 34px; }
+.nav-result b { color: var(--accent); font-size: 13px; }
+.nav-clear {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 12px;
+  padding: 7px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.nav-clear:hover { border-color: #e2574c; color: #e2574c; }
+
+html[data-theme='night'] .tool-btn,
+html[data-theme='night'] .weather,
+html[data-theme='night'] .nav-panel {
+  background: rgba(20, 28, 40, 0.94);
+  color: #e8eef4;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+html[data-theme='night'] .nav-panel h3 { color: #fff; }
+html[data-theme='night'] .nav-info b { color: #e8eef4; }
+html[data-theme='night'] .nav-pick,
+html[data-theme='night'] .nav-clear {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfe4e2;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* 截图模式：隐藏界面 */
+body.capture .topbar,
+body.capture .dock,
+body.capture .card,
+body.capture .label-layer,
+body.capture .nav-panel,
+body.capture .shuttle,
+body.capture .schedule,
+body.capture .boot,
+body.capture .error { display: none !important; }
+
+@media (max-width: 720px) {
+  .brand-text p { display: none; }
+  .tools .tool-btn { padding: 7px 10px; }
+  .weather { display: none; }
+}
+
+
