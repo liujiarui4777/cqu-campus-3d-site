@@ -1,17 +1,46 @@
 /* 自定义单张底图 ImageryProvider：按瓦片从一张大图裁剪，保证经纬度严格对齐。
  * Cesium 自带的 SingleTileImageryProvider 在该场景下会把图拉伸错位，故自己实现。
+ *
+ * 线上底图走 jsDelivr CDN；CDN 在国内会抖，加载失败或超时就回退到本站（GitHub Pages）。
  */
-export async function createBasemapProvider(base, Cesium, meta, file = 'basemap.jpg', version = '') {
-  const img = await new Promise((resolve, reject) => {
+function loadImage(url, timeout) {
+  return new Promise((resolve, reject) => {
     const i = new Image();
-    // 线上底图来自 jsDelivr（跨域），必须带 CORS 声明，否则 canvas 会被污染、WebGL 上传纹理报 SecurityError
+    // 跨域图必须带 CORS 声明，否则 canvas 被污染，WebGL 上传纹理会抛 SecurityError
     i.crossOrigin = 'anonymous';
-    i.onload = () => resolve(i);
-    i.onerror = () => reject(new Error('底图加载失败：' + file));
-    // 大图必须带版本号，否则浏览器会一直用缓存里的旧影像（改了图也看不到）
-    const q = version ? (file.includes('?') ? '&' : '?') + 'v=' + version : '';
-    i.src = `${base}data/${file}${q}`;
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      reject(new Error('image timeout ' + url));
+    }, timeout);
+    i.onload = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve(i);
+    };
+    i.onerror = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      reject(new Error('image error ' + url));
+    };
+    i.src = url;
   });
+}
+
+export async function createBasemapProvider(base, Cesium, meta, file = 'basemap.jpg', version = '', fallbackBase = '') {
+  // 大图必须带版本号，否则浏览器会一直用缓存里的旧影像（改了图也看不到）
+  const q = version ? (file.includes('?') ? '&' : '?') + 'v=' + version : '';
+  const primary = `${base}data/${file}${q}`;
+  let img;
+  try {
+    img = await loadImage(primary, 12000);
+  } catch (e) {
+    if (!fallbackBase) throw new Error('底图加载失败：' + file);
+    img = await loadImage(`${fallbackBase}data/${file}${q}`, 20000);
+  }
 
   const rect = new Cesium.Rectangle(
     Cesium.Math.toRadians(meta.west),

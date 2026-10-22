@@ -1,9 +1,9 @@
-/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
+﻿/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
 const Cesium = window.Cesium;
 
 const CENTER = [106.4615, 29.5695];
 const BASE = new URL('./', document.baseURI).href;
-const ASSET_BASE = window.__ASSET_BASE || BASE;
+let ASSET_BASE = window.__ASSET_BASE || BASE;
 
 const dom = {
   boot: document.getElementById('boot'),
@@ -142,6 +142,18 @@ import { addBuildingLabels } from './labels.js';
 
 (async () => {
   initLogin();
+  // CDN 不通（国内 jsDelivr 会抖）就整体回退到本站，避免卡在「加载地形」
+  if (ASSET_BASE !== BASE) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 7000);
+      const probe = await fetch(ASSET_BASE + 'data/terrain.json', { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!probe.ok) ASSET_BASE = BASE;
+    } catch (e) {
+      ASSET_BASE = BASE;
+    }
+  }
   try {
     setStatus('正在加载地形…');
     const terrain = await loadTerrain(ASSET_BASE, Cesium);
@@ -149,17 +161,17 @@ import { addBuildingLabels } from './labels.js';
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261028f';
+    const ASSET_V = '20261029d';
     const layers = {};
     // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
-    const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V);
+    const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE);
     layers.style = viewer.scene.imageryLayers.addImageryProvider(basemap);
     let esriLayer = null;
     // 卫星影像按需加载：默认不下载 4 MB 的 esri.jpg，第一次打开「卫星影像」时才拉取
     async function ensureEsri() {
       if (esriLayer) return esriLayer;
       // 影像必须与精细底图/地形用同一范围（data/terrain.json），否则整体错位
-      const esri = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'esri.jpg', ASSET_V);
+      const esri = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'esri.jpg', ASSET_V, BASE);
       esriLayer = viewer.scene.imageryLayers.addImageryProvider(esri);
       esriLayer.show = false;
       layers.esri = esriLayer;
@@ -178,7 +190,18 @@ import { addBuildingLabels } from './labels.js';
           return n;
         }).catch(() => 0)
       : Promise.resolve(0);
-    const data = await fetch(ASSET_BASE + 'data/scene.json?v=' + ASSET_V).then((r) => r.json());
+    // CDN 拿不到就回退本站，避免 jsDelivr 抖动导致整页卡在加载
+    const data = await (async () => {
+      for (const base of [ASSET_BASE, BASE]) {
+        try {
+          const r = await fetch(base + 'data/scene.json?v=' + ASSET_V);
+          if (r.ok) return await r.json();
+        } catch (e) {
+          /* try next base */
+        }
+      }
+      throw new Error('场景数据加载失败（scene.json）');
+    })();
 
     if (!only || only === 'areas') addAreas(viewer, data, terrain);
     if (!only || only === 'river') addRiver(viewer, data, terrain);
@@ -208,14 +231,14 @@ import { addBuildingLabels } from './labels.js';
         const ext = await terrain.loadExtended();
         viewer.scene.terrainProvider = terrain.rebuild();
         try {
-          const midBase = await createBasemapProvider(ASSET_BASE, Cesium, ext.midMeta, 'basemap_mid.jpg', ASSET_V);
+          const midBase = await createBasemapProvider(ASSET_BASE, Cesium, ext.midMeta, 'basemap_mid.jpg', ASSET_V, BASE);
           layers.mid = viewer.scene.imageryLayers.addImageryProvider(midBase, 0);
         } catch (e) {
           console.warn('10 km 底图加载失败', e);
         }
         if (ext.hasCoarse) {
           try {
-            const coarseBase = await createBasemapProvider(ASSET_BASE, Cesium, ext.coarseMeta, 'basemap_coarse.jpg', ASSET_V);
+            const coarseBase = await createBasemapProvider(ASSET_BASE, Cesium, ext.coarseMeta, 'basemap_coarse.jpg', ASSET_V, BASE);
             layers.coarse = viewer.scene.imageryLayers.addImageryProvider(coarseBase, 0);
           } catch (e) {
             console.warn('外围底图加载失败', e);
