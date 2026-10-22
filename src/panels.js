@@ -5,6 +5,7 @@ const TITLES = {
   bus: '校园巴士',
   food: '校园美食',
   schedule: '我的课表',
+  message: '给作者留言',
   account: '账号',
 };
 
@@ -17,6 +18,8 @@ const FOOD_CATS = [
 ];
 
 const FOOD_KEY = 'cqu-food-posts';
+const MSG_KEY = 'cqu-messages';
+const AUTHOR_EMAIL = 'liujiarui_33@qq.com';
 const AUTH_KEY = 'cqu-auth-user';
 
 /* ---------------- 抽屉控制 ---------------- */
@@ -253,11 +256,83 @@ function initBusTicker() {
   window.addEventListener('beforeunload', () => clearInterval(timer));
 }
 
+/* ---------------- 给作者留言 ---------------- */
+function initMessage() {
+  const nickEl = document.getElementById('msg-nick');
+  const textEl = document.getElementById('msg-text');
+  const sendBtn = document.getElementById('msg-send');
+  const copyBtn = document.getElementById('msg-copy');
+  const stateEl = document.getElementById('msg-state');
+  const historyEl = document.getElementById('msg-history');
+  if (!sendBtn || !textEl) return;
+
+  function load() {
+    try {
+      return JSON.parse(localStorage.getItem(MSG_KEY) || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function renderHistory() {
+    if (!historyEl) return;
+    const list = load();
+    historyEl.innerHTML = list.length
+      ? '<p class="sec-hint">本机留存的留言</p>'
+      : '<p class="sec-hint">还没有留过言。</p>';
+    for (const m of list.slice().reverse().slice(0, 10)) {
+      const el = document.createElement('div');
+      el.className = 'food-post';
+      const when = new Date(m.at).toLocaleString('zh-CN', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      el.innerHTML = '<b>' + (m.nick || '匿名同学') + ' · ' + when + '</b>' + m.text;
+      historyEl.appendChild(el);
+    }
+  }
+
+  if (sendBtn) {
+    sendBtn.addEventListener('click', () => {
+      const body = (textEl.value || '').trim();
+      if (!body) {
+        if (stateEl) stateEl.textContent = '先写点内容再发吧。';
+        textEl.focus();
+        return;
+      }
+      const nick = (nickEl && nickEl.value.trim()) || '匿名同学';
+      const subject = '【三维校园留言】' + nick;
+      const full = body + '\n\n—— 来自三维校园 · ' + nick;
+      // 本地留一份，方便回看
+      const list = load();
+      list.push({ nick, text: body, at: Date.now() });
+      localStorage.setItem(MSG_KEY, JSON.stringify(list.slice(-50)));
+      renderHistory();
+      if (stateEl) stateEl.textContent = '已打开邮件客户端（收件人 ' + AUTHOR_EMAIL + '），点发送即可。';
+      window.location.href =
+        'mailto:' + AUTHOR_EMAIL +
+        '?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(full);
+    });
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(AUTHOR_EMAIL);
+        if (stateEl) stateEl.textContent = '邮箱已复制：' + AUTHOR_EMAIL;
+      } catch (e) {
+        if (stateEl) stateEl.textContent = '复制失败，请手动复制：' + AUTHOR_EMAIL;
+      }
+    });
+  }
+
+  renderHistory();
+}
+
 export function initPanels() {
   const drawer = initDrawer();
   const account = initAccount();
   window.__accountRefresh = account ? account.refresh : null;
   initFood();
+  initMessage();
   initBusTicker();
   return drawer;
 }

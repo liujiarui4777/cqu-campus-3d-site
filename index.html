@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261030b" />
+    <link rel="stylesheet" href="./src/style.css?v=20261030c" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -78,6 +78,7 @@
       <button id="bus-btn" class="rail-btn" data-plugin="bus" title="校园巴士"><i>巴</i><span>巴士</span></button>
       <button class="rail-btn" data-plugin="food" title="校园美食"><i>食</i><span>美食</span></button>
       <button id="schedule-btn" class="rail-btn" data-plugin="schedule" title="我的课表"><i>课</i><span>课表</span></button>
+      <button class="rail-btn" data-plugin="message" title="给作者留言"><i>言</i><span>留言</span></button>
       <button class="rail-btn" data-plugin="account" title="账号"><i>我</i><span>我</span></button>
     </nav>
 
@@ -192,6 +193,19 @@
           </div>
         </section>
 
+        <section class="drawer-sec" id="message" data-panel="message" hidden>
+          <p class="sec-hint">想加什么建筑、发现哪里不对、或者只是想说句话，都可以写在这里。点「发送给作者」会调用你本机的邮件客户端，收件人已填好。</p>
+          <div class="msg-mail">作者邮箱 <a href="mailto:liujiarui_33@qq.com">liujiarui_33@qq.com</a></div>
+          <input id="msg-nick" type="text" maxlength="20" placeholder="你的称呼（可不填）" />
+          <textarea id="msg-text" rows="5" maxlength="800" placeholder="想说的话，例如：C 区能不能加上某某楼 / 某条路走不通 / 想加个夜间模式…"></textarea>
+          <div class="schedule-actions">
+            <button id="msg-send">发送给作者</button>
+            <button id="msg-copy" class="ghost">复制邮箱</button>
+          </div>
+          <p class="sec-hint" id="msg-state" style="margin-top:8px"></p>
+          <div class="food-posts" id="msg-history"></div>
+        </section>
+
         <section class="drawer-sec" id="account" data-panel="account" hidden>
           <div class="account-card">
             <div class="account-avatar" id="account-avatar">刘</div>
@@ -243,7 +257,7 @@
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261030b"></script>
+    <script type="module" src="./src/app.js?v=20261030c"></script>
   </body>
 </html>
 
