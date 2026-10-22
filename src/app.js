@@ -54,7 +54,7 @@ scene.skyBox.show = false;
 scene.skyAtmosphere.show = false;
 scene.fog.enabled = false;
 scene.backgroundColor = Cesium.Color.fromCssColorString('#e9e6de');
-scene.globe.maximumScreenSpaceError = 1.6;
+scene.globe.maximumScreenSpaceError = 2.2; // 略降地形细分，换更快出图与更稳帧率
 scene.screenSpaceCameraController.minimumZoomDistance = 140; // 不允许钻进建筑内部
 // 地图覆盖 15 km，允许拉到能看全整张底图的高度
 scene.screenSpaceCameraController.maximumZoomDistance = 22000;
@@ -127,9 +127,9 @@ function flyToView(key, animate = true) {
 import { loadTerrain } from './terrain.js';
 import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js';
 import { addLandmarks } from './landmarks.js';
-import { createBasemapProvider } from './basemap.js?v=20261030b';
+import { createBasemapProvider } from './basemap.js?v=20261030e';
 import { initInteraction } from './ui.js';
-import { initPanels } from './panels.js?v=20261030c';
+import { initPanels } from './panels.js?v=20261030e';
 import { initLogin, isAuthed } from './login.js?v=20261030b';
 import { addTrees } from './trees.js';
 import { buildRoadGraph, nearestNode, shortestPath } from './nav.js';
@@ -137,7 +137,6 @@ import { addLamps } from './lamps.js';
 import { addRoofProps } from './props.js';
 import { addGates } from './gates.js';
 import { addSports } from './sports.js';
-import { addSurroundings } from './surroundings.js';
 import { addBuildingLabels } from './labels.js';
 
 (async () => {
@@ -161,7 +160,7 @@ import { addBuildingLabels } from './labels.js';
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261030c';
+    const ASSET_V = '20261030e';
     const layers = {};
     // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
     const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE);
@@ -183,13 +182,7 @@ import { addBuildingLabels } from './labels.js';
 
     setStatus('正在生成建筑…');
     const only = new URLSearchParams(location.search).get('only');
-    // 白模与场景数据并行拉取，白模不阻塞首屏
-    const whiteP = !only || only === 'surroundings'
-      ? addSurroundings(viewer, ASSET_BASE, terrain).then((n) => {
-          window.__surroundCount = n;
-          return n;
-        }).catch(() => 0)
-      : Promise.resolve(0);
+    // 只保留 A/B/C 校园范围：15 km 白模、10 km/20 km 底图与地形全部不加载
     // CDN 拿不到就回退本站，避免 jsDelivr 抖动导致整页卡在加载
     const data = await (async () => {
       for (const base of [ASSET_BASE, BASE]) {
@@ -209,13 +202,18 @@ import { addBuildingLabels } from './labels.js';
     const glbMode = new URLSearchParams(location.search).get('glb') === '1';
     if ((!only || only === 'buildings') && !glbMode) addBuildings(viewer, data, terrain);
     if (!only || only === 'landmarks') addLandmarks(viewer, data, terrain);
-    if (!only || only === 'trees') window.__treeCount = addTrees(viewer, data, terrain);
-    if (!only || only === 'lamps') window.__lampCount = addLamps(viewer, data, terrain);
-    if (!only || only === 'props') window.__propCount = addRoofProps(viewer, data, terrain);
-    if (!only || only === 'gates') window.__gateCount = addGates(viewer, data, terrain);
-    if (!only || only === 'sports') window.__sportCount = addSports(viewer, data, terrain);
-    if (!only || only === 'labels') window.__labelApi = addBuildingLabels(viewer, data, terrain);
-    if (!only || only === 'boundary') addBoundary(viewer, data, terrain);
+
+    // 轻量元素（树、路灯、屋顶设备、校门、球场、标签、边界）放到首屏之后补，
+    // 让「能看到校园」优先，交互不用等这些几何
+    const afterPaint = () => {
+      if (!only || only === 'trees') window.__treeCount = addTrees(viewer, data, terrain);
+      if (!only || only === 'lamps') window.__lampCount = addLamps(viewer, data, terrain);
+      if (!only || only === 'props') window.__propCount = addRoofProps(viewer, data, terrain);
+      if (!only || only === 'gates') window.__gateCount = addGates(viewer, data, terrain);
+      if (!only || only === 'sports') window.__sportCount = addSports(viewer, data, terrain);
+      if (!only || only === 'labels') window.__labelApi = addBuildingLabels(viewer, data, terrain);
+      if (!only || only === 'boundary') addBoundary(viewer, data, terrain);
+    };
 
     if (dom.stats) {
       const a = data.buildings.filter((b) => b.campus === 'A').length;
@@ -224,30 +222,7 @@ import { addBuildingLabels } from './labels.js';
       dom.stats.innerHTML = `<span>${data.buildings.length} 栋建筑（A ${a} / B ${b} / C ${c}）</span><span>${data.roads.length} 条道路</span><span>${data.areas.length} 处场地</span>`;
     }
     if (dom.boot) dom.boot.style.display = 'none';
-
-    // 首屏出现后，后台补全 15 km 地形与两层底图（不阻塞交互）
-    setTimeout(async () => {
-      try {
-        const ext = await terrain.loadExtended();
-        viewer.scene.terrainProvider = terrain.rebuild();
-        try {
-          const midBase = await createBasemapProvider(ASSET_BASE, Cesium, ext.midMeta, 'basemap_mid.jpg', ASSET_V, BASE);
-          layers.mid = viewer.scene.imageryLayers.addImageryProvider(midBase, 0);
-        } catch (e) {
-          console.warn('10 km 底图加载失败', e);
-        }
-        if (ext.hasCoarse) {
-          try {
-            const coarseBase = await createBasemapProvider(ASSET_BASE, Cesium, ext.coarseMeta, 'basemap_coarse.jpg', ASSET_V, BASE);
-            layers.coarse = viewer.scene.imageryLayers.addImageryProvider(coarseBase, 0);
-          } catch (e) {
-            console.warn('外围底图加载失败', e);
-          }
-        }
-      } catch (e) {
-        console.warn('外围地形加载失败', e);
-      }
-    }, 700);
+    setTimeout(afterPaint, 50);
 
     const graph = buildRoadGraph(data.roads);
     // glTF 建筑（试验）
@@ -273,6 +248,8 @@ import { addBuildingLabels } from './labels.js';
     initInteraction(viewer, data, terrain, graph, overview);
     initPanels();
     window.__flyToView = flyToView;
+    window.__bootMs = Math.round(performance.now());
+    console.info('[cqu] 首屏完成 ' + window.__bootMs + ' ms');
     window.__CQU__ = { viewer, data, terrain, graph, nav: { nearestNode, shortestPath } };
   } catch (e) {
     showError(e);

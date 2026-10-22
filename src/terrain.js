@@ -84,7 +84,7 @@ export async function loadTerrain(base, Cesium) {
   };
 
   const tilingScheme = new Cesium.GeographicTilingScheme();
-  const N = 49;
+  const N = 33; // 49→33：地形网格顶点少一半，生成更快，肉眼差别很小
 
   function makeProvider() {
     const tileCache = new Map();
