@@ -1,4 +1,4 @@
-﻿/* 插件面板：左侧功能栏 + 右侧抽屉，每个按钮对应一个面板（导航 / 巴士 / 美食 / 课表 / 账号） */
+/* 插件面板：左侧功能栏 + 右侧抽屉，每个按钮对应一个面板（导航 / 巴士 / 美食 / 课表 / 账号） */
 
 const TITLES = {
   nav: '步行导航',
@@ -56,6 +56,24 @@ function initDrawer() {
   if (closeBtn) closeBtn.addEventListener('click', close);
   const collapse = document.getElementById('drawer-collapse');
   if (collapse) collapse.addEventListener('click', close);
+
+  // 顶部标题栏整条都能点（按钮除外），一点就收
+  const head = document.getElementById('drawer-head');
+  if (head) {
+    head.addEventListener('click', (e) => {
+      if (e.target.closest('.drawer-close')) return;
+      close();
+    });
+  }
+
+  // 点地图空白处也收起（导航面板除外：它要在图上依次点起点/终点）
+  const canvas = document.querySelector('#cesium-root canvas');
+  if (canvas) {
+    canvas.addEventListener('click', () => {
+      if (!drawer.hidden && current !== 'nav') close();
+    });
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !drawer.hidden) close();
   });

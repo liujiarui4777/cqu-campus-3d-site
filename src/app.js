@@ -127,10 +127,10 @@ function flyToView(key, animate = true) {
 import { loadTerrain } from './terrain.js';
 import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js';
 import { addLandmarks } from './landmarks.js';
-import { createBasemapProvider } from './basemap.js';
+import { createBasemapProvider } from './basemap.js?v=20261030b';
 import { initInteraction } from './ui.js';
-import { initPanels } from './panels.js';
-import { initLogin, isAuthed } from './login.js';
+import { initPanels } from './panels.js?v=20261030b';
+import { initLogin, isAuthed } from './login.js?v=20261030b';
 import { addTrees } from './trees.js';
 import { buildRoadGraph, nearestNode, shortestPath } from './nav.js';
 import { addLamps } from './lamps.js';
@@ -161,7 +161,7 @@ import { addBuildingLabels } from './labels.js';
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261030a';
+    const ASSET_V = '20261030b';
     const layers = {};
     // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
     const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE);

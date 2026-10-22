@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261030a" />
+    <link rel="stylesheet" href="./src/style.css?v=20261030b" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -104,9 +104,9 @@
     </section>
 
     <aside class="drawer" id="drawer" hidden aria-label="功能面板">
-      <header class="drawer-head">
+      <header class="drawer-head" id="drawer-head" title="点击可收起面板">
         <h3 id="drawer-title">面板</h3>
-        <button class="drawer-close" id="drawer-close" aria-label="关闭面板">×</button>
+        <button class="drawer-close" id="drawer-close" aria-label="关闭面板">收起 ✕</button>
       </header>
 
       <div class="drawer-body">
@@ -243,7 +243,7 @@
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261030a"></script>
+    <script type="module" src="./src/app.js?v=20261030b"></script>
   </body>
 </html>
 
