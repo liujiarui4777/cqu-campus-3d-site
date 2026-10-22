@@ -59,6 +59,15 @@ scene.screenSpaceCameraController.minimumZoomDistance = 140; // 不允许钻进�
 // 地图覆盖 15 km，允许拉到能看全整张底图的高度
 scene.screenSpaceCameraController.maximumZoomDistance = 22000;
 
+// 视角锁定：只能用底部机位按钮 / 点击建筑飞行，禁止拖拽、滚轮、双指缩放
+const camCtl = scene.screenSpaceCameraController;
+camCtl.enableRotate = false;
+camCtl.enableTranslate = false;
+camCtl.enableZoom = false;
+camCtl.enableTilt = false;
+camCtl.enableLook = false;
+viewer.scene.canvas.style.cursor = 'default';
+
 const credit = viewer.cesiumWidget.creditContainer;
 if (credit) credit.style.display = 'none';
 
@@ -120,6 +129,8 @@ import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build
 import { addLandmarks } from './landmarks.js';
 import { createBasemapProvider } from './basemap.js';
 import { initInteraction } from './ui.js';
+import { initPanels } from './panels.js';
+import { initLogin, isAuthed } from './login.js';
 import { addTrees } from './trees.js';
 import { buildRoadGraph, nearestNode, shortestPath } from './nav.js';
 import { addLamps } from './lamps.js';
@@ -130,6 +141,7 @@ import { addSurroundings } from './surroundings.js';
 import { addBuildingLabels } from './labels.js';
 
 (async () => {
+  initLogin();
   try {
     setStatus('正在加载地形…');
     const terrain = await loadTerrain(ASSET_BASE, Cesium);
@@ -236,6 +248,7 @@ import { addBuildingLabels } from './labels.js';
     }
 
     initInteraction(viewer, data, terrain, graph, overview);
+    initPanels();
     window.__flyToView = flyToView;
     window.__CQU__ = { viewer, data, terrain, graph, nav: { nearestNode, shortestPath } };
   } catch (e) {

@@ -202,7 +202,7 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
       return;
     }
     const hits = navAll
-      .filter((b) => (b.name || '').toLowerCase().includes(q) || (b.alias || '').toLowerCase().includes(q))
+      .filter((b) => matchesQuery(b, normalizeQuery(q), q))
       .slice(0, 8);
     box.innerHTML = '';
     if (!hits.length) {
@@ -251,10 +251,8 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
   }
 
   if (navBtn) {
-    navBtn.addEventListener('click', () => {
-      if (navPanel && navPanel.hidden) openNav();
-      else closeNav();
-    });
+    // 抽屉的开关由 panels.js 负责，这里只保证面板内容和输入焦点就绪
+    navBtn.addEventListener('click', () => openNav());
   }
   if (navClear) navClear.addEventListener('click', resetNav);
   if (navClose) navClose.addEventListener('click', closeNav);
@@ -518,18 +516,53 @@ void main() {
   const results = document.getElementById('search-results');
   const all = data.buildings || [];
 
+  // 宿舍别名：学生十宿舍 ←→ 10舍 / 十舍 / 十号舍（学生平时不会说全称）
+  const CN_DIGIT = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  function cnNumber(n) {
+    if (n <= 9) return CN_DIGIT[n];
+    if (n === 10) return '十';
+    if (n < 20) return '十' + CN_DIGIT[n % 10];
+    return String(n);
+  }
+  function aliasesOf(b) {
+    const out = [];
+    const name = b.name || '';
+    const m = /^学生(.+?)宿舍$/.exec(name);
+    if (m) {
+      const raw = m[1];
+      out.push(raw + '舍', raw + '号舍', '学生' + raw + '舍');
+      // 把「十」这类汉字再补一组阿拉伯数字写法
+      const idx = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'].indexOf(raw);
+      if (idx >= 0) out.push(String(idx + 1) + '舍', String(idx + 1) + '号舍');
+    }
+    if (b.alias) out.push(b.alias);
+    return out;
+  }
+  // 把查询里的「10舍 / 10号舍」转成中文，便于和楼名对齐
+  function normalizeQuery(q) {
+    return q.replace(/(\d{1,2})\s*(号?舍)/g, (_, d, tail) => cnNumber(Number(d)) + tail);
+  }
+  function matchesQuery(b, q, qRaw) {
+    const n = (b.name || '').toLowerCase();
+    if (n.includes(q)) return true;
+    if ((b.alias || '').toLowerCase().includes(q)) return true;
+    for (const a of aliasesOf(b)) {
+      if (a.toLowerCase().includes(q) || q.includes(a.toLowerCase())) return true;
+    }
+    if (qRaw && qRaw !== q && n.includes(qRaw)) return true;
+    return false;
+  }
+
   function renderResults(q) {
     results.innerHTML = '';
     if (!q) {
       results.classList.remove('show');
       return;
     }
-    const lower = q.toLowerCase();
+    const qRaw = q.toLowerCase();
+    const lower = normalizeQuery(qRaw);
     const hits = all
-      .filter((b) => {
-        const n = (b.name || '').toLowerCase();
-        return n.includes(lower) || (b.desc || '').toLowerCase().includes(lower);
-      })
+      .filter((b) => matchesQuery(b, lower, qRaw) || (b.desc || '').toLowerCase().includes(lower))
       .slice(0, 8);
     if (!hits.length) {
       results.innerHTML = '<div class="sr-empty">没有找到相关建筑</div>';
@@ -639,9 +672,7 @@ void main() {
   }
   if (schedBtn) {
     schedBtn.addEventListener('click', () => {
-      const open = schedPanel.classList.toggle('show');
-      if (open) renderSchedule();
-      else clearMarkers();
+      renderSchedule();
     });
   }
   const schedClose = document.getElementById('schedule-close');
@@ -792,12 +823,9 @@ void main() {
 
   if (shuttleBtn) {
     shuttleBtn.addEventListener('click', () => {
-      const open = shuttlePanel.classList.toggle('show');
-      if (open) {
-        renderBusInfo();
-        renderShuttle();
-        startBusTimer();
-      }
+      renderBusInfo();
+      renderShuttle();
+      startBusTimer();
     });
   }
   const shuttleClose = document.getElementById('shuttle-close');

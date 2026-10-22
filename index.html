@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261028i" />
+    <link rel="stylesheet" href="./src/style.css?v=20261029c" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -60,9 +60,7 @@
       </div>
 
       <div class="tools">
-        <button id="nav-btn" class="tool-btn" title="步行导航">导航</button>
         <button id="sat-btn" class="tool-btn" title="切换卫星影像">卫星</button>
-        <button id="bus-btn" class="tool-btn" title="校园巴士时刻表">校园巴士</button>
         <div class="times" title="昼夜">
           <button data-time="day" class="active">日</button>
           <button data-time="dusk">昏</button>
@@ -74,6 +72,14 @@
         </div>
       </div>
     </header>
+
+    <nav class="rail" id="rail" aria-label="功能面板">
+      <button id="nav-btn" class="rail-btn" data-plugin="nav" title="步行导航"><i>导</i><span>导航</span></button>
+      <button id="bus-btn" class="rail-btn" data-plugin="bus" title="校园巴士"><i>巴</i><span>巴士</span></button>
+      <button class="rail-btn" data-plugin="food" title="校园美食"><i>食</i><span>美食</span></button>
+      <button id="schedule-btn" class="rail-btn" data-plugin="schedule" title="我的课表"><i>课</i><span>课表</span></button>
+      <button class="rail-btn" data-plugin="account" title="账号"><i>我</i><span>我</span></button>
+    </nav>
 
     <nav class="views" id="views" aria-label="视角切换">
       <button data-view="all" class="active">全景</button>
@@ -97,67 +103,114 @@
       <button class="card-back" id="card-back">← 返回全景</button>
     </section>
 
-    <section class="nav-panel" id="nav-panel" hidden>
-      <button class="nav-close" id="nav-close" aria-label="关闭">×</button>
-      <h3>步行导航</h3>
-      <div class="nav-search">
-        <span class="nav-dot start"></span>
-        <input id="nav-from-input" type="search" placeholder="搜索起点建筑" autocomplete="off" />
-        <button class="nav-x" id="nav-from-clear" aria-label="清空">×</button>
-        <div class="nav-suggest" id="nav-from-suggest"></div>
+    <aside class="drawer" id="drawer" hidden aria-label="功能面板">
+      <header class="drawer-head">
+        <h3 id="drawer-title">面板</h3>
+        <button class="drawer-close" id="drawer-close" aria-label="关闭">×</button>
+      </header>
+
+      <div class="drawer-body">
+        <section class="drawer-sec" id="nav-panel" data-panel="nav">
+          <p class="sec-hint">输入起点、终点，或直接在地图上依次点击两栋建筑</p>
+          <div class="nav-search">
+            <span class="nav-dot start"></span>
+            <input id="nav-from-input" type="search" placeholder="搜索起点建筑" autocomplete="off" />
+            <button class="nav-x" id="nav-from-clear" aria-label="清空">×</button>
+            <div class="nav-suggest" id="nav-from-suggest"></div>
+          </div>
+          <div class="nav-search">
+            <span class="nav-dot end"></span>
+            <input id="nav-to-input" type="search" placeholder="搜索终点建筑" autocomplete="off" />
+            <button class="nav-x" id="nav-to-clear" aria-label="清空">×</button>
+            <div class="nav-suggest" id="nav-to-suggest"></div>
+          </div>
+          <div class="nav-result" id="nav-result">输入起点、终点，或直接点击地图上的建筑</div>
+          <button class="nav-clear" id="nav-clear">清除路线</button>
+        </section>
+
+        <section class="drawer-sec" id="shuttle" data-panel="bus" hidden>
+          <div class="bus-tabs">
+            <button data-bus="commuter" class="active">校区交通车</button>
+            <button data-bus="campus">校园穿梭巴士</button>
+          </div>
+
+          <div class="bus-body" id="bus-body-commuter">
+            <div class="bus-next">
+              <div class="bus-next-label">下一班</div>
+              <div class="bus-next-time" id="bus-next-time">--:--</div>
+              <div class="bus-next-meta" id="bus-next-meta">正在读取时刻表…</div>
+              <div class="bus-next-bar"><i id="bus-next-bar-fill"></i></div>
+            </div>
+
+            <div class="shuttle-tabs">
+              <button data-dir="outbound" class="active">沙坪坝 → 科学城</button>
+              <button data-dir="inbound">科学城 → 沙坪坝</button>
+            </div>
+
+            <div class="bus-section-title">今日时刻 <span id="bus-count"></span></div>
+            <div class="shuttle-list" id="shuttle-list"></div>
+
+            <div class="bus-section-title">经停站点</div>
+            <div class="bus-stops" id="shuttle-stops"></div>
+
+            <div class="bus-meta" id="bus-meta"></div>
+            <div class="bus-tips" id="bus-tips"></div>
+            <div class="bus-source" id="bus-source"></div>
+          </div>
+
+          <div class="bus-body" id="bus-body-campus" hidden>
+            <div class="bus-hero">
+              <b>D260</b>
+              <span>校区间循环 · 免费</span>
+            </div>
+            <div class="bus-meta" id="campus-meta"></div>
+            <div class="bus-tips" id="campus-tips"></div>
+            <div class="bus-source" id="campus-source"></div>
+          </div>
+        </section>
+
+        <section class="drawer-sec" id="food" data-panel="food" hidden>
+          <p class="sec-hint">校内食堂 / 小吃 / 咖啡 · 学生口碑整理，欢迎补充</p>
+          <div class="chip-row" id="food-filters"></div>
+          <div class="food-list" id="food-list"></div>
+          <form class="food-form" id="food-form">
+            <input id="food-nick" type="text" maxlength="12" placeholder="昵称（可不填）" />
+            <textarea id="food-text" rows="2" maxlength="200" placeholder="推荐一个好吃的：店名 + 位置 + 推荐理由"></textarea>
+            <button type="submit">发布</button>
+          </form>
+          <div class="food-posts" id="food-posts"></div>
+        </section>
+
+        <section class="drawer-sec" id="schedule" data-panel="schedule" hidden>
+          <p class="sec-hint">粘贴课表，每行一门课：周一 8:00-9:40 高等数学 第一教学楼</p>
+          <div class="schedule-date" id="schedule-date"></div>
+          <div class="schedule-list" id="schedule-list"></div>
+          <textarea id="schedule-input" rows="6" placeholder="周一 8:00-9:40 高等数学 第一教学楼&#10;周二 10:00-11:40 大学物理 理科教学楼"></textarea>
+          <div class="schedule-actions">
+            <button id="schedule-save">保存课表</button>
+            <button id="schedule-clear" class="ghost">清除</button>
+          </div>
+        </section>
+
+        <section class="drawer-sec" id="account" data-panel="account" hidden>
+          <div class="account-card">
+            <div class="account-avatar" id="account-avatar">刘</div>
+            <div class="account-info">
+              <b id="account-name">未登录</b>
+              <span>重庆大学 · A 区</span>
+            </div>
+          </div>
+          <div class="account-rows">
+            <div class="account-row"><span>昵称</span><b id="account-nick">—</b></div>
+            <div class="account-row"><span>收藏建筑</span><b id="account-fav">0</b></div>
+            <div class="account-row"><span>美食推荐</span><b id="account-food">0</b></div>
+            <div class="account-row"><span>登录时间</span><b id="account-time">—</b></div>
+          </div>
+          <button class="account-logout" id="account-logout">退出登录</button>
+          <p class="sec-hint" style="margin-top:14px">本机保存的课表与美食帖分别存在浏览器 localStorage，换设备不会同步。</p>
+        </section>
       </div>
-      <div class="nav-search">
-        <span class="nav-dot end"></span>
-        <input id="nav-to-input" type="search" placeholder="搜索终点建筑" autocomplete="off" />
-        <button class="nav-x" id="nav-to-clear" aria-label="清空">×</button>
-        <div class="nav-suggest" id="nav-to-suggest"></div>
-      </div>
-      <div class="nav-result" id="nav-result">输入起点、终点，或直接点击地图上的建筑</div>
-      <button class="nav-clear" id="nav-clear">清除路线</button>
-    </section>
-
-    <section class="shuttle" id="shuttle">
-      <button class="shuttle-close" id="shuttle-close" aria-label="关闭">×</button>
-      <h3>校园巴士</h3>
-
-      <div class="bus-tabs">
-        <button data-bus="commuter" class="active">校区交通车</button>
-        <button data-bus="campus">校园穿梭巴士</button>
-      </div>
-
-      <div class="bus-body" id="bus-body-commuter">
-        <div class="bus-next">
-          <div class="bus-next-label">下一班</div>
-          <div class="bus-next-time" id="bus-next-time">--:--</div>
-          <div class="bus-next-meta" id="bus-next-meta">正在读取时刻表…</div>
-        </div>
-
-        <div class="shuttle-tabs">
-          <button data-dir="outbound" class="active">沙坪坝 → 科学城</button>
-          <button data-dir="inbound">科学城 → 沙坪坝</button>
-        </div>
-
-        <div class="bus-section-title">今日时刻 <span id="bus-count"></span></div>
-        <div class="shuttle-list" id="shuttle-list"></div>
-
-        <div class="bus-section-title">经停站点</div>
-        <div class="bus-stops" id="shuttle-stops"></div>
-
-        <div class="bus-meta" id="bus-meta"></div>
-        <div class="bus-tips" id="bus-tips"></div>
-        <div class="bus-source" id="bus-source"></div>
-      </div>
-
-      <div class="bus-body" id="bus-body-campus" hidden>
-        <div class="bus-hero">
-          <b>D260</b>
-          <span>校区间循环 · 免费</span>
-        </div>
-        <div class="bus-meta" id="campus-meta"></div>
-        <div class="bus-tips" id="campus-tips"></div>
-        <div class="bus-source" id="campus-source"></div>
-      </div>
-    </section>
+    </aside>
 
     <div class="boot" id="boot">
       <div class="boot-inner">
@@ -168,7 +221,26 @@
 
     <div class="error" id="error"></div>
 
-    <script type="module" src="./src/app.js?v=20261028i"></script>
+    <div class="login" id="login">
+      <form class="login-card" id="login-form" autocomplete="off">
+        <div class="login-mark"></div>
+        <h2>重庆大学 · 三维校园</h2>
+        <p class="login-sub">请输入姓名与密码后进入</p>
+        <label class="login-field">
+          <span>姓名</span>
+          <input id="login-name" type="text" placeholder="请输入姓名" autocomplete="username" />
+        </label>
+        <label class="login-field">
+          <span>密码</span>
+          <input id="login-pass" type="password" placeholder="请输入密码" autocomplete="current-password" />
+        </label>
+        <p class="login-err" id="login-err"></p>
+        <button type="submit" class="login-btn">进入校园</button>
+        <p class="login-tip">仅限授权用户访问 · 本机记住登录状态</p>
+      </form>
+    </div>
+
+    <script type="module" src="./src/app.js?v=20261029c"></script>
   </body>
 </html>
 
