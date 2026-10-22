@@ -1,4 +1,4 @@
-﻿/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
+/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
 const Cesium = window.Cesium;
 
 const CENTER = [106.4615, 29.5695];
@@ -69,11 +69,17 @@ window.addEventListener('resize', () => {
 });
 
 // 固定机位：全景 + A/B/C 三个校区。相机只在这些机位之间切换，避免钻进楼里迷路
+// 三个校区机位按各自建筑外轮廓的包围盒算：相机在区域正南、俯角 60°，
+// 高度取到「整个区域完整落在画面 80% 以内」，数值由 worldToWindowCoordinates
+// 投影迭代求出来的；改机位后请同样用四个角点校验，别凭手感改。
 const VIEWS = {
   all: { lon: 106.4585, lat: 29.5520, h: 1950, heading: 4, pitch: -47 },
-  a: { lon: 106.4618, lat: 29.5612, h: 1250, heading: 6, pitch: -46 },
-  b: { lon: 106.4540, lat: 29.5642, h: 1000, heading: 4, pitch: -45 },
-  c: { lon: 106.4522, lat: 29.5620, h: 600, heading: 3, pitch: -42 },
+  // A 区：建筑范围约 1018×1266 m，地面 ~258 m，视高 1800 m
+  a: { lon: 106.46377, lat: 29.55715, h: 2058, heading: 0, pitch: -60 },
+  // B 区：约 646×696 m，地面 ~242 m，视高 1000 m
+  b: { lon: 106.45549, lat: 29.56445, h: 1242, heading: 0, pitch: -60 },
+  // C 区：约 256×273 m，地面 ~255 m，视高 420 m（对准建筑群中心，西侧长楼也进画面）
+  c: { lon: 106.4523, lat: 29.56271, h: 675, heading: 0, pitch: -60 },
 };
 
 function viewFor(key) {
