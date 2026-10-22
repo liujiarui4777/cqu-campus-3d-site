@@ -1434,3 +1434,40 @@ html[data-theme='night'] .chip-row button.active { background: var(--accent); co
 /* hidden 属性优先：避免作者样式 display 覆盖 */
 .drawer [hidden],
 .login[hidden] { display: none !important; }
+
+/* 面板关闭：按钮做大、加悬停底色，底部再加一个「收起面板」 */
+.drawer-close {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 22px;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+.drawer-close:hover { background: rgba(47, 111, 106, 0.12); border-color: var(--line); color: var(--ink); }
+.drawer-head { gap: 10px; }
+.drawer-head h3 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drawer-body { scrollbar-gutter: stable; }
+.drawer-foot {
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.5));
+}
+.drawer-foot button {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.drawer-foot button:hover { border-color: var(--accent); color: var(--accent); }
+html[data-theme='night'] .drawer-foot { background: rgba(20, 28, 40, 0.94); border-color: rgba(255, 255, 255, 0.12); }
+html[data-theme='night'] .drawer-foot button { background: rgba(255, 255, 255, 0.08); color: #e8eef4; border-color: rgba(255, 255, 255, 0.14); }
+html[data-theme='night'] .drawer-close:hover { background: rgba(255, 255, 255, 0.12); }

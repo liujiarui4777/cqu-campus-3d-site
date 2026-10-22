@@ -7,7 +7,7 @@
     <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261029d" />
+    <link rel="stylesheet" href="./src/style.css?v=20261030a" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -106,7 +106,7 @@
     <aside class="drawer" id="drawer" hidden aria-label="功能面板">
       <header class="drawer-head">
         <h3 id="drawer-title">面板</h3>
-        <button class="drawer-close" id="drawer-close" aria-label="关闭">×</button>
+        <button class="drawer-close" id="drawer-close" aria-label="关闭面板">×</button>
       </header>
 
       <div class="drawer-body">
@@ -201,7 +201,7 @@
             </div>
           </div>
           <div class="account-rows">
-            <div class="account-row"><span>昵称</span><b id="account-nick">—</b></div>
+            <div class="account-row"><span>学号</span><b id="account-nick">—</b></div>
             <div class="account-row"><span>收藏建筑</span><b id="account-fav">0</b></div>
             <div class="account-row"><span>美食推荐</span><b id="account-food">0</b></div>
             <div class="account-row"><span>登录时间</span><b id="account-time">—</b></div>
@@ -210,6 +210,9 @@
           <p class="sec-hint" style="margin-top:14px">本机保存的课表与美食帖分别存在浏览器 localStorage，换设备不会同步。</p>
         </section>
       </div>
+      <footer class="drawer-foot">
+        <button id="drawer-collapse">收起面板</button>
+      </footer>
     </aside>
 
     <div class="boot" id="boot">
@@ -225,22 +228,22 @@
       <form class="login-card" id="login-form" autocomplete="off">
         <div class="login-mark"></div>
         <h2>重庆大学 · 三维校园</h2>
-        <p class="login-sub">请输入姓名与密码后进入</p>
+        <p class="login-sub">姓名 + 学号（密码即本人学号）</p>
         <label class="login-field">
           <span>姓名</span>
           <input id="login-name" type="text" placeholder="请输入姓名" autocomplete="username" />
         </label>
         <label class="login-field">
           <span>密码</span>
-          <input id="login-pass" type="password" placeholder="请输入密码" autocomplete="current-password" />
+          <input id="login-pass" type="password" placeholder="请输入学号" autocomplete="current-password" />
         </label>
         <p class="login-err" id="login-err"></p>
         <button type="submit" class="login-btn">进入校园</button>
-        <p class="login-tip">仅限授权用户访问 · 本机记住登录状态</p>
+        <p class="login-tip">21–30 班学生账号 · 仅限本人使用</p>
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261029d"></script>
+    <script type="module" src="./src/app.js?v=20261030a"></script>
   </body>
 </html>
 

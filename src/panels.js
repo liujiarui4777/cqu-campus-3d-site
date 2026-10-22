@@ -1,4 +1,4 @@
-/* 插件面板：左侧功能栏 + 右侧抽屉，每个按钮对应一个面板（导航 / 巴士 / 美食 / 课表 / 账号） */
+﻿/* 插件面板：左侧功能栏 + 右侧抽屉，每个按钮对应一个面板（导航 / 巴士 / 美食 / 课表 / 账号） */
 
 const TITLES = {
   nav: '步行导航',
@@ -54,6 +54,8 @@ function initDrawer() {
     });
   }
   if (closeBtn) closeBtn.addEventListener('click', close);
+  const collapse = document.getElementById('drawer-collapse');
+  if (collapse) collapse.addEventListener('click', close);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !drawer.hidden) close();
   });
@@ -86,7 +88,7 @@ function initAccount() {
     }
     const name = (user && user.name) || '未登录';
     if (nameEl) nameEl.textContent = name;
-    if (nickEl) nickEl.textContent = localStorage.getItem('cqu-nick') || '刘家瑞';
+    if (nickEl) nickEl.textContent = (user && user.sid) || '—';
     if (avatarEl) avatarEl.textContent = name.slice(0, 1);
     if (timeEl) {
       timeEl.textContent = user && user.at ? new Date(user.at).toLocaleString('zh-CN', { hour12: false }) : '—';
