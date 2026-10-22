@@ -4,10 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="theme-color" content="#eef2f6" />
-    <meta name="description" content="重庆大学 A / B / C 区三维校园地图（15 km 范围，周边白模）" />
+    <meta name="description" content="重庆大学 A / B / C 区三维校园地图（A / B / C 区）" />
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261030e" />
+    <link rel="stylesheet" href="./src/style.css?v=20261030h" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -29,15 +31,12 @@
       });
     </script>
     <script>
-      // 线上走 jsDelivr CDN（GitHub Pages 国内带宽很差），本地走相对路径
+      // 全部资源都走同源（GitHub Pages），不再依赖 jsDelivr：
+      // 少一次跨域 DNS/TLS 和「CDN 探活」等待，启动更稳定可预期
       (function () {
-        var isGh = location.hostname.endsWith('github.io');
-        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@23f06ebe67e16ac875ea386da77d4938be7e045b/';
-        window.__ASSET_BASE = isGh ? cdn : new URL('./', document.baseURI).href;
-        window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
-        document.write(
-          '<script src="' + (isGh ? cdn + 'cesium/Cesium.js' : './cesium/Cesium.js') + '"><\/script>',
-        );
+        window.__ASSET_BASE = new URL('./', document.baseURI).href;
+        window.CESIUM_BASE_URL = new URL('./cesium/', document.baseURI).href;
+        document.write('<script src="./cesium/Cesium.js"><\/script>');
       })();
     </script>
   </head>
@@ -257,7 +256,7 @@
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261030e"></script>
+    <script type="module" src="./src/app.js?v=20261030h"></script>
   </body>
 </html>
 

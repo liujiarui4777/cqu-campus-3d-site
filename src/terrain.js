@@ -55,6 +55,35 @@ export async function loadTerrain(base, Cesium) {
   const MLAT = 110540;
   const mLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
 
+  // 预采样一张 1024² 高程图：之后每次取高程只做一次双线性查表，
+  // 比每次走 fine.sample()（含边界判断）快一个数量级，地形瓦片生成会明显变快
+  const HM = 640;
+  const hm = new Float32Array(HM * HM);
+  {
+    const m = fine.meta;
+    const dLon = (m.east - m.west) / (HM - 1);
+    const dLat = (m.north - m.south) / (HM - 1);
+    for (let r = 0; r < HM; r++) {
+      const lat = m.north - dLat * r;
+      for (let c = 0; c < HM; c++) {
+        hm[r * HM + c] = fine.sample(m.west + dLon * c, lat);
+      }
+    }
+  }
+  const sampleFast = (lon, lat) => {
+    const m = fine.meta;
+    const fx = ((lon - m.west) / (m.east - m.west)) * (HM - 1);
+    const fy = ((m.north - lat) / (m.north - m.south)) * (HM - 1);
+    const x0 = fx <= 0 ? 0 : fx >= HM - 1 ? HM - 2 : Math.floor(fx);
+    const y0 = fy <= 0 ? 0 : fy >= HM - 1 ? HM - 2 : Math.floor(fy);
+    const tx = fx - x0;
+    const ty = fy - y0;
+    const i = y0 * HM + x0;
+    const a = hm[i] + (hm[i + 1] - hm[i]) * tx;
+    const b = hm[i + HM] + (hm[i + HM + 1] - hm[i + HM]) * tx;
+    return a + (b - a) * ty;
+  };
+
   // 距网格边界的有符号距离（米）：正=内部，负=外部
   const edgeDist = (meta, lon, lat) => {
     const dx = Math.min(lon - meta.west, meta.east - lon) * mLon(lat);
@@ -67,6 +96,7 @@ export async function loadTerrain(base, Cesium) {
 
   const sample = (lon, lat) => {
     const { mid, coarse } = state;
+    if (!mid && !coarse) return sampleFast(lon, lat);
     const dF = edgeDist(fine.meta, lon, lat);
     if (dF >= blendDist) return fine.sample(lon, lat);
     if (dF >= 0) {
