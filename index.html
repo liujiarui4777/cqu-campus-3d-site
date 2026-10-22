@@ -32,7 +32,7 @@
       // 线上走 jsDelivr CDN（GitHub Pages 国内带宽很差），本地走相对路径
       (function () {
         var isGh = location.hostname.endsWith('github.io');
-        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@23f06ebe67e16ac875ea386da77d4938be7e045b/';
+        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@88ac43728c5776c807a145f9c1b8e482dac8958d/';
         window.__ASSET_BASE = isGh ? cdn : new URL('./', document.baseURI).href;
         window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
         document.write(
