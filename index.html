@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261030h" />
+    <link rel="stylesheet" href="./src/style.css?v=20261030i" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -31,12 +31,19 @@
       });
     </script>
     <script>
-      // 全部资源都走同源（GitHub Pages），不再依赖 jsDelivr：
-      // 少一次跨域 DNS/TLS 和「CDN 探活」等待，启动更稳定可预期
+      // 线上：数据/引擎走 jsDelivr（国内比 GitHub Pages 快得多），并保留本站兜底；
+      // 本地：全部走相对路径。数据请求在 app.js/terrain.js 里是「CDN 与本站并行抢」。
       (function () {
-        window.__ASSET_BASE = new URL('./', document.baseURI).href;
-        window.CESIUM_BASE_URL = new URL('./cesium/', document.baseURI).href;
-        document.write('<script src="./cesium/Cesium.js"><\/script>');
+        var isGh = location.hostname.endsWith('github.io');
+        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@bb9f37716b71c25dbe17ef59073c8393ca645a17/';
+        var local = new URL('./', document.baseURI).href;
+        window.__ASSET_BASE = isGh ? cdn : local;
+        window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
+        document.write(
+          '<script src="' +
+            (isGh ? cdn + 'cesium/Cesium.js' : './cesium/Cesium.js') +
+            '" onerror="var s=document.createElement(\'script\');s.src=\'./cesium/Cesium.js\';document.head.appendChild(s)"><\/script>',
+        );
       })();
     </script>
   </head>
@@ -256,7 +263,7 @@
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261030h"></script>
+    <script type="module" src="./src/app.js?v=20261030i"></script>
   </body>
 </html>
 

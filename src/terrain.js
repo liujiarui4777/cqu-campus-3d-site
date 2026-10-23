@@ -1,21 +1,41 @@
-﻿/* 地形：预下载的 DEM（A/B/C 区细网格 + 10 km 中网格 + 外围粗网格）→ Cesium 本地地形
+/* 地形：预下载的 DEM（A/B/C 区细网格）→ Cesium 本地地形
  *
- * 首屏只加载 A/B/C 区细网格（约 1.6 MB），10 km / 20 km 网格在首屏出现后后台加载，
- * 加载完成由 app.js 调 rebuild() 重建 provider 并补全外围地形。
+ * 只加载 A/B/C 区细网格（约 0.9 MB，gzip）。base 可以是数组：
+ * [CDN, 本站] 会并行请求、谁先回用谁，避免单一路径慢导致首屏卡住。
  */
 
+async function raceFetch(urls) {
+  if (typeof urls === 'string') return fetch(urls);
+  return Promise.any(
+    urls.map((u) =>
+      fetch(u).then((r) => {
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r;
+      }),
+    ),
+  );
+}
+
 async function fetchBin(base, name) {
-  const gz = await fetch(`${base}data/${name}.bin.gz`);
-  if (gz.ok && typeof DecompressionStream !== 'undefined') {
+  const bases = Array.isArray(base) ? base : [base];
+  let gz;
+  try {
+    gz = await raceFetch(bases.map((b) => `${b}data/${name}.bin.gz`));
+  } catch (e) {
+    gz = null;
+  }
+  if (gz && gz.ok && typeof DecompressionStream !== 'undefined') {
     const compressed = await gz.arrayBuffer();
     const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
     return await new Response(stream).arrayBuffer();
   }
-  return await fetch(`${base}data/${name}.bin`).then((r) => r.arrayBuffer());
+  const plain = await raceFetch(bases.map((b) => `${b}data/${name}.bin`));
+  return plain.arrayBuffer();
 }
 
 async function loadGrid(base, name) {
-  const meta = await fetch(`${base}data/${name}.json`).then((r) => r.json());
+  const bases = Array.isArray(base) ? base : [base];
+  const meta = await raceFetch(bases.map((b) => `${b}data/${name}.json`)).then((r) => r.json());
   const buf = await fetchBin(base, name);
   const q = new Int16Array(buf);
   const W = meta.width;

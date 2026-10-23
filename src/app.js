@@ -1,5 +1,16 @@
 ﻿/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
-const Cesium = window.Cesium;
+
+// Cesium 走 CDN，失败时 index.html 会补一个本站脚本；这里等一下它
+async function waitForCesium(timeoutMs = 12000) {
+  const t0 = Date.now();
+  while (!window.Cesium && Date.now() - t0 < timeoutMs) {
+    await new Promise((r) => setTimeout(r, 80));
+  }
+  if (!window.Cesium) throw new Error('Cesium 加载失败，请刷新重试');
+  return window.Cesium;
+}
+
+const Cesium = window.Cesium || (await waitForCesium());
 
 const CENTER = [106.4615, 29.5695];
 const BASE = new URL('./', document.baseURI).href;
@@ -127,9 +138,9 @@ function flyToView(key, animate = true) {
 import { loadTerrain } from './terrain.js';
 import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js';
 import { addLandmarks } from './landmarks.js';
-import { createBasemapProvider } from './basemap.js?v=20261030g';
+import { createBasemapProvider } from './basemap.js?v=20261030i';
 import { initInteraction } from './ui.js';
-import { initPanels } from './panels.js?v=20261030h';
+import { initPanels } from './panels.js?v=20261030i';
 import { initLogin, isAuthed } from './login.js?v=20261030b';
 import { addTrees } from './trees.js';
 import { buildRoadGraph, nearestNode, shortestPath } from './nav.js';
@@ -141,26 +152,15 @@ import { addBuildingLabels } from './labels.js';
 
 (async () => {
   initLogin();
-  // CDN 不通（国内 jsDelivr 会抖）就整体回退到本站，避免卡在「加载地形」
-  if (ASSET_BASE !== BASE) {
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 2500);
-      const probe = await fetch(ASSET_BASE + 'data/terrain.json', { signal: ctrl.signal });
-      clearTimeout(timer);
-      if (!probe.ok) ASSET_BASE = BASE;
-    } catch (e) {
-      ASSET_BASE = BASE;
-    }
-  }
   try {
     setStatus('正在加载地形…');
-    const terrain = await loadTerrain(ASSET_BASE, Cesium);
+    // CDN 与本站并行抢，谁先回用谁（不再做阻塞式探活）
+    const terrain = await loadTerrain([ASSET_BASE, BASE], Cesium);
     viewer.scene.terrainProvider = terrain.provider;
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261030h';
+    const ASSET_V = '20261030i';
     const layers = {};
     // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
     const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE);
@@ -184,17 +184,15 @@ import { addBuildingLabels } from './labels.js';
     const only = new URLSearchParams(location.search).get('only');
     // 只保留 A/B/C 校园范围：15 km 白模、10 km/20 km 底图与地形全部不加载
     // CDN 拿不到就回退本站，避免 jsDelivr 抖动导致整页卡在加载
-    const data = await (async () => {
-      for (const base of [ASSET_BASE, BASE]) {
-        try {
-          const r = await fetch(base + 'data/scene.json?v=' + ASSET_V);
-          if (r.ok) return await r.json();
-        } catch (e) {
-          /* try next base */
-        }
-      }
+    const data = await Promise.any(
+      [ASSET_BASE, BASE].map(async (base) => {
+        const r = await fetch(base + 'data/scene.json?v=' + ASSET_V);
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      }),
+    ).catch(() => {
       throw new Error('场景数据加载失败（scene.json）');
-    })();
+    });
 
     if (!only || only === 'areas') addAreas(viewer, data, terrain);
     if (!only || only === 'river') addRiver(viewer, data, terrain);

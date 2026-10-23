@@ -34,12 +34,15 @@ export async function createBasemapProvider(base, Cesium, meta, file = 'basemap.
   // 大图必须带版本号，否则浏览器会一直用缓存里的旧影像（改了图也看不到）
   const q = version ? (file.includes('?') ? '&' : '?') + 'v=' + version : '';
   const primary = `${base}data/${file}${q}`;
+  const alt = fallbackBase ? `${fallbackBase}data/${file}${q}` : '';
   let img;
-  try {
-    img = await loadImage(primary, 12000);
-  } catch (e) {
-    if (!fallbackBase) throw new Error('底图加载失败：' + file);
-    img = await loadImage(`${fallbackBase}data/${file}${q}`, 20000);
+  if (alt && alt !== primary) {
+    // CDN 与本站并行抢，谁先到用谁：既不会卡在慢的 CDN，也不怕 CDN 抽风
+    img = await Promise.any([loadImage(primary, 15000), loadImage(alt, 15000)]).catch((e) => {
+      throw new Error('底图加载失败：' + file);
+    });
+  } else {
+    img = await loadImage(primary, 15000);
   }
 
   const rect = new Cesium.Rectangle(
