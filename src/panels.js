@@ -1,6 +1,7 @@
 /* 插件面板：左侧功能栏 + 右侧抽屉，每个按钮对应一个面板（导航 / 巴士 / 美食 / 课表 / 账号） */
 
 import { submitMessage, isTelemetryOn } from './telemetry.js?v=20261103a';
+import { clearSession, loadSession, logout as apiLogout } from './auth.js?v=20261105a';
 
 const TITLES = {
   nav: '步行导航',
@@ -24,7 +25,6 @@ const FOOD_CATS = [
 const FOOD_KEY = 'cqu-food-posts';
 const MSG_KEY = 'cqu-messages';
 const AUTHOR_EMAIL = 'liujiarui_33@qq.com';
-const AUTH_KEY = 'cqu-auth-user';
 
 /* ---------------- 抽屉控制 ---------------- */
 function initDrawer() {
@@ -105,15 +105,10 @@ function initAccount() {
   const logout = document.getElementById('account-logout');
 
   function refresh() {
-    let user = null;
-    try {
-      user = JSON.parse(sessionStorage.getItem(AUTH_KEY) || 'null');
-    } catch (e) {
-      user = null;
-    }
+    const user = loadSession();
     const name = (user && user.name) || '未登录';
     if (nameEl) nameEl.textContent = name;
-    if (nickEl) nickEl.textContent = (user && user.sid) || '—';
+    if (nickEl) nickEl.textContent = user ? (user.sid ? '21–30 班 · ' + user.sid : '注册用户') : '—';
     if (avatarEl) avatarEl.textContent = name.slice(0, 1);
     if (timeEl) {
       timeEl.textContent = user && user.at ? new Date(user.at).toLocaleString('zh-CN', { hour12: false }) : '—';
@@ -124,12 +119,15 @@ function initAccount() {
 
   if (logout) {
     logout.addEventListener('click', () => {
-      sessionStorage.removeItem(AUTH_KEY);
+      const s = loadSession();
+      clearSession();
+      if (s && s.token) apiLogout(s.token);
+      refresh();
+      window.dispatchEvent(new Event('cqu-auth-changed'));
+      // 兜底：即使事件监听还没挂上，也把页面锁回去
       document.body.classList.add('locked');
       const login = document.getElementById('login');
       if (login) login.hidden = false;
-      const nameInput = document.getElementById('login-name');
-      if (nameInput) nameInput.focus();
     });
   }
 
@@ -449,10 +447,8 @@ function initMessage() {
   let nickTouched = false;
   function fillNick() {
     if (!nickEl || nickTouched || nickEl.value) return;
-    try {
-      const u = JSON.parse(sessionStorage.getItem(AUTH_KEY) || 'null');
-      if (u && u.name) nickEl.value = u.name;
-    } catch (e) {}
+    const u = loadSession();
+    if (u && u.name) nickEl.value = u.name;
   }
   if (nickEl) nickEl.addEventListener('input', () => { nickTouched = true; });
   fillNick();

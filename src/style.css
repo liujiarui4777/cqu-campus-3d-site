@@ -1392,6 +1392,9 @@ html[data-theme='night'] .views button.active { background: #2f6f6a; color: #fff
   box-shadow: 0 24px 60px rgba(31, 42, 51, 0.16);
   backdrop-filter: blur(16px);
   text-align: center;
+  max-height: calc(100vh - 20px);
+  max-height: calc(100dvh - 20px);
+  overflow-y: auto;
 }
 .login-mark {
   width: 46px; height: 46px; margin: 0 auto 14px;
@@ -1414,6 +1417,21 @@ html[data-theme='night'] .views button.active { background: #2f6f6a; color: #fff
   letter-spacing: 0.08em; cursor: pointer;
 }
 .login-tip { margin: 12px 0 0; font-size: 10.5px; color: var(--muted); }
+.login-tabs {
+  display: flex; gap: 6px; margin: 0 0 14px; padding: 4px;
+  background: #eef3f2; border-radius: 999px;
+}
+.login-tab {
+  flex: 1; padding: 7px 0; border: 0; border-radius: 999px;
+  background: transparent; color: var(--muted);
+  font: inherit; font-size: 12.5px; letter-spacing: 0.04em; cursor: pointer;
+}
+.login-tab.is-on {
+  background: #fff; color: var(--ink);
+  box-shadow: 0 1px 5px rgba(31, 42, 51, 0.14);
+}
+.login-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.login-field[hidden] { display: none !important; }
 
 body.locked .topbar,
 body.locked .rail,
