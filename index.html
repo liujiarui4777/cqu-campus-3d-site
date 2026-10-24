@@ -13,11 +13,11 @@
       // 资源基址：线上（github.io）全部走 jsDelivr，本地开发走相对路径。
       // 实测 github.io 24 KB/s、jsDelivr 134–689 KB/s，20 多个 ES module 从本站拉要 2–3 s。
       window.__IS_GH = location.hostname.endsWith('github.io');
-      window.__CDN = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@6b799b03a0de3cc9c6289edb3af9c595b87d1312/';
+      window.__CDN = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@5f51344b4651b7c9e88fa73a89d13c737cf134c1/';
       (function () {
         var base = window.__IS_GH ? window.__CDN : './';
         document.write('<link rel="stylesheet" href="' + base + 'cesium/Widgets/widgets.css">');
-        document.write('<link rel="stylesheet" href="' + base + 'src/style.css?v=20261105a">');
+        document.write('<link rel="stylesheet" href="' + base + 'src/style.css?v=20261106a">');
       })();
     </script>
     <script>
@@ -107,6 +107,9 @@
       <button class="rail-btn" data-plugin="food" title="校园美食"><i>食</i><span>美食</span></button>
       <button id="schedule-btn" class="rail-btn" data-plugin="schedule" title="我的课表"><i>课</i><span>课表</span></button>
       <button class="rail-btn" data-plugin="message" title="给作者留言"><i>言</i><span>留言</span></button>
+      <button class="rail-btn notice-btn" data-plugin="notice" title="更新与关于">
+        <i>新</i><span>动态</span><b class="rail-dot" id="notice-dot" hidden></b>
+      </button>
       <button class="rail-btn" data-plugin="account" title="账号"><i>我</i><span>我</span></button>
     </nav>
 
@@ -134,9 +137,21 @@
 
     <aside class="drawer" id="drawer" hidden aria-label="功能面板">
       <header class="drawer-head" id="drawer-head" title="点击可收起面板">
-        <h3 id="drawer-title">面板</h3>
+        <div class="drawer-title">
+          <h3 id="drawer-title">面板</h3>
+          <span class="drawer-sub" id="drawer-sub">重庆大学 · 校园地图</span>
+        </div>
         <button class="drawer-close" id="drawer-close" aria-label="关闭面板">收起 ✕</button>
       </header>
+
+      <div class="quick-bar" id="quick-bar" aria-label="快捷控制">
+        <button type="button" data-quick="sat" title="切换卫星影像">卫星</button>
+        <button type="button" data-quick="day" title="白天">日</button>
+        <button type="button" data-quick="dusk" title="黄昏">昏</button>
+        <button type="button" data-quick="night" title="夜晚">夜</button>
+        <button type="button" data-quick="lock" title="视角锁定">锁定</button>
+        <button type="button" data-quick="home" title="回到全景">全景</button>
+      </div>
 
       <div class="drawer-body">
         <section class="drawer-sec" id="nav-panel" data-panel="nav">
@@ -205,6 +220,7 @@
           </div>
           <div class="chip-row" id="food-campus"></div>
           <div class="chip-row" id="food-filters"></div>
+          <p class="food-note" id="food-note">评分由同学匿名票选汇总，满分 5 分，仅供参考；不代表学校、社团或作者立场。</p>
           <p class="sec-hint" id="food-count"></p>
           <div class="food-list" id="food-list"></div>
           <form class="food-form" id="food-form">
@@ -239,6 +255,52 @@
           <div class="food-posts" id="msg-history"></div>
         </section>
 
+        <section class="drawer-sec" id="notice" data-panel="notice" hidden>
+          <div class="notice-hero">
+            <span class="notice-version" id="notice-version">v2026.11.06</span>
+            <b id="notice-headline">口碑评分上线了</b>
+            <p id="notice-released">发布于 2026-11-06</p>
+            <div class="notice-state">
+              <span class="notice-pill ok" id="notice-status">服务正常</span>
+              <span id="notice-checked">数据更新于 —</span>
+            </div>
+          </div>
+
+          <div class="notice-maintenance" id="notice-maintenance" hidden>
+            <b id="notice-maint-title">维护提醒</b>
+            <p id="notice-maint-text"></p>
+          </div>
+
+          <div class="notice-block">
+            <h4>最近更新</h4>
+            <ul class="notice-list" id="notice-list"></ul>
+          </div>
+
+          <div class="notice-block">
+            <h4>反馈与帮助</h4>
+            <p class="sec-hint" id="notice-feedback">发现建筑或道路不对，欢迎告诉作者。</p>
+            <div class="notice-actions">
+              <button type="button" id="notice-msg">给作者留言</button>
+              <button type="button" class="ghost" id="notice-mail">复制邮箱</button>
+            </div>
+            <p class="sec-hint" id="notice-mail-state"></p>
+          </div>
+
+          <details class="donate" id="notice-donate">
+            <summary>
+              <span>如果它帮到了你</span>
+              <small>请作者喝杯奶茶</small>
+            </summary>
+            <div class="donate-body">
+              <p id="donate-text">打赏完全自愿，不打赏也能用全部功能。</p>
+              <img id="donate-qr" src="data/donation-qr.jpg" alt="微信赞赏码" loading="lazy" />
+              <small>微信扫码 · 金额随意 · 谢谢你的支持</small>
+            </div>
+          </details>
+
+          <p class="notice-foot">非官方作品 · 数据来自公开资料与同学反馈</p>
+        </section>
+
         <section class="drawer-sec" id="account" data-panel="account" hidden>
           <div class="account-card">
             <div class="account-avatar" id="account-avatar">刘</div>
@@ -249,6 +311,7 @@
           </div>
           <div class="account-rows">
             <div class="account-row"><span>学号</span><b id="account-nick">—</b></div>
+            <div class="account-row"><span>邮箱</span><b id="account-email">—</b></div>
             <div class="account-row"><span>收藏建筑</span><b id="account-fav">0</b></div>
             <div class="account-row"><span>美食推荐</span><b id="account-food">0</b></div>
             <div class="account-row"><span>登录时间</span><b id="account-time">—</b></div>
@@ -272,6 +335,16 @@
 
     <div class="error" id="error"></div>
 
+    <div class="update-toast" id="update-toast" hidden>
+      <span class="update-toast-dot"></span>
+      <div class="update-toast-text">
+        <b id="update-toast-title">地图更新了</b>
+        <span id="update-toast-sub">看看这次改了什么</span>
+      </div>
+      <button type="button" id="update-toast-open">看看</button>
+      <button type="button" class="update-toast-x" id="update-toast-close" aria-label="关闭提示">×</button>
+    </div>
+
     <div class="login" id="login">
       <form class="login-card" id="login-form" autocomplete="on">
         <div class="login-mark"></div>
@@ -292,6 +365,17 @@
         <label class="login-field" id="login-pass2-field" hidden>
           <span>确认密码</span>
           <input id="login-pass2" type="password" placeholder="再输一次密码" autocomplete="new-password" maxlength="64" />
+        </label>
+        <label class="login-field" id="login-email-field" hidden>
+          <span>邮箱 <em class="login-optional" id="login-email-hint">用于接收验证码</em></span>
+          <div class="login-code-row">
+            <input id="login-email" type="email" placeholder="name@example.com" autocomplete="email" inputmode="email" maxlength="120" />
+            <button type="button" class="login-code-btn" id="login-send-code">获取验证码</button>
+          </div>
+        </label>
+        <label class="login-field" id="login-code-field" hidden>
+          <span>邮箱验证码</span>
+          <input id="login-code" type="text" placeholder="6 位数字" autocomplete="one-time-code" inputmode="numeric" maxlength="6" />
         </label>
         <p class="login-err" id="login-err" role="alert"></p>
         <button type="submit" class="login-btn" id="login-btn">进入校园</button>
@@ -327,12 +411,12 @@
         var base = window.__IS_GH ? window.__CDN : './';
         var s = document.createElement('script');
         s.type = 'module';
-        s.src = base + 'src/app.js?v=20261105a';
+        s.src = base + 'src/app.js?v=20261106a';
         s.onerror = function () {
           if (!window.__IS_GH) return;
           var s2 = document.createElement('script');
           s2.type = 'module';
-          s2.src = './src/app.js?v=20261105a';
+          s2.src = './src/app.js?v=20261106a';
           document.body.appendChild(s2);
         };
         document.body.appendChild(s);
