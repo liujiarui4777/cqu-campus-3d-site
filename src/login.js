@@ -46,6 +46,7 @@ function friendly(r) {
   if (code === 'NETWORK') return '网络不太稳定，请检查网络后重试';
   if (code === 'TIMEOUT') return '网络有点慢，请再试一次';
   if (code === 'NOT_CONFIGURED') return '登录服务还没配置好，请联系作者';
+  if (code === 'REG_CLOSED') return r.msg || '注册暂时关闭，请联系作者';
   if (code === 'SERVER') return r.msg || '登录服务暂时不可用，请稍后再试';
   return r.msg || '暂时无法登录，请稍后再试';
 }
@@ -72,7 +73,7 @@ function setMode(next) {
   els.sub.textContent =
     mode === 'register'
       ? '第一次来？设置姓名和密码，下次直接登录'
-      : '21–30 班：姓名 + 学号 · 其他同学：姓名 + 密码';
+      : '21–30 班：姓名 + 学号 · 其他同学：先点「注册」';
   els.btn.textContent = mode === 'register' ? '注册并进入' : '进入校园';
   setErr('');
 }
@@ -88,6 +89,9 @@ function lock(message) {
   els.overlay.hidden = false;
   document.body.classList.add('locked');
   setErr(message || '');
+  // 手机上别自动弹键盘，否则登录卡片会被挡住一半
+  const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  if (coarse) return;
   setTimeout(() => {
     if (els && !els.overlay.hidden && els.name) els.name.focus();
   }, 60);

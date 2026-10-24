@@ -640,7 +640,7 @@ void main() {
     markers.length = 0;
     schedList.innerHTML = '';
     if (!rows.length) {
-      schedList.innerHTML = '<p class="sched-empty">今天没有课。在下方粘贴课表后点「导入课表」。</p>';
+      schedList.innerHTML = '<p class="sched-empty">今天没有课。在下方粘贴课表后点「保存课表」。</p>';
       return;
     }
     for (const r of rows) {
