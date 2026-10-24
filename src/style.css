@@ -1610,3 +1610,19 @@ html[data-theme='night'] body.cam-free #cam-lock { color: #f0c07a; }
 html[data-theme='night'] .food-card { background: rgba(255, 255, 255, 0.05); }
 html[data-theme='night'] .food-search input { background: rgba(255, 255, 255, 0.06); color: #e8eef4; }
 html[data-theme='night'] .food-rank.is-red { background: rgba(216, 73, 63, 0.12); }
+
+/* 抽屉里的滚动条统一细窄样式，夜间自动反色 */
+.drawer * { scrollbar-width: thin; }
+.drawer ::-webkit-scrollbar { width: 8px; height: 8px; }
+.drawer ::-webkit-scrollbar-thumb { background: rgba(16, 24, 32, 0.16); border-radius: 8px; }
+.drawer ::-webkit-scrollbar-thumb:hover { background: rgba(16, 24, 32, 0.3); }
+.drawer ::-webkit-scrollbar-track { background: transparent; }
+html[data-theme='night'] { color-scheme: dark; }
+html[data-theme='night'] .drawer ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.22); }
+html[data-theme='night'] .drawer ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.36); }
+
+/* 夜间：抽屉里统一用浅色文字变量，避免深色文字压在深色卡片上看不见 */
+html[data-theme='night'] .drawer { --ink: #e9f0f7; --muted: #a6b4c3; }
+html[data-theme='night'] .food-desc { color: #d9e3ee; }
+html[data-theme='night'] .food-card-top b { color: #eef4fa; }
+html[data-theme='night'] .food-dishes span { background: rgba(224, 166, 58, 0.2); color: #f2c781; }

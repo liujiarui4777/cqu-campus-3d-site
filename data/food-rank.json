@@ -1390,7 +1390,7 @@
   {
    "name": "B区食堂",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "black",
    "reason": "✓史",
    "comments": [
@@ -1410,7 +1410,7 @@
   {
    "name": "a区柏树林餐厅石锅拌饭",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "不能说难吃，只能说根本吃不下去",
    "comments": [
@@ -1422,7 +1422,7 @@
   {
    "name": "B区门口对面新疆烤羊肉串（生意好的那家）",
    "type": "烧烤",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "red",
    "reason": "羊肉新鲜，烤的好吃，羊腰子甚至专门把筋膜去了一点骚味都没有",
    "comments": [
@@ -1432,7 +1432,7 @@
   {
    "name": "A区莘莘一楼 的干锅",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "多油，肉少，价高， 土豆半生不熟，除了辣就没别的味了",
    "comments": [
@@ -1453,7 +1453,7 @@
   {
    "name": "A区民主湖教工 餐厅一楼瑞幸旁边的粉面铺",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "油腻的离谱，一 碗面倒了一半",
    "comments": [
@@ -1471,7 +1471,7 @@
   {
    "name": "a区三食堂二楼冒菜",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "明显不新鲜了，室友每吃必窜",
    "comments": [
@@ -1492,7 +1492,7 @@
   {
    "name": "a区东林餐厅一楼",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "💩🛡️🦶",
    "comments": [
@@ -1519,7 +1519,7 @@
   {
    "name": "a区莘莘食堂3楼自选菜",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "那里面的肉说实话 真不行 还贵",
    "comments": [
@@ -1529,7 +1529,7 @@
   {
    "name": "a区莘莘食堂二楼猪脚饭",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "肥肉碎末末叫猪脚饭，不能更糊弄人了",
    "comments": []
@@ -1553,7 +1553,7 @@
   {
    "name": "A区明主湖食堂二楼面面俱到",
    "type": "小面",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "史",
    "comments": [
@@ -1563,7 +1563,7 @@
   {
    "name": "A区一食堂二楼黄焖鸡",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "好吃好吃",
    "comments": [
@@ -1581,7 +1581,7 @@
   {
    "name": "a区三食堂羊肉粉",
    "type": "面食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "他家摊的鸡蛋每 次必点😋",
    "comments": [
@@ -1591,7 +1591,7 @@
   {
    "name": "A区大门隆江猪脚饭",
    "type": "食物",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "肉一股臭味儿 很不新鲜 端上来闻到就想吐",
    "comments": [
@@ -1619,7 +1619,7 @@
   {
    "name": "A区新华园餐厅",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "相必很多同学没去过这家隐蔽的食堂吧。菜就俩味：没味和齁咸。而且荤菜捆绑销售！十分恶心！",
    "comments": []
@@ -1627,7 +1627,7 @@
   {
    "name": "a区大门左拐山友店",
    "type": "面食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "杂酱土豆泥拌粉 碳水加碳水 好吃到哭",
    "comments": []
@@ -1635,7 +1635,7 @@
   {
    "name": "A区中门，绿色牛肉面",
    "type": "餐馆",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "老板娘赶人我属实是没想到的，态度极差，鄙人还以为餐馆开不到下一刻了呢☹️",
    "comments": [
@@ -1653,7 +1653,7 @@
   {
    "name": "a区一餐厅二楼禾也轻食",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "难吃的感觉吃了这辈子都完了，吃的意面，没味道还难吃，很奇怪的口感",
    "comments": []
@@ -1661,7 +1661,7 @@
   {
    "name": "a区一食堂三 楼大西北干锅",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "出餐有点慢但是好吃😋a wa",
    "comments": [
@@ -1679,7 +1679,7 @@
   {
    "name": "一食堂二楼的羊肉米线",
    "type": "面食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "羊肉粉真的很鲜一点都没有羊肉的腥味，汤都可以喝！！！吃完之后热乎乎的",
    "comments": []
@@ -1687,7 +1687,7 @@
   {
    "name": "民主湖食堂三楼广式烧腊的白切鸡",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "鸡冇鸡味，整个鸡的口感是松散的，这个鸡肉比我的人生态度还松弛，姜葱的味道也很不对味，超级咸，打咩得斯，我不允许你这么侮辱白切鸡",
    "comments": []
@@ -1705,7 +1705,7 @@
   {
    "name": "A区中门右边，新疆风味",
    "type": "餐馆",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "屎中屎，坏境非常糟糕，味道非常",
    "comments": [
@@ -1724,7 +1724,7 @@
   {
    "name": "东林餐厅瓦香鸡",
    "type": "食物",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "black",
    "reason": "16块钱一点点量，全是洋葱胡萝卜，还都没味",
    "comments": []
@@ -1740,7 +1740,7 @@
   {
    "name": "B区中门莲藕抄手",
    "type": "面食",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "red",
    "reason": "便宜好吃",
    "comments": [
@@ -1750,7 +1750,7 @@
   {
    "name": "A区中门刘氏鸡公煲",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "汤汁巨香，个人认为学校附近最好吃的鸡公煲",
    "comments": [
@@ -1768,7 +1768,7 @@
   {
    "name": "外卖诗熠烤米线/线下店在B区大门对面",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "red",
    "reason": "超级好吃！老板人也特别好，就是份量可能有点小",
    "comments": []
@@ -1776,7 +1776,7 @@
   {
    "name": "a区中门超市烤红薯",
    "type": "小吃",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "甜，家乡的味道",
    "comments": [
@@ -1786,7 +1786,7 @@
   {
    "name": "A区一食堂二楼自助称重",
    "type": "食堂",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "重大A区食堂goat",
    "comments": [
@@ -1796,7 +1796,7 @@
   {
    "name": "B区后门半月楼阮小面",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "red",
    "reason": "推荐干杂，真的是杂酱肉，3两太多",
    "comments": []
@@ -1804,7 +1804,7 @@
   {
    "name": "A区正门旁边的鲜葱肉饼",
    "type": "小吃",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "除了有点麻之外非常的香酥脆，而且肉和葱很多",
    "comments": [
@@ -1814,7 +1814,7 @@
   {
    "name": "民主湖食堂一楼重庆小面（瑞幸咖啡旁）",
    "type": "面食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "A区小面天花板，无脑吃",
    "comments": [
@@ -1832,7 +1832,7 @@
   {
    "name": "b区中门石锅鸡米饭",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "red",
    "reason": "好好吃好好吃，而且不贵",
    "comments": []
@@ -1840,7 +1840,7 @@
   {
    "name": "a区大门对面藕王抄手",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "好吃，强推藤椒小面，藤椒干拌，和干海椒干拌！",
    "comments": []
@@ -1858,7 +1858,7 @@
   {
    "name": "A区莘莘食堂三楼匠心卤",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "好吃😋老板很好",
    "comments": []
@@ -1874,7 +1874,7 @@
   {
    "name": "A区一食堂猪脚饭",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "与虎溪二食堂相比贵了两块钱，但是肉更多，而且更加紧实",
    "comments": [
@@ -1884,7 +1884,7 @@
   {
    "name": "B区大门右边五十米叶府记米线",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "red",
    "reason": "味道很好，很喜欢炫，美团有卷会便宜",
    "comments": []
@@ -1892,7 +1892,7 @@
   {
    "name": "A区一食堂羊肉米粉",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "好多羊肉啊，汤头放了很多胡椒粉，喝完舌头麻麻的，好喝好喝",
    "comments": []
@@ -1900,7 +1900,7 @@
   {
    "name": "B区后门黑娃餐馆",
    "type": "家常菜",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "red",
    "reason": "主要是性价比高哦，菜品分量跟家里做菜一样多",
    "comments": [
@@ -1926,7 +1926,7 @@
   {
    "name": "A区中门外黄焖鸡的肥肠盖饭",
    "type": "家常菜",
-   "campus": "A/B/C",
+   "campus": "A",
    "rank": "red",
    "reason": "好吃😋，稍微贵一点，而且他们家米酒汤圆免费喝",
    "comments": []
@@ -1934,7 +1934,7 @@
   {
    "name": "B区地下食堂（二食堂一楼）粤式烧腊",
    "type": "主食",
-   "campus": "A/B/C",
+   "campus": "B",
    "rank": "red",
    "reason": "烧鸭跟虎溪一食堂二楼一个味道",
    "comments": []

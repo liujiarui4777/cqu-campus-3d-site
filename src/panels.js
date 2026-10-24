@@ -153,8 +153,9 @@ function initAccount() {
   let items = [];
   let rankItems = [];
   try {
+    const V = (import.meta.url.match(/[?&]v=([^&]+)/) || [])[1] || '';
     const load = (f) =>
-      fetch(new URL('data/' + f, document.baseURI).href)
+      fetch(new URL('data/' + f + (V ? '?v=' + V : ''), document.baseURI).href)
         .then((r) => (r.ok ? r.json() : {}))
         .catch(() => ({}));
     const [curated, rank] = await Promise.all([load('food.json'), load('food-rank.json')]);
@@ -212,7 +213,7 @@ function initAccount() {
   function matchCampus(c, sel) {
     if (sel === 'all') return true;
     if (c === sel) return true;
-    if (c === 'A/B/C' && (sel === 'A' || sel === 'B' || sel === 'C')) return true;
+    // 原表里没写具体校区的条目只在「全部」出现，避免归错区
     return false;
   }
 

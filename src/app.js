@@ -137,20 +137,20 @@ function flyToView(key, animate = true) {
   }
 }
 
-import { loadTerrain } from './terrain.js?v=20261031g';
-import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031g';
-import { addLandmarks } from './landmarks.js?v=20261031g';
-import { createBasemapProvider } from './basemap.js?v=20261031g';
-import { initInteraction } from './ui.js?v=20261031g';
-import { initPanels } from './panels.js?v=20261031g';
+import { loadTerrain } from './terrain.js?v=20261031m';
+import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031m';
+import { addLandmarks } from './landmarks.js?v=20261031m';
+import { createBasemapProvider } from './basemap.js?v=20261031m';
+import { initInteraction } from './ui.js?v=20261031m';
+import { initPanels } from './panels.js?v=20261031m';
 import { initLogin, isAuthed } from './login.js?v=20261030b';
-import { addTrees } from './trees.js?v=20261031g';
-import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031g';
-import { addLamps } from './lamps.js?v=20261031g';
-import { addRoofProps } from './props.js?v=20261031g';
-import { addGates } from './gates.js?v=20261031g';
-import { addSports } from './sports.js?v=20261031g';
-import { addBuildingLabels } from './labels.js?v=20261031g';
+import { addTrees } from './trees.js?v=20261031m';
+import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031m';
+import { addLamps } from './lamps.js?v=20261031m';
+import { addRoofProps } from './props.js?v=20261031m';
+import { addGates } from './gates.js?v=20261031m';
+import { addSports } from './sports.js?v=20261031m';
+import { addBuildingLabels } from './labels.js?v=20261031m';
 
 (async () => {
   initLogin();
@@ -268,8 +268,10 @@ import { addBuildingLabels } from './labels.js?v=20261031g';
       for (const a of data.areas || []) {
         if (a.center) take(a.center[0], a.center[1]);
       }
-      const m = 0.003; // 目标点再往里收 ~330 m，相机不会退到底图外面
-      return { west: w - m, east: e + m, south: s - m, north: n + m };
+      // 允许环视的范围要「往校园里面收」，不是往外扩：
+      // 目标点被限制在校园内部，相机就不会把视线带到校外
+      const m = 0.0011; // 约 120 m，留出边缘建筑
+      return { west: w + m, east: e - m, south: s + m, north: n - m };
     })();
     const MAX_H = 2000; // 最高只能拉到「全景」高度，再高就会看到校外
 
