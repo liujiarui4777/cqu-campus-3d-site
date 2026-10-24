@@ -1524,3 +1524,32 @@ html[data-theme='night'] .card-close:hover { background: rgba(255, 255, 255, 0.1
 .msg-mail a { color: var(--accent); font-weight: 600; text-decoration: none; }
 .msg-mail a:hover { text-decoration: underline; }
 #message input, #message textarea { margin-bottom: 8px; }
+
+/* 红黑榜卡片 */
+.food-rank { position: relative; padding-left: 42px; align-items: flex-start; }
+.food-rank-badge {
+  position: absolute; left: 10px; top: 12px;
+  width: 24px; padding: 2px 0; border-radius: 7px;
+  font-size: 10px; line-height: 1.3; text-align: center; font-weight: 700;
+  color: #fff;
+}
+.food-rank.is-red .food-rank-badge { background: #d8493f; }
+.food-rank.is-black .food-rank-badge { background: #4a4f57; }
+.food-rank.is-red { background: rgba(216, 73, 63, 0.055); }
+.food-rank .food-main b { font-size: 13px; }
+.food-quotes { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+.food-quote { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+html[data-theme='night'] .food-rank.is-red { background: rgba(216, 73, 63, 0.12); }
+
+/* 视角锁定按钮 */
+.tool-btn.is-on {
+  background: rgba(47, 111, 106, 0.14);
+  color: var(--accent);
+  border-color: rgba(47, 111, 106, 0.36);
+}
+body.cam-free #cam-lock {
+  background: rgba(216, 152, 63, 0.16);
+  color: #a8691b;
+  border-color: rgba(216, 152, 63, 0.42);
+}
+html[data-theme='night'] body.cam-free #cam-lock { color: #f0c07a; }

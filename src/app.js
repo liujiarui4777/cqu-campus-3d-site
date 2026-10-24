@@ -70,7 +70,9 @@ scene.screenSpaceCameraController.minimumZoomDistance = 140; // 不允许钻进�
 // 地图覆盖 15 km，允许拉到能看全整张底图的高度
 scene.screenSpaceCameraController.maximumZoomDistance = 22000;
 
-// 视角锁定：只能用底部机位按钮 / 点击建筑飞行，禁止拖拽、滚轮、双指缩放
+// 视角锁定：默认锁定 → 只能用底部机位按钮 / 点击建筑飞行。
+// 点顶部「锁定」按钮解锁后可以拖拽、滚轮、平移，但俯仰角不允许改（角度保持一致），
+// 且相机被限制在校园范围内，看不到校区以外。
 const camCtl = scene.screenSpaceCameraController;
 camCtl.enableRotate = false;
 camCtl.enableTranslate = false;
@@ -135,20 +137,20 @@ function flyToView(key, animate = true) {
   }
 }
 
-import { loadTerrain } from './terrain.js?v=20261030j';
-import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261030j';
-import { addLandmarks } from './landmarks.js?v=20261030j';
-import { createBasemapProvider } from './basemap.js?v=20261030j';
-import { initInteraction } from './ui.js?v=20261030j';
-import { initPanels } from './panels.js?v=20261030j';
+import { loadTerrain } from './terrain.js?v=20261031c';
+import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031c';
+import { addLandmarks } from './landmarks.js?v=20261031c';
+import { createBasemapProvider } from './basemap.js?v=20261031c';
+import { initInteraction } from './ui.js?v=20261031c';
+import { initPanels } from './panels.js?v=20261031c';
 import { initLogin, isAuthed } from './login.js?v=20261030b';
-import { addTrees } from './trees.js?v=20261030j';
-import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261030j';
-import { addLamps } from './lamps.js?v=20261030j';
-import { addRoofProps } from './props.js?v=20261030j';
-import { addGates } from './gates.js?v=20261030j';
-import { addSports } from './sports.js?v=20261030j';
-import { addBuildingLabels } from './labels.js?v=20261030j';
+import { addTrees } from './trees.js?v=20261031c';
+import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031c';
+import { addLamps } from './lamps.js?v=20261031c';
+import { addRoofProps } from './props.js?v=20261031c';
+import { addGates } from './gates.js?v=20261031c';
+import { addSports } from './sports.js?v=20261031c';
+import { addBuildingLabels } from './labels.js?v=20261031c';
 
 (async () => {
   initLogin();
@@ -160,7 +162,7 @@ import { addBuildingLabels } from './labels.js?v=20261030j';
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261030j';
+    const ASSET_V = '20261031a';
     const layers = {};
     // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
     const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE);
@@ -249,6 +251,78 @@ import { addBuildingLabels } from './labels.js?v=20261030j';
     window.__bootMs = Math.round(performance.now());
     console.info('[cqu] 首屏完成 ' + window.__bootMs + ' ms');
     window.__CQU__ = { viewer, data, terrain, graph, nav: { nearestNode, shortestPath } };
+
+    // ---------- 视角锁定 / 自由 ----------
+    // 锁定：只能用底部机位按钮或点建筑飞行（默认）
+    // 自由：可拖动、滚轮、平移，但俯仰角锁死（角度不变），且相机被限制在校园范围内
+    const box = (() => {
+      let w = 1e9, s = 1e9, e = -1e9, n = -1e9;
+      const take = (lon, lat) => {
+        if (!Number.isFinite(lon) || !Number.isFinite(lat)) return;
+        w = Math.min(w, lon); e = Math.max(e, lon);
+        s = Math.min(s, lat); n = Math.max(n, lat);
+      };
+      for (const b of data.buildings || []) {
+        if (b.center) take(b.center[0], b.center[1]);
+      }
+      for (const a of data.areas || []) {
+        if (a.center) take(a.center[0], a.center[1]);
+      }
+      const m = 0.0016; // 约 150–180 m 余量，别贴着楼边
+      return { west: w - m, east: e + m, south: s - m, north: n + m };
+    })();
+    const MAX_H = 2000; // 最高只能拉到「全景」高度，再高就会看到校外
+
+    let camLocked = true;
+    let fixing = false;
+
+    function applyCamLock(locked) {
+      camLocked = !!locked;
+      const free = !camLocked;
+      camCtl.enableRotate = free;
+      camCtl.enableTranslate = free;
+      camCtl.enableZoom = free;
+      // 俯仰角不允许改：解锁后角度与当前机位保持一致
+      camCtl.enableTilt = false;
+      camCtl.enableLook = false;
+      camCtl.maximumZoomDistance = free ? MAX_H : 22000;
+      viewer.scene.canvas.style.cursor = free ? 'grab' : 'default';
+      document.body.classList.toggle('cam-free', free);
+      const btn = document.getElementById('cam-lock');
+      if (btn) {
+        btn.classList.toggle('is-on', camLocked);
+        btn.textContent = camLocked ? '🔒 已锁定' : '🔓 自由视角';
+      }
+    }
+    window.__setCamLock = applyCamLock;
+    window.__isCamLocked = () => camLocked;
+    window.__camBox = box;
+
+    viewer.scene.preRender.addEventListener(() => {
+      if (camLocked || fixing) return;
+      const c = viewer.camera;
+      const p = c.positionCartographic;
+      const lon = Cesium.Math.toDegrees(p.longitude);
+      const lat = Cesium.Math.toDegrees(p.latitude);
+      const h = p.height;
+      const clon = Math.min(Math.max(lon, box.west), box.east);
+      const clat = Math.min(Math.max(lat, box.south), box.north);
+      const ch = Math.min(Math.max(h, 140), MAX_H);
+      if (Math.abs(clon - lon) > 1e-9 || Math.abs(clat - lat) > 1e-9 || Math.abs(ch - h) > 0.5) {
+        fixing = true;
+        c.setView({
+          destination: Cesium.Cartesian3.fromDegrees(clon, clat, ch),
+          orientation: { heading: c.heading, pitch: c.pitch, roll: 0 },
+        });
+        fixing = false;
+      }
+    });
+
+    const lockBtn = document.getElementById('cam-lock');
+    if (lockBtn) {
+      lockBtn.addEventListener('click', () => applyCamLock(!camLocked));
+      applyCamLock(true);
+    }
   } catch (e) {
     showError(e);
   }

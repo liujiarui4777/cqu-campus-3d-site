@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261030j" />
+    <link rel="stylesheet" href="./src/style.css?v=20261031c" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -66,6 +66,7 @@
       </div>
 
       <div class="tools">
+        <button id="cam-lock" class="tool-btn is-on" title="视角锁定：锁定后只能点机位按钮切换；解锁后可自由拖动，但走不出校园">🔒 已锁定</button>
         <button id="sat-btn" class="tool-btn" title="切换卫星影像">卫星</button>
         <div class="times" title="昼夜">
           <button data-time="day" class="active">日</button>
@@ -177,7 +178,7 @@
         </section>
 
         <section class="drawer-sec" id="food" data-panel="food" hidden>
-          <p class="sec-hint">校内食堂 / 小吃 / 咖啡 · 学生口碑整理，欢迎补充</p>
+          <p class="sec-hint">食堂 / 小吃 / 咖啡 + 饭协红黑榜 · 学生口碑整理，欢迎补充</p>
           <div class="chip-row" id="food-filters"></div>
           <div class="food-list" id="food-list"></div>
           <form class="food-form" id="food-form">
@@ -263,7 +264,7 @@
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261030j"></script>
+    <script type="module" src="./src/app.js?v=20261031c"></script>
   </body>
 </html>
 
