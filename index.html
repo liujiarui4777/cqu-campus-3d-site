@@ -8,15 +8,16 @@
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
+    <link rel="preconnect" href="https://xsxkmesgonmruclbahmb.supabase.co" crossorigin />
     <script>
       // 资源基址：线上（github.io）全部走 jsDelivr，本地开发走相对路径。
       // 实测 github.io 24 KB/s、jsDelivr 134–689 KB/s，20 多个 ES module 从本站拉要 2–3 s。
       window.__IS_GH = location.hostname.endsWith('github.io');
-      window.__CDN = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@49e288fc67e63e303ae03b820d3bd714874a2ceb/';
+      window.__CDN = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@943ab99dd48280c2146e1b8d27c0b492db0881f3/';
       (function () {
         var base = window.__IS_GH ? window.__CDN : './';
         document.write('<link rel="stylesheet" href="' + base + 'cesium/Widgets/widgets.css">');
-        document.write('<link rel="stylesheet" href="' + base + 'src/style.css?v=20261103b">');
+        document.write('<link rel="stylesheet" href="' + base + 'src/style.css?v=20261105a">');
       })();
     </script>
     <script>
@@ -272,21 +273,29 @@
     <div class="error" id="error"></div>
 
     <div class="login" id="login">
-      <form class="login-card" id="login-form" autocomplete="off">
+      <form class="login-card" id="login-form" autocomplete="on">
         <div class="login-mark"></div>
         <h2>重庆大学 · 三维校园</h2>
-        <p class="login-sub">姓名 + 学号（密码即本人学号）</p>
+        <div class="login-tabs" role="tablist" aria-label="登录或注册">
+          <button type="button" class="login-tab is-on" data-mode="login" role="tab" aria-selected="true">登录</button>
+          <button type="button" class="login-tab" data-mode="register" role="tab" aria-selected="false">注册</button>
+        </div>
+        <p class="login-sub" id="login-sub">21–30 班：姓名 + 学号 · 其他同学：姓名 + 密码</p>
         <label class="login-field">
           <span>姓名</span>
-          <input id="login-name" type="text" placeholder="请输入姓名" autocomplete="username" />
+          <input id="login-name" type="text" placeholder="请输入姓名" autocomplete="username" maxlength="20" />
         </label>
         <label class="login-field">
           <span>密码</span>
-          <input id="login-pass" type="password" placeholder="请输入学号" autocomplete="current-password" />
+          <input id="login-pass" type="password" placeholder="21–30 班填学号，其他同学填密码" autocomplete="current-password" maxlength="64" />
         </label>
-        <p class="login-err" id="login-err"></p>
-        <button type="submit" class="login-btn">进入校园</button>
-        <p class="login-tip">21–30 班学生账号 · 仅限本人使用</p>
+        <label class="login-field" id="login-pass2-field" hidden>
+          <span>确认密码</span>
+          <input id="login-pass2" type="password" placeholder="再输一次密码" autocomplete="new-password" maxlength="64" />
+        </label>
+        <p class="login-err" id="login-err" role="alert"></p>
+        <button type="submit" class="login-btn" id="login-btn">进入校园</button>
+        <p class="login-tip">21–30 班沿用学号登录 · 注册账号长期有效 · 忘记密码请在留言板留言</p>
       </form>
     </div>
 
@@ -317,12 +326,12 @@
         var base = window.__IS_GH ? window.__CDN : './';
         var s = document.createElement('script');
         s.type = 'module';
-        s.src = base + 'src/app.js?v=20261104c';
+        s.src = base + 'src/app.js?v=20261105a';
         s.onerror = function () {
           if (!window.__IS_GH) return;
           var s2 = document.createElement('script');
           s2.type = 'module';
-          s2.src = './src/app.js?v=20261104c';
+          s2.src = './src/app.js?v=20261105a';
           document.body.appendChild(s2);
         };
         document.body.appendChild(s);
