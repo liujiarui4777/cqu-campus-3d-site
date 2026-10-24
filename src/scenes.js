@@ -54,7 +54,7 @@ export const SCENES = {
       // 东侧教学区（图书馆 / 学院楼群 / 实验楼 / 行政）
       { key: 'teach', label: '教学区', lon: 106.2966, lat: 29.5892, h: 900, heading: 0, pitch: -52 },
       // 东北运动区（400 m 跑道 / 体育馆 / 球场群）
-      { key: 'sport', label: '运动区', lon: 106.2997, lat: 29.5945, h: 760, heading: 0, pitch: -55 },
+      { key: 'sport', label: '运动区', lon: 106.2997, lat: 29.5960, h: 720, heading: 0, pitch: -54 },
     ],
     stats(data) {
       return [
