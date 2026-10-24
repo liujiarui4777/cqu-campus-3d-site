@@ -1,6 +1,9 @@
 /* 登录门禁：账号表来自 data/accounts.json（21-30 班学生信息，密码 = 学号）
  * 额外账号：余思琪 / 20080229。本标签页记住登录状态（sessionStorage）。
+ * 登录成功后会把「姓名 + 时间 + 设备 + 大致地区」静默上报到作者后台（见 telemetry.js）。
  */
+
+import { reportLogin } from './telemetry.js?v=20261103a';
 
 const AUTH_KEY = 'cqu-auth-user';
 const EXTRA = {
@@ -87,6 +90,8 @@ export function initLogin() {
         sessionStorage.setItem(AUTH_KEY, JSON.stringify({ name, sid, at: Date.now() }));
         unlock();
         if (window.__accountRefresh) window.__accountRefresh();
+        // 上报一条登录记录（异步、失败静默，不影响进入）
+        reportLogin(name);
       } else {
         if (err) err.textContent = '姓名或学号不正确，无法进入';
         passInput.value = '';

@@ -1,4 +1,4 @@
-﻿/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
+/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
 
 // Cesium 走 CDN，失败时 index.html 会补一个本站脚本；这里等一下它
 async function waitForCesium(timeoutMs = 12000) {
@@ -142,8 +142,8 @@ import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build
 import { addLandmarks } from './landmarks.js?v=20261031m';
 import { createBasemapProvider } from './basemap.js?v=20261031m';
 import { initInteraction } from './ui.js?v=20261031m';
-import { initPanels } from './panels.js?v=20261031m';
-import { initLogin, isAuthed } from './login.js?v=20261030b';
+import { initPanels } from './panels.js?v=20261103a';
+import { initLogin, isAuthed } from './login.js?v=20261103a';
 import { addTrees } from './trees.js?v=20261031m';
 import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031m';
 import { addLamps } from './lamps.js?v=20261031m';

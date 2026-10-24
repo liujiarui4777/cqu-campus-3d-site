@@ -1,5 +1,7 @@
 /* 插件面板：左侧功能栏 + 右侧抽屉，每个按钮对应一个面板（导航 / 巴士 / 美食 / 课表 / 账号） */
 
+import { submitMessage, isTelemetryOn } from './telemetry.js?v=20261103a';
+
 const TITLES = {
   nav: '步行导航',
   bus: '校园巴士',
@@ -411,7 +413,7 @@ function initMessage() {
     if (!historyEl) return;
     const list = load();
     historyEl.innerHTML = list.length
-      ? '<p class="sec-hint">本机留存的留言</p>'
+      ? '<p class="sec-hint">你发过的留言（本机留一份）</p>'
       : '<p class="sec-hint">还没有留过言。</p>';
     for (const m of list.slice().reverse().slice(0, 10)) {
       const el = document.createElement('div');
@@ -422,27 +424,77 @@ function initMessage() {
     }
   }
 
+  // 本机留一份，方便回看
+  function remember(nick, body) {
+    const list = load();
+    list.push({ nick, text: body, at: Date.now() });
+    try {
+      localStorage.setItem(MSG_KEY, JSON.stringify(list.slice(-50)));
+    } catch (e) {}
+    renderHistory();
+  }
+
+  // 备用通道：调起邮件客户端
+  function sendByMail(nick, body) {
+    const subject = '【三维校园留言】' + nick;
+    const full = body + '\n\n—— 来自三维校园 · ' + nick;
+    if (stateEl) stateEl.textContent = '已打开邮件客户端（收件人 ' + AUTHOR_EMAIL + '），点发送即可。';
+    window.location.href =
+      'mailto:' + AUTHOR_EMAIL +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(full);
+  }
+
+  // 默认用登录姓名署名；学生自己改过（哪怕清空）就不再自动填，清空即为匿名
+  let nickTouched = false;
+  function fillNick() {
+    if (!nickEl || nickTouched || nickEl.value) return;
+    try {
+      const u = JSON.parse(sessionStorage.getItem(AUTH_KEY) || 'null');
+      if (u && u.name) nickEl.value = u.name;
+    } catch (e) {}
+  }
+  if (nickEl) nickEl.addEventListener('input', () => { nickTouched = true; });
+  fillNick();
+  // 登录发生在面板初始化之后，所以每次点开留言面板再补一次署名
+  const railMsg = document.querySelector('[data-plugin="message"]');
+  if (railMsg) railMsg.addEventListener('click', fillNick);
+
   if (sendBtn) {
-    sendBtn.addEventListener('click', () => {
+    sendBtn.addEventListener('click', async () => {
       const body = (textEl.value || '').trim();
       if (!body) {
         if (stateEl) stateEl.textContent = '先写点内容再发吧。';
         textEl.focus();
         return;
       }
-      const nick = (nickEl && nickEl.value.trim()) || '匿名同学';
-      const subject = '【三维校园留言】' + nick;
-      const full = body + '\n\n—— 来自三维校园 · ' + nick;
-      // 本地留一份，方便回看
-      const list = load();
-      list.push({ nick, text: body, at: Date.now() });
-      localStorage.setItem(MSG_KEY, JSON.stringify(list.slice(-50)));
-      renderHistory();
-      if (stateEl) stateEl.textContent = '已打开邮件客户端（收件人 ' + AUTHOR_EMAIL + '），点发送即可。';
-      window.location.href =
-        'mailto:' + AUTHOR_EMAIL +
-        '?subject=' + encodeURIComponent(subject) +
-        '&body=' + encodeURIComponent(full);
+      const nickInput = (nickEl && nickEl.value.trim()) || '';
+      const nick = nickInput || '匿名同学';
+
+      // 后台没接通时，保持原来的邮件方式
+      if (!isTelemetryOn()) {
+        remember(nick, body);
+        sendByMail(nick, body);
+        return;
+      }
+
+      const old = sendBtn.textContent;
+      sendBtn.disabled = true;
+      sendBtn.textContent = '正在发送…';
+      const r = await submitMessage(nickInput, body);
+      sendBtn.disabled = false;
+      sendBtn.textContent = old;
+
+      if (r.ok) {
+        remember(nick, body);
+        textEl.value = '';
+        if (stateEl) stateEl.textContent = '已经送到作者了，他会在后台看到，谢谢你。';
+        return;
+      }
+      // 发送失败：兜底走邮件，别让留言丢掉
+      if (stateEl) stateEl.textContent = '网络没发出去，帮你用邮件再发一次…';
+      remember(nick, body);
+      sendByMail(nick, body);
     });
   }
 
