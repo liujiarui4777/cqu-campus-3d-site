@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --paper: #eef2f6;
   --ink: #1f2a33;
   --muted: #5d6b78;
@@ -787,6 +787,17 @@ html[data-theme='night'] .layer-tool {
 }
 .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
 .tool-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* 校区切换按钮（A/B/C ↔ 虎溪）：用强调色描边，和普通工具按钮区分开 */
+.scene-switch {
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+}
+.scene-switch:hover { background: var(--accent); color: #fff; }
+html[data-theme='night'] .scene-switch { background: color-mix(in srgb, var(--accent) 22%, var(--card)); }
+html[data-theme='night'] .scene-switch:hover { background: var(--accent); }
 .weather {
   display: flex;
   align-items: center;

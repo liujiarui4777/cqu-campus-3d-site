@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN" data-theme="day">
   <head>
     <meta charset="utf-8" />
@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261103a" />
+    <link rel="stylesheet" href="./src/style.css?v=20261103b" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -66,6 +66,7 @@
       </div>
 
       <div class="tools">
+        <a id="scene-switch" class="tool-btn scene-switch" href="?campus=hx" title="切换到重庆大学虎溪校区三维地图">虎溪校区 →</a>
         <button id="cam-lock" class="tool-btn is-on" title="视角锁定：锁定后只能点机位按钮切换；解锁后可自由拖动，但走不出校园">🔒 已锁定</button>
         <button id="sat-btn" class="tool-btn" title="切换卫星影像">卫星</button>
         <div class="times" title="昼夜">
@@ -269,7 +270,7 @@
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261103a"></script>
+    <script type="module" src="./src/app.js?v=20261103b"></script>
   </body>
 </html>
 

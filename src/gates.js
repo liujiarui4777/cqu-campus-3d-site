@@ -1,4 +1,4 @@
-/* 校门：依据《调研-A区道路资料》的 6 个校门 + 江边电梯口，按方位布置 */
+/* 校门：A 区依据《调研-A区道路资料》的 6 个校门 + 江边电梯口；虎溪按边界出入口布置 */
 
 const MLAT = 110540;
 const mLon = (lat) => 111320 * Math.cos((lat * Math.PI) / 180);
@@ -13,12 +13,20 @@ const GATES = [
   { name: '西北门', lon: 106.4609, lat: 29.5716, rot: 270 },
 ];
 
+// 虎溪校区：北门在大学城南路（校区正门），东门接大学城中路
+const GATES_HX = [
+  { name: '北门', lon: 106.29480, lat: 29.60092, rot: 0, stone: true },
+  { name: '东门', lon: 106.30305, lat: 29.59760, rot: 90 },
+];
+
 export function addGates(viewer, data, terrain) {
   const Cesium = window.Cesium;
   const stone = Cesium.Color.fromCssColorString('#cfc8ba');
   const steel = Cesium.Color.fromCssColorString('#8d9298');
+  const isHx = (data.buildings || []).some((b) => b.campus === 'HX');
+  const list = isHx ? GATES_HX : GATES;
 
-  for (const g of GATES) {
+  for (const g of list) {
     const h0 = terrain.sample(g.lon, g.lat);
     const a = (g.rot * Math.PI) / 180;
     // 门宽方向（沿门洞）
@@ -38,7 +46,7 @@ export function addGates(viewer, data, terrain) {
           dimensions: new Cesium.Cartesian3(colW * 2, colW * 2, colH),
           material: g.stone ? stone : steel,
         },
-        properties: { kind: 'gate', name: g.name, data: { name: g.name, desc: 'A 区校门' } },
+        properties: { kind: 'gate', name: g.name, data: { name: g.name, desc: '校区校门' } },
       });
     }
 
@@ -58,5 +66,5 @@ export function addGates(viewer, data, terrain) {
     });
   }
 
-  return GATES.length;
+  return list.length;
 }

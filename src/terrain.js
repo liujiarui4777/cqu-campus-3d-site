@@ -16,11 +16,11 @@ async function raceFetch(urls) {
   );
 }
 
-async function fetchBin(base, name) {
+async function fetchBin(base, name, dir = '') {
   const bases = Array.isArray(base) ? base : [base];
   let gz;
   try {
-    gz = await raceFetch(bases.map((b) => `${b}data/${name}.bin.gz`));
+    gz = await raceFetch(bases.map((b) => `${b}data/${dir}${name}.bin.gz`));
   } catch (e) {
     gz = null;
   }
@@ -29,14 +29,14 @@ async function fetchBin(base, name) {
     const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
     return await new Response(stream).arrayBuffer();
   }
-  const plain = await raceFetch(bases.map((b) => `${b}data/${name}.bin`));
+  const plain = await raceFetch(bases.map((b) => `${b}data/${dir}${name}.bin`));
   return plain.arrayBuffer();
 }
 
-async function loadGrid(base, name) {
+async function loadGrid(base, name, dir = '') {
   const bases = Array.isArray(base) ? base : [base];
-  const meta = await raceFetch(bases.map((b) => `${b}data/${name}.json`)).then((r) => r.json());
-  const buf = await fetchBin(base, name);
+  const meta = await raceFetch(bases.map((b) => `${b}data/${dir}${name}.json`)).then((r) => r.json());
+  const buf = await fetchBin(base, name, dir);
   const q = new Int16Array(buf);
   const W = meta.width;
   const H = meta.height;
@@ -68,8 +68,8 @@ async function loadGrid(base, name) {
   return { meta, sample, inRange };
 }
 
-export async function loadTerrain(base, Cesium) {
-  const fine = await loadGrid(base, 'terrain');
+export async function loadTerrain(base, Cesium, dir = '') {
+  const fine = await loadGrid(base, 'terrain', dir);
   const state = { fine, mid: null, coarse: null };
 
   const MLAT = 110540;
@@ -187,8 +187,8 @@ export async function loadTerrain(base, Cesium) {
     },
     async loadExtended() {
       const [m, c] = await Promise.all([
-        loadGrid(base, 'terrain_mid').catch(() => null),
-        loadGrid(base, 'terrain_coarse').catch(() => null),
+        loadGrid(base, 'terrain_mid', dir).catch(() => null),
+        loadGrid(base, 'terrain_coarse', dir).catch(() => null),
       ]);
       state.mid = m;
       state.coarse = c;

@@ -1,4 +1,4 @@
-﻿/* 地标构筑物：钟塔 / 大校门 / 寅初亭 / 风雨操场看台 / 思群广场跑道
+/* 地标构筑物：钟塔 / 大校门 / 寅初亭 / 风雨操场看台 / 思群广场跑道
  * 参数来自 docs/调研-A区建筑资料.md（形制有据，尺寸为合理推测）
  */
 const MLAT = 110540;
@@ -405,22 +405,22 @@ export function addLandmarks(viewer, data, terrain) {
         const [rx, ry] = rotate(x, y, bearing);
         return offset(clon, clat, rx, ry);
       });
-    const flat = (pts) => {
+    const flat = (pts, lift) => {
       const out = [];
-      for (const [lo, la] of pts) out.push(lo, la);
+      for (const [lo, la] of pts) out.push(lo, la, terrain.sample(lo, la) + lift);
       return out;
     };
 
-    // 跑道：外沿带内沿洞
+    // 跑道：外沿带内沿洞（逐顶点贴地形，避免固定高度被起伏地形切掉）
     const outerDeg = toDeg(ring(R + W, N));
     const innerDeg = toDeg(ring(R, N));
     E.add({
       polygon: {
         hierarchy: new Cesium.PolygonHierarchy(
-          Cesium.Cartesian3.fromDegreesArray(flat(outerDeg)),
-          [new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArray(flat(innerDeg.slice().reverse())))],
+          Cesium.Cartesian3.fromDegreesArrayHeights(flat(outerDeg, 1.15)),
+          [new Cesium.PolygonHierarchy(Cesium.Cartesian3.fromDegreesArrayHeights(flat(innerDeg.slice().reverse(), 1.15)))],
         ),
-        height: h0 + 0.26,
+        perPositionHeight: true,
         material: cr('#b4573f'),
       },
       properties: { kind: 'landmark', name: '思群广场 400m 跑道' },
@@ -433,8 +433,8 @@ export function addLandmarks(viewer, data, terrain) {
     });
     E.add({
       polygon: {
-        hierarchy: Cesium.Cartesian3.fromDegreesArray(flat(fieldPts)),
-        height: h0 + 0.34,
+        hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(flat(fieldPts, 1.28)),
+        perPositionHeight: true,
         material: cr('#6f9a5e'),
       },
       properties: { kind: 'landmark', name: '思群广场内场' },
@@ -445,7 +445,7 @@ export function addLandmarks(viewer, data, terrain) {
       const r = R + lane * 1.22;
       const pts = toDeg(ring(r, N));
       const line = [];
-      for (const [lo, la] of pts) line.push(lo, la, h0 + 0.42);
+      for (const [lo, la] of pts) line.push(lo, la, terrain.sample(lo, la) + 1.36);
       E.add({
         polyline: {
           positions: Cesium.Cartesian3.fromDegreesArrayHeights(line),

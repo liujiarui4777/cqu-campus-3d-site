@@ -1,4 +1,4 @@
-/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
+﻿/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
 
 // Cesium 走 CDN，失败时 index.html 会补一个本站脚本；这里等一下它
 async function waitForCesium(timeoutMs = 12000) {
@@ -12,7 +12,12 @@ async function waitForCesium(timeoutMs = 12000) {
 
 const Cesium = window.Cesium || (await waitForCesium());
 
-const CENTER = [106.4615, 29.5695];
+import { currentScene, sceneHref } from './scenes.js?v=20261103b';
+
+// 当前场景：A/B/C 三校区（默认）或虎溪校区（?campus=hx）
+const S = currentScene();
+const DIR = S.dir;
+const CENTER = S.center;
 const BASE = new URL('./', document.baseURI).href;
 let ASSET_BASE = window.__ASSET_BASE || BASE;
 
@@ -54,6 +59,10 @@ const viewer = new Cesium.Viewer('cesium-root', {
   contextOptions: { webgl: { alpha: false, antialias: true } },
 });
 
+// 调试 / 自动化（录制演示视频、写测试）用：把 viewer 暴露到全局
+window.__viewer = viewer;
+window.__CENTER = CENTER;
+
 const scene = viewer.scene;
 const globe = scene.globe;
 globe.baseColor = Cesium.Color.fromCssColorString('#e9e6de');
@@ -90,19 +99,10 @@ window.addEventListener('resize', () => {
   viewer.scene.requestRender();
 });
 
-// 固定机位：全景 + A/B/C 三个校区。相机只在这些机位之间切换，避免钻进楼里迷路
-// 三个校区机位按各自建筑外轮廓的包围盒算：相机在区域正南、俯角 60°，
-// 高度取到「整个区域完整落在画面 80% 以内」，数值由 worldToWindowCoordinates
-// 投影迭代求出来的；改机位后请同样用四个角点校验，别凭手感改。
-const VIEWS = {
-  all: { lon: 106.4585, lat: 29.5520, h: 1950, heading: 4, pitch: -47 },
-  // A 区：建筑范围约 1018×1266 m，地面 ~258 m，视高 1800 m
-  a: { lon: 106.46377, lat: 29.55715, h: 2058, heading: 0, pitch: -60 },
-  // B 区：约 646×696 m，地面 ~242 m，视高 1000 m
-  b: { lon: 106.45549, lat: 29.56445, h: 1242, heading: 0, pitch: -60 },
-  // C 区：约 256×273 m，地面 ~255 m，视高 420 m（对准建筑群中心，西侧长楼也进画面）
-  c: { lon: 106.4523, lat: 29.56271, h: 675, heading: 0, pitch: -60 },
-};
+// 固定机位：来自 scenes.js（A/B/C 三校区 + 全景；虎溪是全景/生活区/教学区/运动区）
+// 相机只在这些机位之间切换，避免钻进楼里迷路。
+const VIEWS = {};
+for (const v of S.views) VIEWS[v.key] = v;
 
 function viewFor(key) {
   const v = VIEWS[key] || VIEWS.all;
@@ -118,6 +118,12 @@ function viewFor(key) {
 
 const HOME_VIEW = viewFor('all');
 
+// 首屏机位：默认全景；带 ?view=life|teach|sport 时直接落到该机位（截图/深链用）
+const START_KEY = (() => {
+  const k = new URLSearchParams(location.search).get('view');
+  return k && VIEWS[k] ? k : 'all';
+})();
+
 function overview(animate) {
   if (animate) {
     viewer.camera.flyTo({ ...HOME_VIEW, duration: 1.7 });
@@ -125,7 +131,7 @@ function overview(animate) {
     viewer.camera.setView(HOME_VIEW);
   }
 }
-overview(false);
+viewer.camera.setView(viewFor(START_KEY));
 
 // 供 ui.js 调用：切换到指定机位
 function flyToView(key, animate = true) {
@@ -137,42 +143,79 @@ function flyToView(key, animate = true) {
   }
 }
 
-import { loadTerrain } from './terrain.js?v=20261031m';
-import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031m';
-import { addLandmarks } from './landmarks.js?v=20261031m';
-import { createBasemapProvider } from './basemap.js?v=20261031m';
-import { initInteraction } from './ui.js?v=20261031m';
-import { initPanels } from './panels.js?v=20261103a';
-import { initLogin, isAuthed } from './login.js?v=20261103a';
-import { addTrees } from './trees.js?v=20261031m';
-import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031m';
-import { addLamps } from './lamps.js?v=20261031m';
-import { addRoofProps } from './props.js?v=20261031m';
-import { addGates } from './gates.js?v=20261031m';
-import { addSports } from './sports.js?v=20261031m';
-import { addBuildingLabels } from './labels.js?v=20261031m';
+/* 底部机位按钮：按场景生成（A/B/C 是全景 + 三校区；虎溪是全景 + 生活/教学/运动区）
+ * 必须在 initInteraction 之前调用，ui.js 在初始化时一次性收集 [data-view] 按钮 */
+function buildViewBar() {
+  const nav = document.getElementById('views');
+  if (!nav) return;
+  nav.innerHTML = '';
+  for (const v of S.views) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.view = v.key;
+    btn.textContent = v.label;
+    if (v.key === 'all') btn.classList.add('active');
+    nav.appendChild(btn);
+  }
+}
+
+/* 校区切换按钮：A/B/C ↔ 虎溪（整页跳转，Cesium 走缓存，1–2 秒可进） */
+function initSceneSwitch() {
+  const btn = document.getElementById('scene-switch');
+  if (!btn) return;
+  const target = S.id === 'hx' ? 'abc' : 'hx';
+  btn.href = sceneHref(target);
+  btn.textContent = S.id === 'hx' ? '← 返回 A / B / C 区' : '虎溪校区 →';
+  btn.title = S.id === 'hx' ? '切换到沙坪坝 A / B / C 区三维地图' : '切换到重庆大学虎溪校区三维地图';
+}
+
+import { loadTerrain } from './terrain.js?v=20261103b';
+import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261103b';
+import { addLandmarks } from './landmarks.js?v=20261103b';
+import { createBasemapProvider } from './basemap.js?v=20261103b';
+import { initInteraction } from './ui.js?v=20261103b';
+import { initPanels } from './panels.js?v=20261103b';
+import { initLogin, isAuthed } from './login.js?v=20261103b';
+import { addTrees } from './trees.js?v=20261103b';
+import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261103b';
+import { addLamps } from './lamps.js?v=20261103b';
+import { addRoofProps } from './props.js?v=20261103b';
+import { addGates } from './gates.js?v=20261103b';
+import { addSports } from './sports.js?v=20261103b';
+import { addBuildingLabels } from './labels.js?v=20261103b';
 
 (async () => {
   initLogin();
+  // 场景标题 / 搜索提示 / 启动文案（index.html 里写的是 A/B/C 默认值，这里按场景覆盖）
+  document.title = S.title + '（' + S.subtitle.replace(' · ', '，') + '）';
+  const brandTitle = document.querySelector('.brand-text h1');
+  const brandSub = document.querySelector('.brand-text p');
+  if (brandTitle) brandTitle.textContent = S.title;
+  if (brandSub) brandSub.textContent = S.subtitle;
+  const bootTextEl = document.getElementById('boot-text');
+  if (bootTextEl) bootTextEl.textContent = S.bootText;
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) searchInput.placeholder = S.searchHint;
+  window.__SCENE = S;
   try {
     setStatus('正在加载地形…');
-    // CDN 与本站并行抢，谁先回用谁（不再做阻塞式探活）
-    const terrain = await loadTerrain([ASSET_BASE, BASE], Cesium);
+    // CDN 与本站并行抢，谁先回谁用（不再做阻塞式探活）
+    const terrain = await loadTerrain([ASSET_BASE, BASE], Cesium, DIR);
     viewer.scene.terrainProvider = terrain.provider;
 
     setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
-    const ASSET_V = '20261031m';
+    const ASSET_V = '20261103b';
     const layers = {};
-    // 首屏只铺 A/B/C 区精细底图（约 0.8 MB），10 km / 20 km 底图与地形后台补全
-    const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE);
+    // 首屏只铺当前校区的精细底图，卫星影像按需加载
+    const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE, DIR);
     layers.style = viewer.scene.imageryLayers.addImageryProvider(basemap);
     let esriLayer = null;
-    // 卫星影像按需加载：默认不下载 4 MB 的 esri.jpg，第一次打开「卫星影像」时才拉取
+    // 卫星影像按需加载：默认不下载大体积 esri.jpg，第一次打开「卫星影像」时才拉取
     async function ensureEsri() {
       if (esriLayer) return esriLayer;
-      // 影像必须与精细底图/地形用同一范围（data/terrain.json），否则整体错位
-      const esri = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'esri.jpg', ASSET_V, BASE);
+      // 影像必须与精细底图/地形用同一范围（terrain.json），否则整体错位
+      const esri = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'esri.jpg', ASSET_V, BASE, DIR);
       esriLayer = viewer.scene.imageryLayers.addImageryProvider(esri);
       esriLayer.show = false;
       layers.esri = esriLayer;
@@ -184,11 +227,10 @@ import { addBuildingLabels } from './labels.js?v=20261031m';
 
     setStatus('正在生成建筑…');
     const only = new URLSearchParams(location.search).get('only');
-    // 只保留 A/B/C 校园范围：15 km 白模、10 km/20 km 底图与地形全部不加载
-    // CDN 拿不到就回退本站，避免 jsDelivr 抖动导致整页卡在加载
+    // 只加载当前校区的场景数据；CDN 拿不到就回退本站，避免 jsDelivr 抖动导致整页卡在加载
     const data = await Promise.any(
       [ASSET_BASE, BASE].map(async (base) => {
-        const r = await fetch(base + 'data/scene.json?v=' + ASSET_V);
+        const r = await fetch(base + 'data/' + DIR + 'scene.json?v=' + ASSET_V);
         if (!r.ok) throw new Error('http ' + r.status);
         return r.json();
       }),
@@ -216,10 +258,7 @@ import { addBuildingLabels } from './labels.js?v=20261031m';
     };
 
     if (dom.stats) {
-      const a = data.buildings.filter((b) => b.campus === 'A').length;
-      const b = data.buildings.filter((b) => b.campus === 'B').length;
-      const c = data.buildings.filter((b) => b.campus === 'C').length;
-      dom.stats.innerHTML = `<span>${data.buildings.length} 栋建筑（A ${a} / B ${b} / C ${c}）</span><span>${data.roads.length} 条道路</span><span>${data.areas.length} 处场地</span>`;
+      dom.stats.innerHTML = S.stats(data).map((t) => `<span>${t}</span>`).join('');
     }
     if (dom.boot) dom.boot.style.display = 'none';
     setTimeout(afterPaint, 50);
@@ -245,11 +284,15 @@ import { addBuildingLabels } from './labels.js?v=20261031m';
       }
     }
 
+    // 机位按钮先建好，ui.js 初始化时一次性收集
+    buildViewBar();
     initInteraction(viewer, data, terrain, graph, overview);
     initPanels();
+    initSceneSwitch();
+    // 首屏若指定了 ?view=，在图层就绪后再落一次机位（早期 setView 会被地形/图层加载覆盖）
+    if (START_KEY !== 'all') viewer.camera.setView(viewFor(START_KEY));
     window.__flyToView = flyToView;
-    window.__bootMs = Math.round(performance.now());
-    console.info('[cqu] 首屏完成 ' + window.__bootMs + ' ms');
+    window.__bootMs = Math.round(performance.now());    console.info('[cqu] 首屏完成 ' + window.__bootMs + ' ms');
     window.__CQU__ = { viewer, data, terrain, graph, nav: { nearestNode, shortestPath } };
 
     // ---------- 视角锁定 / 自由 ----------

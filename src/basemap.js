@@ -30,11 +30,11 @@ function loadImage(url, timeout) {
   });
 }
 
-export async function createBasemapProvider(base, Cesium, meta, file = 'basemap.jpg', version = '', fallbackBase = '') {
+export async function createBasemapProvider(base, Cesium, meta, file = 'basemap.jpg', version = '', fallbackBase = '', dir = '') {
   // 大图必须带版本号，否则浏览器会一直用缓存里的旧影像（改了图也看不到）
   const q = version ? (file.includes('?') ? '&' : '?') + 'v=' + version : '';
-  const primary = `${base}data/${file}${q}`;
-  const alt = fallbackBase ? `${fallbackBase}data/${file}${q}` : '';
+  const primary = `${base}data/${dir}${file}${q}`;
+  const alt = fallbackBase ? `${fallbackBase}data/${dir}${file}${q}` : '';
   let img;
   if (alt && alt !== primary) {
     // CDN 与本站并行抢，谁先到用谁：既不会卡在慢的 CDN，也不怕 CDN 抽风

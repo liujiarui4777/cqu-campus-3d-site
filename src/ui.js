@@ -185,7 +185,7 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
     }
   }
 
-  const campusName = (c) => (c === 'B' ? 'B 区' : c === 'C' ? 'C 区' : 'A 区');
+  const campusName = (c) => (c === 'B' ? 'B 区' : c === 'C' ? 'C 区' : c === 'HX' ? '虎溪' : 'A 区');
   const navAll = (data.buildings || []).filter((b) => b.name);
 
   function hideSuggest(box) {
@@ -905,11 +905,15 @@ void main() {
     });
   }
 
-  /* ---------- 固定视角：全景 / A 区 / B 区 / C 区 ---------- */
+  /* ---------- 固定视角：由 scenes.js 决定（A/B/C 三校区 / 虎溪各区） ---------- */
   const viewsNav = document.getElementById('views');
   const viewBtns = viewsNav ? Array.from(viewsNav.querySelectorAll('[data-view]')) : [];
   const backHomeBtn = document.getElementById('back-home');
-  const HOME_POS = { lon: 106.4585, lat: 29.5520, h: 1950 };
+  const HOME_POS = (() => {
+    const sc = window.__SCENE;
+    const v = sc && Array.isArray(sc.views) ? sc.views.find((x) => x.key === 'all') : null;
+    return v ? { lon: v.lon, lat: v.lat, h: v.h } : { lon: 106.4585, lat: 29.5520, h: 1950 };
+  })();
 
   function setActiveView(key) {
     for (const b of viewBtns) b.classList.toggle('active', b.getAttribute('data-view') === key);
@@ -973,9 +977,14 @@ void main() {
   };
   async function loadWeather() {
     if (!weatherText) return;
+    const w = (window.__SCENE && window.__SCENE.weather) || { lon: 106.465, lat: 29.567 };
     try {
       const r = await fetch(
-        'https://api.open-meteo.com/v1/forecast?latitude=29.567&longitude=106.465&current=temperature_2m,weather_code&timezone=Asia%2FShanghai',
+        'https://api.open-meteo.com/v1/forecast?latitude=' +
+          w.lat +
+          '&longitude=' +
+          w.lon +
+          '&current=temperature_2m,weather_code&timezone=Asia%2FShanghai',
       );
       const j = await r.json();
       const t = Math.round(j.current.temperature_2m);
