@@ -35,7 +35,7 @@
       // 本地：全部走相对路径。数据请求在 app.js/terrain.js 里是「CDN 与本站并行抢」。
       (function () {
         var isGh = location.hostname.endsWith('github.io');
-        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@bb9f37716b71c25dbe17ef59073c8393ca645a17/';
+        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@a977669aef107acb270de9718eaffa3e861d1d77/';
         var local = new URL('./', document.baseURI).href;
         window.__ASSET_BASE = isGh ? cdn : local;
         window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
