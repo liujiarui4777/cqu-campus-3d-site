@@ -137,20 +137,20 @@ function flyToView(key, animate = true) {
   }
 }
 
-import { loadTerrain } from './terrain.js?v=20261031d';
-import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031d';
-import { addLandmarks } from './landmarks.js?v=20261031d';
-import { createBasemapProvider } from './basemap.js?v=20261031d';
-import { initInteraction } from './ui.js?v=20261031d';
-import { initPanels } from './panels.js?v=20261031d';
+import { loadTerrain } from './terrain.js?v=20261031f';
+import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031f';
+import { addLandmarks } from './landmarks.js?v=20261031f';
+import { createBasemapProvider } from './basemap.js?v=20261031f';
+import { initInteraction } from './ui.js?v=20261031f';
+import { initPanels } from './panels.js?v=20261031f';
 import { initLogin, isAuthed } from './login.js?v=20261030b';
-import { addTrees } from './trees.js?v=20261031d';
-import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031d';
-import { addLamps } from './lamps.js?v=20261031d';
-import { addRoofProps } from './props.js?v=20261031d';
-import { addGates } from './gates.js?v=20261031d';
-import { addSports } from './sports.js?v=20261031d';
-import { addBuildingLabels } from './labels.js?v=20261031d';
+import { addTrees } from './trees.js?v=20261031f';
+import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031f';
+import { addLamps } from './lamps.js?v=20261031f';
+import { addRoofProps } from './props.js?v=20261031f';
+import { addGates } from './gates.js?v=20261031f';
+import { addSports } from './sports.js?v=20261031f';
+import { addBuildingLabels } from './labels.js?v=20261031f';
 
 (async () => {
   initLogin();
@@ -301,21 +301,48 @@ import { addBuildingLabels } from './labels.js?v=20261031d';
     viewer.scene.preRender.addEventListener(() => {
       if (camLocked || fixing) return;
       const c = viewer.camera;
-      const p = c.positionCartographic;
-      const lon = Cesium.Math.toDegrees(p.longitude);
-      const lat = Cesium.Math.toDegrees(p.latitude);
-      const h = p.height;
-      const clon = Math.min(Math.max(lon, box.west), box.east);
-      const clat = Math.min(Math.max(lat, box.south), box.north);
-      const ch = Math.min(Math.max(h, 140), MAX_H);
-      if (Math.abs(clon - lon) > 1e-9 || Math.abs(clat - lat) > 1e-9 || Math.abs(ch - h) > 0.5) {
-        fixing = true;
-        c.setView({
-          destination: Cesium.Cartesian3.fromDegrees(clon, clat, ch),
-          orientation: { heading: c.heading, pitch: c.pitch, roll: 0 },
-        });
-        fixing = false;
-      }
+      const canvas = viewer.scene.canvas;
+      const center = new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2);
+      // 盯住画面中心对应的地面点：它必须留在校园框内，否则把相机整体拉回来
+      const target = c.pickEllipsoid(center, Cesium.Ellipsoid.WGS84, new Cesium.Cartesian3());
+      if (!target) return;
+
+      const carto = Cesium.Cartographic.fromCartesian(target);
+      if (!carto) return;
+      const tLon = Cesium.Math.toDegrees(carto.longitude);
+      const tLat = Cesium.Math.toDegrees(carto.latitude);
+      const cLon = Math.min(Math.max(tLon, box.west), box.east);
+      const cLat = Math.min(Math.max(tLat, box.south), box.north);
+      const outOfBox = Math.abs(cLon - tLon) > 1e-9 || Math.abs(cLat - tLat) > 1e-9;
+
+      // 距离上限：保证俯视高度不超过 MAX_H（pitch 越平，允许的距离越短）
+      const pitch = c.pitch;
+      const sinP = Math.max(0.18, Math.sin(Math.abs(pitch)));
+      const maxDist = (MAX_H - 20) / sinP;
+      const camPos = c.positionWC;
+      const dist = Cesium.Cartesian3.distance(camPos, target);
+      const tooFar = dist > maxDist;
+      const tooClose = dist < 120;
+
+      if (!outOfBox && !tooFar && !tooClose) return;
+
+      fixing = true;
+      const anchor = outOfBox ? Cesium.Cartesian3.fromDegrees(cLon, cLat, 0) : target;
+      const dir = Cesium.Cartesian3.normalize(
+        Cesium.Cartesian3.subtract(camPos, target, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3(),
+      );
+      const newDist = Math.min(Math.max(dist, 120), maxDist);
+      const newPos = Cesium.Cartesian3.add(
+        anchor,
+        Cesium.Cartesian3.multiplyByScalar(dir, newDist, new Cesium.Cartesian3()),
+        new Cesium.Cartesian3(),
+      );
+      c.setView({
+        destination: newPos,
+        orientation: { heading: c.heading, pitch: c.pitch, roll: 0 },
+      });
+      fixing = false;
     });
 
     const lockBtn = document.getElementById('cam-lock');

@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
     <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261031d" />
+    <link rel="stylesheet" href="./src/style.css?v=20261031f" />
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -178,8 +178,13 @@
         </section>
 
         <section class="drawer-sec" id="food" data-panel="food" hidden>
-          <p class="sec-hint">食堂 / 小吃 / 咖啡 + 饭协红黑榜 · 学生口碑整理，欢迎补充</p>
+          <div class="food-search">
+            <input id="food-search" type="search" placeholder="搜索餐厅 / 菜品：小面、酥肉、一食堂…" autocomplete="off" />
+            <button id="food-search-clear" type="button" aria-label="清空">✕</button>
+          </div>
+          <div class="chip-row" id="food-campus"></div>
           <div class="chip-row" id="food-filters"></div>
+          <p class="sec-hint" id="food-count"></p>
           <div class="food-list" id="food-list"></div>
           <form class="food-form" id="food-form">
             <input id="food-nick" type="text" maxlength="12" placeholder="昵称（可不填）" />
@@ -264,7 +269,7 @@
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261031d"></script>
+    <script type="module" src="./src/app.js?v=20261031f"></script>
   </body>
 </html>
 

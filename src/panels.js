@@ -1,4 +1,4 @@
-﻿/* 插件面板：左侧功能栏 + 右侧抽屉，每个按钮对应一个面板（导航 / 巴士 / 美食 / 课表 / 账号） */
+/* 插件面板：左侧功能栏 + 右侧抽屉，每个按钮对应一个面板（导航 / 巴士 / 美食 / 课表 / 账号） */
 
 const TITLES = {
   nav: '步行导航',
@@ -136,15 +136,20 @@ function initAccount() {
 }
 
 /* ---------------- 美食 ---------------- */
-async function initFood(base) {
+﻿async function initFood() {
   const listEl = document.getElementById('food-list');
   const filterEl = document.getElementById('food-filters');
+  const campusEl = document.getElementById('food-campus');
+  const countEl = document.getElementById('food-count');
+  const searchEl = document.getElementById('food-search');
+  const clearEl = document.getElementById('food-search-clear');
   const form = document.getElementById('food-form');
   const nickInput = document.getElementById('food-nick');
   const textInput = document.getElementById('food-text');
   const postsEl = document.getElementById('food-posts');
   if (!listEl) return;
 
+  let canteens = [];
   let items = [];
   let rankItems = [];
   try {
@@ -153,98 +158,190 @@ async function initFood(base) {
         .then((r) => (r.ok ? r.json() : {}))
         .catch(() => ({}));
     const [curated, rank] = await Promise.all([load('food.json'), load('food-rank.json')]);
+    canteens = curated.canteens || [];
     items = curated.items || [];
-    // 红黑榜来自《重大饭协红黑榜.xlsx》，rank: red / black
     rankItems = (rank.items || []).map((x) => ({ ...x, cat: x.rank === 'red' ? 'red' : 'black' }));
   } catch (e) {
+    canteens = [];
     items = [];
     rankItems = [];
   }
 
-  let cat = 'all';
+  const CAMPUS = [
+    ['all', '全部'],
+    ['A', 'A 区'],
+    ['B', 'B 区'],
+    ['C', 'C 区'],
+    ['虎溪', '虎溪'],
+    ['OUT', '校外'],
+  ];
+  const TABS = [
+    ['rec', '食堂推荐'],
+    ['red', '红榜'],
+    ['black', '黑榜'],
+  ];
 
-  function renderFilters() {
-    if (!filterEl) return;
-    filterEl.innerHTML = '';
-    for (const [key, label] of FOOD_CATS) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = label;
-      b.className = key === cat ? 'active' : '';
-      b.addEventListener('click', () => {
-        cat = key;
-        renderFilters();
-        renderList();
-      });
-      filterEl.appendChild(b);
-    }
-  }
+  let campus = 'all';
+  let tab = 'rec';
+  let query = '';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   }
 
+  function stars(rating) {
+    const r = Number(rating) || 0;
+    const full = Math.round(r * 2) / 2;
+    let out = '';
+    for (let i = 1; i <= 5; i++) {
+      out += full >= i ? '★' : full >= i - 0.5 ? '⯨' : '☆';
+    }
+    return '<span class="food-stars" title="' + r.toFixed(1) + ' 分">' + out + '<em>' + r.toFixed(1) + '</em></span>';
+  }
+
+  function campusLabel(c) {
+    if (c === 'A') return 'A 区';
+    if (c === 'B') return 'B 区';
+    if (c === 'C') return 'C 区';
+    if (c === '虎溪') return '虎溪';
+    if (c === 'OUT') return '校外';
+    return c || '';
+  }
+
+  // 榜单条目的校区是 "A/B/C"（老校区）或 "虎溪"
+  function matchCampus(c, sel) {
+    if (sel === 'all') return true;
+    if (c === sel) return true;
+    if (c === 'A/B/C' && (sel === 'A' || sel === 'B' || sel === 'C')) return true;
+    return false;
+  }
+
+  function hit(it, q) {
+    if (!q) return true;
+    const hay = [it.name, it.where, it.desc, it.type, it.reason, it.campus]
+      .concat(it.dishes || [])
+      .concat(it.tags || [])
+      .concat(it.comments || [])
+      .join(' ')
+      .toLowerCase();
+    return hay.includes(q);
+  }
+
+  function chips(target, list, current, onPick) {
+    if (!target) return;
+    target.innerHTML = '';
+    for (const [key, label] of list) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.className = key === current ? 'active' : '';
+      b.addEventListener('click', () => onPick(key));
+      target.appendChild(b);
+    }
+  }
+
+  function canteenCard(it) {
+    const el = document.createElement('div');
+    el.className = 'food-card';
+    el.innerHTML =
+      '<div class="food-card-top"><b>' + esc(it.name) + '</b>' +
+      '<span class="food-campus-tag">' + esc(campusLabel(it.campus)) + '</span>' +
+      stars(it.rating) + '</div>' +
+      '<p class="food-meta">' + esc(it.where || '') + (it.price ? ' · 人均 ¥' + esc(it.price) : '') + '</p>' +
+      ((it.dishes || []).length
+        ? '<div class="food-dishes">招牌：' + it.dishes.map((d) => '<span>' + esc(d) + '</span>').join('') + '</div>'
+        : '') +
+      '<p class="food-desc">' + esc(it.desc || '') + '</p>' +
+      ((it.tags || []).length
+        ? '<div class="food-tags">' + it.tags.map((t) => '<span>' + esc(t) + '</span>').join('') + '</div>'
+        : '');
+    return el;
+  }
+
   function rankCard(it) {
     const el = document.createElement('div');
-    el.className = 'food-item food-rank ' + (it.rank === 'red' ? 'is-red' : 'is-black');
+    el.className = 'food-card food-rank ' + (it.rank === 'red' ? 'is-red' : 'is-black');
     const badge = it.rank === 'red' ? '红榜' : '黑榜';
-    const where = [it.campus, it.type].filter(Boolean).join(' · ');
+    const where = [campusLabel(it.campus), it.type].filter(Boolean).join(' · ');
     const comments = (it.comments || [])
       .map((c) => '<span class="food-quote">“' + esc(c) + '”</span>')
       .join('');
     el.innerHTML =
-      '<div class="food-rank-badge">' + badge + '</div>' +
-      '<div class="food-main"><b>' + esc(it.name) + '</b>' +
-      (where ? '<p>' + esc(where) + '</p>' : '') +
-      (it.reason ? '<p>' + esc(it.reason) + '</p>' : '') +
-      (comments ? '<div class="food-quotes">' + comments + '</div>' : '') +
-      '</div>';
+      '<div class="food-card-top"><span class="food-rank-badge">' + badge + '</span>' +
+      '<b>' + esc(it.name) + '</b></div>' +
+      (where ? '<p class="food-meta">' + esc(where) + '</p>' : '') +
+      (it.reason ? '<p class="food-desc">' + esc(it.reason) + '</p>' : '') +
+      (comments ? '<div class="food-quotes">' + comments + '</div>' : '');
     return el;
   }
 
   function renderList() {
+    if (!listEl) return;
     listEl.innerHTML = '';
-    if (cat === 'red' || cat === 'black') {
-      const list = rankItems.filter((x) => x.cat === cat);
-      if (!list.length) {
-        listEl.innerHTML = '<p class="sec-hint">这个榜单还没有条目</p>';
-        return;
-      }
+    const q = query.trim().toLowerCase();
+    let shown = 0;
+
+    if (tab === 'red' || tab === 'black') {
+      const list = rankItems.filter((x) => x.cat === tab && matchCampus(x.campus, campus) && hit(x, q));
+      shown = list.length;
+      if (!list.length) listEl.innerHTML = '<p class="sec-hint">没有匹配的条目</p>';
       for (const it of list) listEl.appendChild(rankCard(it));
-      return;
-    }
-    const curated = items.filter((x) => cat === 'all' || x.cat === cat);
-    if (!curated.length && cat !== 'all') {
-      listEl.innerHTML = '<p class="sec-hint">这个分类还没有条目</p>';
-      return;
-    }
-    for (const it of curated) {
-      const el = document.createElement('div');
-      el.className = 'food-item';
-      el.innerHTML =
-        '<div class="food-emoji">' + (it.emoji || '🍜') + '</div>' +
-        '<div class="food-main"><b>' + esc(it.name) + '</b>' +
-        '<p>' + esc(it.where) + (it.price ? ' · 人均 ' + esc(it.price) : '') + '</p>' +
-        '<p>' + esc(it.desc) + '</p>' +
-        '<div class="food-tags">' + (it.tags || []).map((t) => '<span>' + esc(t) + '</span>').join('') + '</div></div>';
-      listEl.appendChild(el);
-    }
-    // 「全部」里把红黑榜也带上，方便一眼看到
-    if (cat === 'all' && rankItems.length) {
-      const h = document.createElement('p');
-      h.className = 'sec-hint';
-      h.style.margin = '12px 0 6px';
-      h.textContent = '饭协红黑榜（' + rankItems.length + ' 条，同学共创）';
-      listEl.appendChild(h);
-      const preview = rankItems.slice(0, 20);
-      for (const it of preview) listEl.appendChild(rankCard(it));
-      if (rankItems.length > preview.length) {
-        const more = document.createElement('p');
-        more.className = 'sec-hint';
-        more.textContent = '还有 ' + (rankItems.length - preview.length) + ' 条，点上面的「红榜 / 黑榜」查看全部';
-        listEl.appendChild(more);
+    } else {
+      const cs = canteens.filter((x) => (campus === 'all' || x.campus === campus) && hit(x, q));
+      const its = items.filter((x) => (campus === 'all' || x.campus === campus) && hit(x, q));
+      shown = cs.length + its.length;
+      if (!shown) listEl.innerHTML = '<p class="sec-hint">没有匹配的餐厅，换个关键词试试</p>';
+      if (cs.length) {
+        const h = document.createElement('p');
+        h.className = 'food-group';
+        h.textContent = '食堂 / 餐厅（' + cs.length + '）';
+        listEl.appendChild(h);
+        for (const it of cs) listEl.appendChild(canteenCard(it));
+      }
+      if (its.length) {
+        const h = document.createElement('p');
+        h.className = 'food-group';
+        h.textContent = '档口 / 单品（' + its.length + '）';
+        listEl.appendChild(h);
+        for (const it of its) listEl.appendChild(canteenCard(it));
       }
     }
+    if (countEl) {
+      countEl.textContent = q
+        ? '搜索「' + query.trim() + '」：' + shown + ' 条结果'
+        : '共 ' + shown + ' 条 · 红黑榜 ' + rankItems.length + ' 条';
+    }
+  }
+
+
+  function renderCampus() {
+    chips(campusEl, CAMPUS, campus, (k) => {
+      campus = k;
+      renderCampus();
+      renderList();
+    });
+  }
+  function renderTabs() {
+    chips(filterEl, TABS, tab, (k) => {
+      tab = k;
+      renderTabs();
+      renderList();
+    });
+  }
+
+  if (searchEl) {
+    searchEl.addEventListener('input', () => {
+      query = searchEl.value || '';
+      renderList();
+    });
+  }
+  if (clearEl) {
+    clearEl.addEventListener('click', () => {
+      if (searchEl) searchEl.value = '';
+      query = '';
+      renderList();
+      if (searchEl) searchEl.focus();
+    });
   }
 
   function loadPosts() {
@@ -258,12 +355,12 @@ async function initFood(base) {
   function renderPosts() {
     if (!postsEl) return;
     const posts = loadPosts();
-    postsEl.innerHTML = posts.length ? '' : '<p class="sec-hint">还没有人发帖，来推荐一家吧。</p>';
-    for (const p of posts.slice().reverse().slice(0, 20)) {
+    postsEl.innerHTML = posts.length ? '<p class="food-group">同学补充（本机保存）</p>' : '';
+    for (const p of posts.slice().reverse().slice(0, 30)) {
       const el = document.createElement('div');
       el.className = 'food-post';
       const when = new Date(p.at).toLocaleString('zh-CN', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-      el.innerHTML = '<b>' + (p.nick || '匿名同学') + ' · ' + when + '</b>' + p.text;
+      el.innerHTML = '<b>' + esc(p.nick) + ' · ' + when + '</b>' + esc(p.text);
       postsEl.appendChild(el);
     }
   }
@@ -284,32 +381,11 @@ async function initFood(base) {
     });
   }
 
-  renderFilters();
+  renderCampus();
+  renderTabs();
   renderList();
   renderPosts();
   return { renderPosts };
-}
-
-/* ---------------- 巴士倒计时 ---------------- */
-function initBusTicker() {
-  const timeEl = document.getElementById('bus-next-time');
-  const metaEl = document.getElementById('bus-next-meta');
-  const barEl = document.getElementById('bus-next-bar-fill');
-  if (!timeEl) return;
-
-  // ui.js 已经渲染了「下一班」，这里只做进度条与分钟级刷新
-  const timer = setInterval(() => {
-    if (!metaEl || !barEl) return;
-    const m = /(\d+)\s*分钟后/.exec(metaEl.textContent || '');
-    if (!m) {
-      barEl.style.width = '0%';
-      return;
-    }
-    const min = Number(m[1]);
-    const pct = Math.max(4, Math.min(100, 100 - (min / 45) * 100));
-    barEl.style.width = pct.toFixed(0) + '%';
-  }, 2000);
-  window.addEventListener('beforeunload', () => clearInterval(timer));
 }
 
 /* ---------------- 给作者留言 ---------------- */
@@ -381,6 +457,26 @@ function initMessage() {
   }
 
   renderHistory();
+}
+
+/* ---------------- 巴士倒计时 ---------------- */
+function initBusTicker() {
+  const metaEl = document.getElementById('bus-next-meta');
+  const barEl = document.getElementById('bus-next-bar-fill');
+  if (!metaEl || !barEl) return;
+
+  // ui.js 已经渲染了「下一班」，这里只做进度条与分钟级刷新
+  const timer = setInterval(() => {
+    const m = /(\d+)\s*分钟后/.exec(metaEl.textContent || '');
+    if (!m) {
+      barEl.style.width = '0%';
+      return;
+    }
+    const min = Number(m[1]);
+    const pct = Math.max(4, Math.min(100, 100 - (min / 45) * 100));
+    barEl.style.width = pct.toFixed(0) + '%';
+  }, 2000);
+  window.addEventListener('beforeunload', () => clearInterval(timer));
 }
 
 export function initPanels() {
