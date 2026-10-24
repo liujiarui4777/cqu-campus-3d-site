@@ -1,4 +1,4 @@
-﻿/* 建筑标签：DOM 覆盖层，清晰、可点击、可开关、按距离分级显示
+/* 建筑标签：DOM 覆盖层，清晰、可点击、可开关、按距离分级显示
  *
  * 分级规则（避免 170+ 个标签糊成一片）：
  *   < 650 m  显示全部建筑
@@ -98,8 +98,8 @@ export function addBuildingLabels(viewer, data, terrain) {
 
   let frameSkip = 0;
   const stop = viewer.scene.postRender.addEventListener(() => {
-    // 标签位置每 2 帧更新一次即可，省掉一半投影与样式重算
-    if (++frameSkip % 2 !== 0) return;
+    // 标签位置每 3 帧更新一次即可（60fps 下 20Hz，肉眼无感），省掉投影与样式重算
+    if (++frameSkip % 3 !== 0) return;
     if (!visible) {
       if (layer.style.display !== 'none') layer.style.display = 'none';
       return;

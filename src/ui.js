@@ -411,10 +411,24 @@ export function initInteraction(viewer, data, terrain, graph, overview) {
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
   document.getElementById('card-close').addEventListener('click', hide);
+
+  /* 悬停光标：scene.pick() 会做一次 GPU 回读，实测单次 22–28 ms（191 栋楼的场景）。
+   * 直接挂在 mousemove 上等于每移动一次就卡 25 ms，整页会明显拖手。
+   * 这里只在「鼠标停住 300ms」后探测一次——拖动/横扫时零开销。 */
+  let hoverTimer = 0;
+  let hoverPos = null;
   viewer.scene.canvas.addEventListener('mousemove', (e) => {
-    const picked = viewer.scene.pick(new Cesium.Cartesian2(e.offsetX, e.offsetY));
-    const hit = Cesium.defined(picked) && picked.id && picked.id.properties;
-    viewer.scene.canvas.style.cursor = hit ? 'pointer' : 'grab';
+    hoverPos = { x: e.offsetX, y: e.offsetY };
+    if (hoverTimer) clearTimeout(hoverTimer);
+    hoverTimer = setTimeout(() => {
+      hoverTimer = 0;
+      const p = hoverPos;
+      hoverPos = null;
+      if (!p) return;
+      const picked = viewer.scene.pick(new Cesium.Cartesian2(p.x, p.y));
+      const hit = Cesium.defined(picked) && picked.id && picked.id.properties;
+      viewer.scene.canvas.style.cursor = hit ? 'pointer' : 'grab';
+    }, 300);
   });
 
   /* ---------- 地标导览（已简化：底部地标条移除，改由搜索定位） ---------- */

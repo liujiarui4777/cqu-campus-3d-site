@@ -12,7 +12,7 @@ async function waitForCesium(timeoutMs = 12000) {
 
 const Cesium = window.Cesium || (await waitForCesium());
 
-import { currentScene, sceneHref } from './scenes.js?v=20261103b';
+import { currentScene, sceneHref } from './scenes.js?v=20261103c';
 
 // 当前场景：A/B/C 三校区（默认）或虎溪校区（?campus=hx）
 const S = currentScene();
@@ -74,10 +74,22 @@ scene.skyBox.show = false;
 scene.skyAtmosphere.show = false;
 scene.fog.enabled = false;
 scene.backgroundColor = Cesium.Color.fromCssColorString('#e9e6de');
-scene.globe.maximumScreenSpaceError = 2.2; // 略降地形细分，换更快出图与更稳帧率
+scene.globe.maximumScreenSpaceError = 2.6; // 略降地形细分，换更快出图与更稳帧率
 scene.screenSpaceCameraController.minimumZoomDistance = 140; // 不允许钻进建筑内部
 // 地图覆盖 15 km，允许拉到能看全整张底图的高度
 scene.screenSpaceCameraController.maximumZoomDistance = 22000;
+
+/* 高分屏减负：4K / DPR=2 的屏幕上，画布像素是 1080p 的 4 倍，GPU 直接被像素填充拖死。
+ * 这里把渲染像素压到约 1080p（画面再拉伸回物理分辨率），肉眼几乎无差别，
+ * 但像素量少 4 倍——这是「打开后一直在拖影」最主要的原因。 */
+function fitRenderScale() {
+  const dpr = window.devicePixelRatio || 1;
+  const real = Math.max(1, window.innerWidth * window.innerHeight * dpr * dpr);
+  const target = 1920 * 1080;
+  const s = Math.sqrt(target / real);
+  viewer.resolutionScale = Math.min(1, Math.max(0.55, s));
+}
+fitRenderScale();
 
 // 视角锁定：默认锁定 → 只能用底部机位按钮 / 点击建筑飞行。
 // 点顶部「锁定」按钮解锁后可以拖拽、滚轮、平移，但俯仰角不允许改（角度保持一致），
@@ -94,9 +106,14 @@ const credit = viewer.cesiumWidget.creditContainer;
 if (credit) credit.style.display = 'none';
 
 // 窗口尺寸变化时强制重算画布，保证地图始终铺满浏览器
+let resizeTimer = 0;
 window.addEventListener('resize', () => {
-  viewer.resize();
-  viewer.scene.requestRender();
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    fitRenderScale();
+    viewer.resize();
+    viewer.scene.requestRender();
+  }, 120);
 });
 
 // 固定机位：来自 scenes.js（A/B/C 三校区 + 全景；虎溪是全景/生活区/教学区/运动区）
@@ -169,20 +186,20 @@ function initSceneSwitch() {
   btn.title = S.id === 'hx' ? '切换到沙坪坝 A / B / C 区三维地图' : '切换到重庆大学虎溪校区三维地图';
 }
 
-import { loadTerrain } from './terrain.js?v=20261103b';
-import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261103b';
-import { addLandmarks } from './landmarks.js?v=20261103b';
-import { createBasemapProvider } from './basemap.js?v=20261103b';
-import { initInteraction } from './ui.js?v=20261103b';
-import { initPanels } from './panels.js?v=20261103b';
-import { initLogin, isAuthed } from './login.js?v=20261103b';
-import { addTrees } from './trees.js?v=20261103b';
-import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261103b';
-import { addLamps } from './lamps.js?v=20261103b';
-import { addRoofProps } from './props.js?v=20261103b';
-import { addGates } from './gates.js?v=20261103b';
-import { addSports } from './sports.js?v=20261103b';
-import { addBuildingLabels } from './labels.js?v=20261103b';
+import { loadTerrain } from './terrain.js?v=20261103c';
+import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261103c';
+import { addLandmarks } from './landmarks.js?v=20261103c';
+import { createBasemapProvider } from './basemap.js?v=20261103c';
+import { initInteraction } from './ui.js?v=20261103c';
+import { initPanels } from './panels.js?v=20261103c';
+import { initLogin, isAuthed } from './login.js?v=20261103c';
+import { addTrees } from './trees.js?v=20261103c';
+import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261103c';
+import { addLamps } from './lamps.js?v=20261103c';
+import { addRoofProps } from './props.js?v=20261103c';
+import { addGates } from './gates.js?v=20261103c';
+import { addSports } from './sports.js?v=20261103c';
+import { addBuildingLabels } from './labels.js?v=20261103c';
 
 (async () => {
   initLogin();
@@ -199,16 +216,32 @@ import { addBuildingLabels } from './labels.js?v=20261103b';
   window.__SCENE = S;
   try {
     setStatus('正在加载地形…');
-    // CDN 与本站并行抢，谁先回谁用（不再做阻塞式探活）
-    const terrain = await loadTerrain([ASSET_BASE, BASE], Cesium, DIR);
-    viewer.scene.terrainProvider = terrain.provider;
-
-    setStatus('正在铺设地面…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图
     const ASSET_V = '20261103b';
     const layers = {};
+    const only = new URLSearchParams(location.search).get('only');
+
+    // 地形与 scene.json 互不依赖 → 并行发请求；底图依赖 terrain.meta，排在地形之后
+    const terrainP = loadTerrain([ASSET_BASE, BASE], Cesium, DIR);
+    const dataP = Promise.any(
+      [ASSET_BASE, BASE].map(async (base) => {
+        const r = await fetch(base + 'data/' + DIR + 'scene.json?v=' + ASSET_V);
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      }),
+    ).catch(() => {
+      throw new Error('场景数据加载失败（scene.json）');
+    });
+    // 若上一步地形先失败，dataP 会无人 await —— 挂一个空 catch 避免 unhandledrejection
+    dataP.catch(() => {});
+
+    const terrain = await terrainP;
+    viewer.scene.terrainProvider = terrain.provider;
+
+    setStatus('正在铺设地面…');
     // 首屏只铺当前校区的精细底图，卫星影像按需加载
-    const basemap = await createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE, DIR);
+    const basemapP = createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE, DIR);
+    const [basemap, data] = await Promise.all([basemapP, dataP]);
     layers.style = viewer.scene.imageryLayers.addImageryProvider(basemap);
     let esriLayer = null;
     // 卫星影像按需加载：默认不下载大体积 esri.jpg，第一次打开「卫星影像」时才拉取
@@ -226,17 +259,6 @@ import { addBuildingLabels } from './labels.js?v=20261103b';
     window.__layers = layers;
 
     setStatus('正在生成建筑…');
-    const only = new URLSearchParams(location.search).get('only');
-    // 只加载当前校区的场景数据；CDN 拿不到就回退本站，避免 jsDelivr 抖动导致整页卡在加载
-    const data = await Promise.any(
-      [ASSET_BASE, BASE].map(async (base) => {
-        const r = await fetch(base + 'data/' + DIR + 'scene.json?v=' + ASSET_V);
-        if (!r.ok) throw new Error('http ' + r.status);
-        return r.json();
-      }),
-    ).catch(() => {
-      throw new Error('场景数据加载失败（scene.json）');
-    });
 
     if (!only || only === 'areas') addAreas(viewer, data, terrain);
     if (!only || only === 'river') addRiver(viewer, data, terrain);
