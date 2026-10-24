@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN" data-theme="day">
   <head>
     <meta charset="utf-8" />
@@ -8,8 +8,17 @@
     <title>重庆大学 · 三维校园（A 区 + B 区 + C 区）</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
-    <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
-    <link rel="stylesheet" href="./src/style.css?v=20261103b" />
+    <script>
+      // 资源基址：线上（github.io）全部走 jsDelivr，本地开发走相对路径。
+      // 实测 github.io 24 KB/s、jsDelivr 134–689 KB/s，20 多个 ES module 从本站拉要 2–3 s。
+      window.__IS_GH = location.hostname.endsWith('github.io');
+      window.__CDN = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@49e288fc67e63e303ae03b820d3bd714874a2ceb/';
+      (function () {
+        var base = window.__IS_GH ? window.__CDN : './';
+        document.write('<link rel="stylesheet" href="' + base + 'cesium/Widgets/widgets.css">');
+        document.write('<link rel="stylesheet" href="' + base + 'src/style.css?v=20261103b">');
+      })();
+    </script>
     <script>
       window.addEventListener('error', function (e) {
         try {
@@ -34,8 +43,8 @@
       // 线上：数据/引擎走 jsDelivr（国内比 GitHub Pages 快得多），并保留本站兜底；
       // 本地：全部走相对路径。数据请求在 app.js/terrain.js 里是「CDN 与本站并行抢」。
       (function () {
-        var isGh = location.hostname.endsWith('github.io');
-        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@0bcd2617e5251d1063854a826e10ed5f41140bad/';
+        var isGh = window.__IS_GH;
+        var cdn = window.__CDN;
         var local = new URL('./', document.baseURI).href;
         window.__ASSET_BASE = isGh ? cdn : local;
         window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
@@ -301,7 +310,24 @@
       })();
     </script>
 
-    <script type="module" src="./src/app.js?v=20261104c"></script>
+    <script>
+      // 入口模块同样走 CDN（线上 20 多个 ES module 从 github.io 拉要 2–3 s，jsDelivr 约 0.3 s）；
+      // 加载失败时回退本站，避免 CDN 抽风导致整页空白。
+      (function () {
+        var base = window.__IS_GH ? window.__CDN : './';
+        var s = document.createElement('script');
+        s.type = 'module';
+        s.src = base + 'src/app.js?v=20261104c';
+        s.onerror = function () {
+          if (!window.__IS_GH) return;
+          var s2 = document.createElement('script');
+          s2.type = 'module';
+          s2.src = './src/app.js?v=20261104c';
+          document.body.appendChild(s2);
+        };
+        document.body.appendChild(s);
+      })();
+    </script>
   </body>
 </html>
 
