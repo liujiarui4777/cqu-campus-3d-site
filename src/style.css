@@ -1556,22 +1556,6 @@ html[data-theme='night'] .card-close:hover { background: rgba(255, 255, 255, 0.1
 .msg-mail a:hover { text-decoration: underline; }
 #message input, #message textarea { margin-bottom: 8px; }
 
-/* 红黑榜卡片 */
-.food-rank { position: relative; padding-left: 42px; align-items: flex-start; }
-.food-rank-badge {
-  position: absolute; left: 10px; top: 12px;
-  width: 24px; padding: 2px 0; border-radius: 7px;
-  font-size: 10px; line-height: 1.3; text-align: center; font-weight: 700;
-  color: #fff;
-}
-.food-rank.is-red .food-rank-badge { background: #d8493f; }
-.food-rank.is-black .food-rank-badge { background: #4a4f57; }
-.food-rank.is-red { background: rgba(216, 73, 63, 0.055); }
-.food-rank .food-main b { font-size: 13px; }
-.food-quotes { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
-.food-quote { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
-html[data-theme='night'] .food-rank.is-red { background: rgba(216, 73, 63, 0.12); }
-
 /* 视角锁定按钮 */
 .tool-btn.is-on {
   background: rgba(47, 111, 106, 0.14);
@@ -1585,12 +1569,10 @@ body.cam-free #cam-lock {
 }
 html[data-theme='night'] body.cam-free #cam-lock { color: #f0c07a; }
 
-/* 长吐槽文本换行，避免面板出现横向滚动条 */
+/* 长名称换行，避免面板出现横向滚动条 */
 .drawer-body { overflow-x: hidden; }
 .food-item { min-width: 0; }
 .food-main { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
-.food-quote { overflow-wrap: anywhere; }
-.food-rank .food-main b { display: block; }
 #food-filters button { padding: 4px 9px; font-size: 11.5px; }
 
 /* ---------- 美食面板 2.0：搜索 + 分校区 + 评分卡片 ---------- */
@@ -1629,18 +1611,8 @@ html[data-theme='night'] body.cam-free #cam-lock { color: #f0c07a; }
   display: inline-block; margin: 2px 4px 0 0; padding: 1px 7px;
   border-radius: 6px; background: rgba(224, 166, 58, 0.14); color: #8a6416;
 }
-.food-rank.is-red { background: rgba(216, 73, 63, 0.05); border-color: rgba(216, 73, 63, 0.22); }
-.food-rank.is-black { background: rgba(74, 79, 87, 0.045); border-color: rgba(74, 79, 87, 0.2); }
-.food-rank .food-rank-badge {
-  position: static; width: auto; padding: 1px 7px; border-radius: 6px;
-  font-size: 10.5px; font-weight: 700; color: #fff; background: #4a4f57;
-}
-.food-rank.is-red .food-rank-badge { background: #d8493f; }
-.food-quotes { display: flex; flex-direction: column; gap: 3px; margin-top: 5px; }
-.food-quote { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
 html[data-theme='night'] .food-card { background: rgba(255, 255, 255, 0.05); }
 html[data-theme='night'] .food-search input { background: rgba(255, 255, 255, 0.06); color: #e8eef4; }
-html[data-theme='night'] .food-rank.is-red { background: rgba(216, 73, 63, 0.12); }
 
 /* 抽屉里的滚动条统一细窄样式，夜间自动反色 */
 .drawer * { scrollbar-width: thin; }
@@ -1657,3 +1629,171 @@ html[data-theme='night'] .drawer { --ink: #e9f0f7; --muted: #a6b4c3; }
 html[data-theme='night'] .food-desc { color: #d9e3ee; }
 html[data-theme='night'] .food-card-top b { color: #eef4fa; }
 html[data-theme='night'] .food-dishes span { background: rgba(224, 166, 58, 0.2); color: #f2c781; }
+
+/* ==========================================================================
+   2026-11：控制面板 / 更新与关于 / 五星口碑
+   ========================================================================== */
+
+.drawer { width: 380px; }
+.drawer-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.drawer-title h3 { flex: none; }
+.drawer-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 侧栏「动态」小红点 */
+.rail-btn { position: relative; }
+.rail-dot {
+  position: absolute; top: 6px; right: 8px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #d8493f; box-shadow: 0 0 0 2px var(--card);
+}
+.rail-dot[hidden] { display: none !important; }
+
+/* 抽屉里的快捷控制 */
+.quick-bar {
+  display: flex; gap: 6px; align-items: center;
+  padding: 9px 14px; border-bottom: 1px solid var(--line);
+  background: rgba(47, 111, 106, 0.04); overflow-x: auto;
+}
+.quick-bar button {
+  flex: none; border: 1px solid var(--line); background: #fff;
+  color: var(--ink); font: inherit; font-size: 11px;
+  padding: 5px 11px; border-radius: 999px; cursor: pointer;
+  transition: all 0.18s ease;
+}
+.quick-bar button:hover { border-color: var(--accent); color: var(--accent); }
+.quick-bar button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+html[data-theme='night'] .quick-bar { background: rgba(255, 255, 255, 0.04); }
+html[data-theme='night'] .quick-bar button { background: rgba(255, 255, 255, 0.07); color: #e8eef4; border-color: rgba(255, 255, 255, 0.14); }
+
+/* 更新与关于 */
+.notice-hero {
+  padding: 16px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(47, 111, 106, 0.13), rgba(147, 182, 177, 0.18));
+  border: 1px solid rgba(47, 111, 106, 0.18);
+}
+.notice-version {
+  display: inline-block; padding: 2px 9px; border-radius: 999px;
+  background: #fff; border: 1px solid rgba(47, 111, 106, 0.22);
+  color: var(--accent); font-size: 10.5px; letter-spacing: 0.08em; font-weight: 600;
+}
+.notice-hero b { display: block; margin: 10px 0 4px; font-size: 16px; line-height: 1.4; }
+.notice-hero > p { margin: 0; font-size: 11px; color: var(--muted); }
+.notice-state { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; font-size: 10.5px; color: var(--muted); }
+.notice-pill { padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600; }
+.notice-pill.ok { background: rgba(47, 111, 106, 0.16); color: var(--accent); }
+.notice-pill.warn { background: rgba(216, 152, 63, 0.18); color: #a8691b; }
+.notice-pill.bad { background: rgba(216, 73, 63, 0.15); color: #b4483a; }
+
+.notice-maintenance {
+  margin-top: 14px; padding: 11px 12px; border-radius: 12px;
+  background: rgba(216, 152, 63, 0.12); border: 1px solid rgba(216, 152, 63, 0.32);
+}
+.notice-maintenance b { display: block; font-size: 12px; color: #8a5a12; }
+.notice-maintenance p { margin: 4px 0 0; font-size: 11.5px; line-height: 1.55; color: #8a5a12; }
+
+.notice-block { margin-top: 18px; }
+.notice-block h4 { margin: 0 0 9px; font-size: 11px; letter-spacing: 0.12em; color: var(--muted); font-weight: 600; }
+.notice-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+.notice-list li { display: flex; gap: 10px; }
+.notice-date { flex: none; width: 68px; padding-top: 2px; font-size: 10px; color: var(--muted); white-space: nowrap; }
+.notice-list b { display: block; font-size: 12.5px; }
+.notice-list p { margin: 2px 0 0; font-size: 11.5px; line-height: 1.55; color: var(--muted); }
+
+.notice-actions { display: flex; gap: 8px; margin-top: 8px; }
+.notice-actions button {
+  flex: 1; border: 1px solid var(--line); background: #fff; color: var(--ink);
+  font: inherit; font-size: 12px; padding: 8px 10px; border-radius: 10px; cursor: pointer;
+}
+.notice-actions button:hover { border-color: var(--accent); color: var(--accent); }
+.notice-actions button.ghost { background: transparent; }
+
+.donate {
+  margin-top: 18px; border: 1px solid var(--line); border-radius: 14px;
+  background: #fff; overflow: hidden;
+}
+.donate summary {
+  list-style: none; cursor: pointer; padding: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: 12.5px; font-weight: 650;
+}
+.donate summary::-webkit-details-marker { display: none; }
+.donate summary small { font-weight: 400; font-size: 10px; color: var(--muted); }
+.donate summary::after { content: '▾'; color: var(--muted); font-size: 11px; }
+.donate[open] summary::after { content: '▴'; }
+.donate-body { padding: 0 12px 14px; text-align: center; }
+.donate-body p { margin: 0 0 10px; font-size: 11px; line-height: 1.65; color: var(--muted); text-align: left; }
+.donate-body img {
+  display: block; width: 200px; max-width: 100%; margin: 0 auto 7px;
+  border-radius: 12px; box-shadow: 0 8px 22px rgba(31, 42, 51, 0.14);
+}
+.donate-body small { font-size: 10px; color: var(--muted); }
+.notice-foot { margin: 16px 0 2px; text-align: center; font-size: 10px; color: var(--muted); }
+
+/* 新版本气泡 */
+.update-toast {
+  position: absolute; left: 88px; bottom: 18px; z-index: 30;
+  display: flex; align-items: center; gap: 10px;
+  max-width: min(430px, calc(100vw - 32px));
+  padding: 10px 12px; border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96); border: 1px solid var(--line);
+  box-shadow: var(--shadow); backdrop-filter: blur(12px);
+  animation: pop 0.24s ease both;
+}
+.update-toast[hidden] { display: none !important; }
+.update-toast-dot {
+  flex: none; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 4px rgba(47, 111, 106, 0.14);
+}
+.update-toast-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.update-toast-text b { font-size: 12px; }
+.update-toast-text span { font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#update-toast-open {
+  flex: none; border: 0; border-radius: 9px; padding: 6px 11px;
+  background: var(--accent); color: #fff; font: inherit; font-size: 11px; cursor: pointer;
+}
+.update-toast-x { flex: none; border: 0; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; }
+
+/* 注册页邮箱验证 */
+.login-code-row { display: flex; gap: 8px; align-items: stretch; }
+.login-code-row input { flex: 1; min-width: 0; width: auto; }
+.login-code-btn {
+  flex: none; border: 1px solid var(--line); background: #fff; border-radius: 11px;
+  padding: 0 12px; font: inherit; font-size: 11.5px; color: var(--accent);
+  cursor: pointer; white-space: nowrap;
+}
+.login-code-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.login-code-btn:disabled { color: var(--muted); cursor: default; opacity: 0.72; }
+.login-optional { font-style: normal; color: var(--muted); font-size: 10px; font-weight: 400; }
+
+/* 五星口碑列表 */
+.food-note { margin: 0 0 8px; font-size: 10.5px; line-height: 1.55; color: var(--muted); }
+.food-review .food-card-top { align-items: baseline; }
+.food-votes { font-size: 10.5px; color: var(--muted); }
+.food-review-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.food-review-foot .food-tags { margin-top: 0; }
+.food-more {
+  width: 100%; margin: 4px 0 8px; padding: 9px;
+  border: 1px dashed var(--line); border-radius: 11px;
+  background: transparent; color: var(--accent); font: inherit; font-size: 11.5px; cursor: pointer;
+}
+.food-more:hover { border-color: var(--accent); background: rgba(47, 111, 106, 0.04); }
+
+html[data-theme='night'] .notice-hero { background: linear-gradient(135deg, rgba(47, 111, 106, 0.24), rgba(147, 182, 177, 0.12)); border-color: rgba(255, 255, 255, 0.12); }
+html[data-theme='night'] .notice-version { background: rgba(255, 255, 255, 0.1); color: #cfe3e0; border-color: rgba(255, 255, 255, 0.16); }
+html[data-theme='night'] .donate { background: rgba(255, 255, 255, 0.05); }
+html[data-theme='night'] .donate-body p,
+html[data-theme='night'] .notice-list p,
+html[data-theme='night'] .notice-hero > p { color: #a6b4c3; }
+html[data-theme='night'] .notice-actions button { background: rgba(255, 255, 255, 0.08); color: #e8eef4; border-color: rgba(255, 255, 255, 0.14); }
+html[data-theme='night'] .update-toast { background: rgba(20, 28, 40, 0.96); color: #e8eef4; border-color: rgba(255, 255, 255, 0.14); }
+html[data-theme='night'] .login-code-btn { background: rgba(255, 255, 255, 0.08); color: #cfe3e0; border-color: rgba(255, 255, 255, 0.14); }
+html[data-theme='night'] .notice-maintenance { background: rgba(216, 152, 63, 0.16); border-color: rgba(216, 152, 63, 0.36); }
+html[data-theme='night'] .notice-maintenance b,
+html[data-theme='night'] .notice-maintenance p { color: #f0c07a; }
+
+@media (max-width: 860px) {
+  .drawer { width: min(360px, calc(100vw - 76px)); max-width: none; }
+  .quick-bar { flex-wrap: wrap; overflow-x: visible; }
+  .update-toast { left: 12px; right: 12px; bottom: 12px; max-width: none; }
+  .notice-date { width: 66px; }
+}

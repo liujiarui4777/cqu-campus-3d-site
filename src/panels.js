@@ -9,22 +9,23 @@ const TITLES = {
   food: '校园美食',
   schedule: '我的课表',
   message: '给作者留言',
+  notice: '更新与关于',
   account: '账号',
 };
-
-const FOOD_CATS = [
-  ['all', '全部'],
-  ['canteen', '食堂'],
-  ['snack', '小吃'],
-  ['drink', '饮品'],
-  ['night', '夜宵'],
-  ['red', '红榜'],
-  ['black', '黑榜'],
-];
 
 const FOOD_KEY = 'cqu-food-posts';
 const MSG_KEY = 'cqu-messages';
 const AUTHOR_EMAIL = 'liujiarui_33@qq.com';
+const NOTICE_SEEN_KEY = 'cqu-notice-version';
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function dataUrl(file) {
+  const V = (import.meta.url.match(/[?&]v=([^&]+)/) || [])[1] || '';
+  return new URL('data/' + file + (V ? '?v=' + V : ''), document.baseURI).href;
+}
 
 /* ---------------- 抽屉控制 ---------------- */
 function initDrawer() {
@@ -38,6 +39,49 @@ function initDrawer() {
   const secs = new Map(Array.from(drawer.querySelectorAll('[data-panel]')).map((el) => [el.dataset.panel, el]));
   let current = null;
 
+  const quickBar = document.getElementById('quick-bar');
+  const QUICK_MAP = {
+    sat: '#sat-btn',
+    day: '.times [data-time="day"]',
+    dusk: '.times [data-time="dusk"]',
+    night: '.times [data-time="night"]',
+    lock: '#cam-lock',
+    home: '#views [data-view="all"]',
+  };
+
+  // 抽屉里的快捷控制和顶部按钮是同一套状态，点完把高亮同步回来
+  function syncQuick() {
+    if (!quickBar) return;
+    const sat = document.getElementById('sat-btn');
+    const lock = document.getElementById('cam-lock');
+    const time = Array.from(document.querySelectorAll('.times [data-time]')).find((b) => b.classList.contains('active'));
+    for (const b of quickBar.querySelectorAll('[data-quick]')) {
+      const k = b.dataset.quick;
+      let on = false;
+      if (k === 'sat') on = !!(sat && sat.classList.contains('active'));
+      else if (k === 'lock') on = !!(lock && lock.classList.contains('is-on'));
+      else if (k === 'day' || k === 'dusk' || k === 'night') on = !!(time && time.dataset.time === k);
+      b.classList.toggle('on', on);
+    }
+  }
+
+  if (quickBar) {
+    quickBar.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-quick]');
+      if (!b) return;
+      const target = document.querySelector(QUICK_MAP[b.dataset.quick] || '');
+      if (target) target.click();
+      setTimeout(syncQuick, 80);
+    });
+  }
+  // 顶部按钮自己变化时也同步（卫星是异步加载，多等一会儿）
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.tools, .times, #views, #back-home, #brand-home')) {
+      setTimeout(syncQuick, 120);
+      setTimeout(syncQuick, 900);
+    }
+  });
+
   function open(key) {
     if (!secs.has(key)) return;
     current = key;
@@ -45,6 +89,7 @@ function initDrawer() {
     if (title) title.textContent = TITLES[key] || '面板';
     drawer.hidden = false;
     for (const b of buttons) b.classList.toggle('active', b.dataset.plugin === key);
+    syncQuick();
   }
 
   function close() {
@@ -91,13 +136,14 @@ function initDrawer() {
     if (el) el.addEventListener('click', close);
   }
 
+  syncQuick();
   return { open, close, get current() { return current; } };
 }
-
 /* ---------------- 账号 ---------------- */
 function initAccount() {
   const nameEl = document.getElementById('account-name');
   const nickEl = document.getElementById('account-nick');
+  const emailEl = document.getElementById('account-email');
   const favEl = document.getElementById('account-fav');
   const foodEl = document.getElementById('account-food');
   const timeEl = document.getElementById('account-time');
@@ -109,6 +155,7 @@ function initAccount() {
     const name = (user && user.name) || '未登录';
     if (nameEl) nameEl.textContent = name;
     if (nickEl) nickEl.textContent = user ? (user.sid ? '21–30 班 · ' + user.sid : '注册用户') : '—';
+    if (emailEl) emailEl.textContent = user && user.email ? user.email : '—';
     if (avatarEl) avatarEl.textContent = name.slice(0, 1);
     if (timeEl) {
       timeEl.textContent = user && user.at ? new Date(user.at).toLocaleString('zh-CN', { hour12: false }) : '—';
@@ -151,21 +198,21 @@ function initAccount() {
 
   let canteens = [];
   let items = [];
-  let rankItems = [];
+  let reviews = [];
+  let reviewsAt = '';
   try {
-    const V = (import.meta.url.match(/[?&]v=([^&]+)/) || [])[1] || '';
-    const load = (f) =>
-      fetch(new URL('data/' + f + (V ? '?v=' + V : ''), document.baseURI).href)
-        .then((r) => (r.ok ? r.json() : {}))
-        .catch(() => ({}));
-    const [curated, rank] = await Promise.all([load('food.json'), load('food-rank.json')]);
+    const [curated, reviewData] = await Promise.all([
+      fetch(dataUrl('food.json')).then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+      fetch(dataUrl('food-reviews.json')).then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+    ]);
     canteens = curated.canteens || [];
     items = curated.items || [];
-    rankItems = (rank.items || []).map((x) => ({ ...x, cat: x.rank === 'red' ? 'red' : 'black' }));
+    reviews = reviewData.items || [];
+    reviewsAt = reviewData.updatedAt || '';
   } catch (e) {
     canteens = [];
     items = [];
-    rankItems = [];
+    reviews = [];
   }
 
   const CAMPUS = [
@@ -173,22 +220,20 @@ function initAccount() {
     ['A', 'A 区'],
     ['B', 'B 区'],
     ['C', 'C 区'],
+    ['OLD', '老校区'],
     ['虎溪', '虎溪'],
     ['OUT', '校外'],
   ];
   const TABS = [
     ['rec', '食堂推荐'],
-    ['red', '红榜'],
-    ['black', '黑榜'],
+    ['review', '同学评分'],
+    ['top', '4.5 分以上'],
   ];
 
   let campus = 'all';
   let tab = 'rec';
   let query = '';
-
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  }
+  let reviewLimit = 40;
 
   function stars(rating) {
     const r = Number(rating) || 0;
@@ -259,21 +304,26 @@ function initAccount() {
     return el;
   }
 
-  function rankCard(it) {
+  function reviewCard(it) {
     const el = document.createElement('div');
-    el.className = 'food-card food-rank ' + (it.rank === 'red' ? 'is-red' : 'is-black');
-    const badge = it.rank === 'red' ? '红榜' : '黑榜';
+    el.className = 'food-card food-review';
     const where = [campusLabel(it.campus), it.type].filter(Boolean).join(' · ');
-    const comments = (it.comments || [])
-      .map((c) => '<span class="food-quote">“' + esc(c) + '”</span>')
-      .join('');
+    const tags = (it.tags || []).map((t) => '<span>' + esc(t) + '</span>').join('');
     el.innerHTML =
-      '<div class="food-card-top"><span class="food-rank-badge">' + badge + '</span>' +
-      '<b>' + esc(it.name) + '</b></div>' +
+      '<div class="food-card-top"><b>' + esc(it.name) + '</b>' + stars(it.rating) + '</div>' +
       (where ? '<p class="food-meta">' + esc(where) + '</p>' : '') +
-      (it.reason ? '<p class="food-desc">' + esc(it.reason) + '</p>' : '') +
-      (comments ? '<div class="food-quotes">' + comments + '</div>' : '');
+      '<div class="food-review-foot">' +
+      '<span class="food-votes">' + (Number(it.votes) || 0) + ' 人评分</span>' +
+      (tags ? '<div class="food-tags">' + tags + '</div>' : '') +
+      '</div>';
     return el;
+  }
+
+  function reviewRank(q) {
+    let list = reviews.filter((x) => matchCampus(x.campus, campus) && hit(x, q));
+    if (tab === 'top') list = list.filter((x) => Number(x.rating) >= 4.5);
+    list.sort((a, b) => Number(b.rating) - Number(a.rating) || Number(b.votes) - Number(a.votes));
+    return list;
   }
 
   function renderList() {
@@ -282,11 +332,31 @@ function initAccount() {
     const q = query.trim().toLowerCase();
     let shown = 0;
 
-    if (tab === 'red' || tab === 'black') {
-      const list = rankItems.filter((x) => x.cat === tab && matchCampus(x.campus, campus) && hit(x, q));
+    if (tab === 'review' || tab === 'top') {
+      const list = reviewRank(q);
       shown = list.length;
-      if (!list.length) listEl.innerHTML = '<p class="sec-hint">没有匹配的条目</p>';
-      for (const it of list) listEl.appendChild(rankCard(it));
+      const slice = list.slice(0, reviewLimit);
+
+      if (!list.length) {
+        listEl.innerHTML = '<p class="sec-hint">没有匹配的评分，换个关键词或校区试试</p>';
+      } else {
+        const h = document.createElement('p');
+        h.className = 'food-group';
+        h.textContent = (tab === 'top' ? '4.5 分以上' : '同学评分') + '（' + list.length + '）';
+        listEl.appendChild(h);
+        for (const it of slice) listEl.appendChild(reviewCard(it));
+        if (list.length > slice.length) {
+          const more = document.createElement('button');
+          more.type = 'button';
+          more.className = 'food-more';
+          more.textContent = '再看 ' + Math.min(40, list.length - slice.length) + ' 家';
+          more.addEventListener('click', () => {
+            reviewLimit += 40;
+            renderList();
+          });
+          listEl.appendChild(more);
+        }
+      }
     } else {
       const cs = canteens.filter((x) => (campus === 'all' || x.campus === campus) && hit(x, q));
       const its = items.filter((x) => (campus === 'all' || x.campus === campus) && hit(x, q));
@@ -307,10 +377,19 @@ function initAccount() {
         for (const it of its) listEl.appendChild(canteenCard(it));
       }
     }
+
     if (countEl) {
-      countEl.textContent = q
-        ? '搜索「' + query.trim() + '」：' + shown + ' 条结果'
-        : '共 ' + shown + ' 条 · 红黑榜 ' + rankItems.length + ' 条';
+      if (q) {
+        countEl.textContent = '搜索「' + query.trim() + '」：' + shown + ' 条结果';
+      } else if (tab === 'review' || tab === 'top') {
+        const avg = reviews.length
+          ? (reviews.reduce((s, x) => s + (Number(x.rating) || 0), 0) / reviews.length).toFixed(1)
+          : '—';
+        countEl.textContent =
+          '共 ' + shown + ' 家 · 平均 ' + avg + ' 分' + (reviewsAt ? ' · 更新于 ' + reviewsAt : '');
+      } else {
+        countEl.textContent = '共 ' + shown + ' 条 · 口碑库 ' + reviews.length + ' 家';
+      }
     }
   }
 
@@ -318,6 +397,7 @@ function initAccount() {
   function renderCampus() {
     chips(campusEl, CAMPUS, campus, (k) => {
       campus = k;
+      reviewLimit = 40;
       renderCampus();
       renderList();
     });
@@ -325,6 +405,7 @@ function initAccount() {
   function renderTabs() {
     chips(filterEl, TABS, tab, (k) => {
       tab = k;
+      reviewLimit = 40;
       renderTabs();
       renderList();
     });
@@ -333,6 +414,7 @@ function initAccount() {
   if (searchEl) {
     searchEl.addEventListener('input', () => {
       query = searchEl.value || '';
+      reviewLimit = 40;
       renderList();
     });
   }
@@ -340,6 +422,7 @@ function initAccount() {
     clearEl.addEventListener('click', () => {
       if (searchEl) searchEl.value = '';
       query = '';
+      reviewLimit = 40;
       renderList();
       if (searchEl) searchEl.focus();
     });
@@ -508,6 +591,153 @@ function initMessage() {
   renderHistory();
 }
 
+/* ---------------- 更新 / 维护 / 打赏 ---------------- */
+async function initNotice(drawer) {
+  const section = document.getElementById('notice');
+  if (!section) return;
+
+  const $ = (id) => document.getElementById(id);
+  const dot = $('notice-dot');
+  const toast = $('update-toast');
+  let data = null;
+  try {
+    data = await fetch(dataUrl('notice.json'))
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+  } catch (e) {
+    data = null;
+  }
+  if (!data) return;
+
+  const version = String(data.version || '').trim();
+  const status = data.status || {};
+
+  const versionEl = $('notice-version');
+  if (versionEl) versionEl.textContent = version ? 'v' + version : '最新版';
+  if ($('notice-headline')) $('notice-headline').textContent = data.headline || '校园地图更新了';
+  if ($('notice-released')) $('notice-released').textContent = data.releasedAt ? '发布于 ' + data.releasedAt : '';
+
+  const statusEl = $('notice-status');
+  if (statusEl) {
+    const state = status.state === 'ok' ? 'ok' : status.state === 'maintenance' ? 'warn' : 'bad';
+    statusEl.className = 'notice-pill ' + state;
+    statusEl.textContent = status.label || (state === 'ok' ? '服务正常' : '维护中');
+  }
+  if ($('notice-checked')) {
+    $('notice-checked').textContent = status.checkedAt ? '数据更新于 ' + status.checkedAt : '';
+  }
+
+  const maint = data.maintenance || {};
+  const maintEl = $('notice-maintenance');
+  if (maintEl && maint.state && maint.state !== 'ok') {
+    maintEl.hidden = false;
+    if ($('notice-maint-title')) $('notice-maint-title').textContent = maint.state === 'maintenance' ? '维护提醒' : '部分功能维护';
+    if ($('notice-maint-text')) $('notice-maint-text').textContent = maint.message || '作者正在处理，稍后再来看看。';
+  }
+
+  const listEl = $('notice-list');
+  if (listEl) {
+    const items = Array.isArray(data.items) ? data.items.slice(0, 8) : [];
+    listEl.innerHTML = items
+      .map(
+        (it) =>
+          '<li><span class="notice-date">' +
+          esc(it.date || '') +
+          '</span><div><b>' +
+          esc(it.title || '') +
+          '</b><p>' +
+          esc(it.text || '') +
+          '</p></div></li>',
+      )
+      .join('');
+  }
+
+  if ($('notice-feedback') && data.feedback && data.feedback.note) {
+    $('notice-feedback').textContent = data.feedback.note;
+  }
+
+  const donate = data.donation || {};
+  const donateEl = $('notice-donate');
+  if (donateEl) {
+    const on = donate.enabled !== false && donate.qr;
+    donateEl.hidden = !on;
+    if (on) {
+      const title = donateEl.querySelector('summary span');
+      if (title && donate.title) title.textContent = donate.title;
+      if ($('donate-text') && donate.text) $('donate-text').textContent = donate.text;
+      if ($('donate-qr')) {
+        $('donate-qr').src = new URL(donate.qr, document.baseURI).href;
+        $('donate-qr').alt = donate.qrAlt || '微信赞赏码';
+      }
+    }
+  }
+
+  const mail = (data.feedback && data.feedback.email) || AUTHOR_EMAIL;
+  if ($('notice-mail')) {
+    $('notice-mail').addEventListener('click', async () => {
+      const state = $('notice-mail-state');
+      try {
+        await navigator.clipboard.writeText(mail);
+        if (state) state.textContent = '邮箱已复制：' + mail;
+      } catch (e) {
+        if (state) state.textContent = '复制失败，请手动复制：' + mail;
+      }
+    });
+  }
+  if ($('notice-msg')) {
+    $('notice-msg').addEventListener('click', () => {
+      if (drawer) drawer.open('message');
+    });
+  }
+
+  /* 新版本提示：左侧「动态」小红点 + 一次性小气泡 */
+  let seen = '';
+  try {
+    seen = localStorage.getItem(NOTICE_SEEN_KEY) || '';
+  } catch (e) {}
+  const isNew = !!version && version !== seen;
+
+  function markSeen() {
+    seen = version;
+    try {
+      localStorage.setItem(NOTICE_SEEN_KEY, version);
+    } catch (e) {}
+    if (dot) dot.hidden = true;
+    if (toast) toast.hidden = true;
+  }
+
+  if (isNew) {
+    if (dot) dot.hidden = false;
+    if (toast) {
+      if ($('update-toast-title')) $('update-toast-title').textContent = '地图更新到 ' + version;
+      if ($('update-toast-sub')) $('update-toast-sub').textContent = data.headline || '看看这次改了什么';
+      setTimeout(() => {
+        toast.hidden = false;
+      }, 1600);
+      setTimeout(() => {
+        if (toast && !toast.hidden) markSeen();
+      }, 15000);
+    }
+  }
+
+  if ($('update-toast-open')) {
+    $('update-toast-open').addEventListener('click', () => {
+      markSeen();
+      if (drawer) drawer.open('notice');
+    });
+  }
+  if ($('update-toast-close')) {
+    $('update-toast-close').addEventListener('click', markSeen);
+  }
+
+  const railBtn = document.querySelector('[data-plugin="notice"]');
+  if (railBtn) {
+    railBtn.addEventListener('click', () => {
+      if (version && version !== seen) markSeen();
+    });
+  }
+}
+
 /* ---------------- 巴士倒计时 ---------------- */
 function initBusTicker() {
   const metaEl = document.getElementById('bus-next-meta');
@@ -532,8 +762,10 @@ export function initPanels() {
   const drawer = initDrawer();
   const account = initAccount();
   window.__accountRefresh = account ? account.refresh : null;
+  window.__drawer = drawer;
   initFood();
   initMessage();
+  initNotice(drawer);
   initBusTicker();
   return drawer;
 }

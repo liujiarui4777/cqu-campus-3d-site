@@ -185,8 +185,8 @@ import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build
 import { addLandmarks } from './landmarks.js?v=20261104b';
 import { createBasemapProvider } from './basemap.js?v=20261104b';
 import { initInteraction } from './ui.js?v=20261105a';
-import { initPanels } from './panels.js?v=20261105a';
-import { initLogin, isAuthed } from './login.js?v=20261105a';
+import { initPanels } from './panels.js?v=20261106a';
+import { initLogin, isAuthed } from './login.js?v=20261106a';
 import { addTrees } from './trees.js?v=20261104b';
 import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261104b';
 import { addLamps } from './lamps.js?v=20261104b';

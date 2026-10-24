@@ -1,0 +1,1984 @@
+{
+ "updatedAt": "2026-10-24",
+ "note": "评分由同学匿名票选汇总，满分 5 分，仅供参考；不代表学校、社团或作者立场。",
+ "items": [
+  {
+   "name": "u城沙县小吃",
+   "type": "主食，小吃",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 41,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "虎溪一食堂一楼冒菜",
+   "type": "冒菜",
+   "campus": "虎溪",
+   "rating": 3.6,
+   "votes": 31,
+   "tags": [
+    "食堂",
+    "火锅"
+   ]
+  },
+  {
+   "name": "u城阿嫂记忆老火锅",
+   "type": "火锅火锅",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 37,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "虎溪一食堂二楼黄焖鸡",
+   "type": "黄焖鸡米饭",
+   "campus": "虎溪",
+   "rating": 3.2,
+   "votes": 26,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "巴国香",
+   "type": "炒菜",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 28,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "牛约堡（外卖）",
+   "type": "炸鸡汉堡",
+   "campus": "虎溪",
+   "rating": 3.1,
+   "votes": 16,
+   "tags": [
+    "炸鸡汉堡",
+    "外卖"
+   ]
+  },
+  {
+   "name": "比格披萨自助",
+   "type": "披萨西餐",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 31,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "二食堂顶楼杨国福",
+   "type": "麻辣烫",
+   "campus": "虎溪",
+   "rating": 3.2,
+   "votes": 22,
+   "tags": [
+    "食堂",
+    "火锅"
+   ]
+  },
+  {
+   "name": "不挂科火锅",
+   "type": "火锅",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 30,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "碳在烧",
+   "type": "韩式烤肉",
+   "campus": "虎溪",
+   "rating": 3.4,
+   "votes": 15,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "称菜传奇（二食堂顶楼-1楼）",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 40,
+   "tags": [
+    "食堂",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "鲜香脆皮鸡米饭（外卖）",
+   "type": "预制菜，又贵又难吃，鸡肉有下水道的腥味",
+   "campus": "虎溪",
+   "rating": 3.2,
+   "votes": 22,
+   "tags": [
+    "外卖",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "阿亲家",
+   "type": "自助烤肉",
+   "campus": "虎溪",
+   "rating": 4.3,
+   "votes": 36,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "一食堂一楼早餐店",
+   "type": "靠近梅园那家",
+   "campus": "虎溪",
+   "rating": 3.4,
+   "votes": 30,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "二食堂狂跑鸭",
+   "type": "狂跑鸭（已于24年倒闭）",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 33,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "一食堂一楼老麻抄手",
+   "type": "清汤抄手",
+   "campus": "虎溪",
+   "rating": 3.4,
+   "votes": 33,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "二食堂三楼土鸡米线",
+   "type": "米线面条",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 45,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "虎溪一食堂二楼的卫子夫汉堡（书亦烧仙草旁边）",
+   "type": "汉堡",
+   "campus": "虎溪",
+   "rating": 3.3,
+   "votes": 30,
+   "tags": [
+    "食堂",
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "二食堂铁锅炖（顶楼）",
+   "type": "汤、炖菜",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 42,
+   "tags": [
+    "食堂",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "十里香牛肉炒饭",
+   "type": "虾仁菠萝",
+   "campus": "虎溪",
+   "rating": 3.4,
+   "votes": 12,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "肥猫欧巴",
+   "type": "自助烤肉",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 35,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "可可kokosuki涮烤",
+   "type": "烤肉涮烤",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 15,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "宫味渝",
+   "type": "自助烤肉",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 40,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "二食堂旋转小火锅",
+   "type": "火锅",
+   "campus": "虎溪",
+   "rating": 3.4,
+   "votes": 33,
+   "tags": [
+    "食堂",
+    "火锅"
+   ]
+  },
+  {
+   "name": "花胶鸡",
+   "type": "港式花胶鸡",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 35,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "三食堂",
+   "type": "别类别了，大部分是答辩，少数有好吃的（仅代表个人",
+   "campus": "虎溪",
+   "rating": 3.1,
+   "votes": 26,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "回味排骨",
+   "type": "炸肉",
+   "campus": "虎溪",
+   "rating": 4.5,
+   "votes": 26,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "一食堂一楼朱家小馆",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 46,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "火锅米线（一食堂二楼）",
+   "type": "面条米线",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 37,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "香肉拌饭",
+   "type": "拌饭",
+   "campus": "虎溪",
+   "rating": 3.2,
+   "votes": 22,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "疆粉儿（沙坪坝店.新疆炒米粉）",
+   "type": "牛肉炒米粉",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 40,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "一食堂一楼铁盘自选菜",
+   "type": "自选菜",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 16,
+   "tags": [
+    "食堂",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "空海日料酒场",
+   "type": "烤肉日料",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 46,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "熙街所有肠粉",
+   "type": "肠粉",
+   "campus": "虎溪",
+   "rating": 3.4,
+   "votes": 22,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "临榆炸鸡腿",
+   "type": "炸鸡汉堡",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 37,
+   "tags": [
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "一食堂一楼饺百仙",
+   "type": "自选水饺",
+   "campus": "虎溪",
+   "rating": 3.2,
+   "votes": 18,
+   "tags": [
+    "食堂",
+    "小吃"
+   ]
+  },
+  {
+   "name": "麦当劳",
+   "type": "炸鸡汉堡",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 33,
+   "tags": [
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "一食堂一楼早餐店（靠近竹园那家）",
+   "type": "早餐店",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 30,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "橪点烤肉",
+   "type": "烤肉",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 28,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "朱光玉火锅",
+   "type": "火锅",
+   "campus": "虎溪",
+   "rating": 3.1,
+   "votes": 25,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "三食堂西安味道",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.5,
+   "votes": 43,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "虎溪四食堂",
+   "type": "葱爆牛肉",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 34,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "山炮李记串串香",
+   "type": "火锅串串",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 47,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "一食堂一楼麦嘉基",
+   "type": "炸鸡汉堡",
+   "campus": "虎溪",
+   "rating": 3.6,
+   "votes": 29,
+   "tags": [
+    "食堂",
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "淑芬",
+   "type": "火锅串串",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 25,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "熙街天天海鲜烧烤",
+   "type": "烧烤",
+   "campus": "虎溪",
+   "rating": 3.6,
+   "votes": 25,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "四食堂大盘鸡",
+   "type": "菜",
+   "campus": "虎溪",
+   "rating": 4.5,
+   "votes": 46,
+   "tags": [
+    "食堂",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "壹家糯米饭",
+   "type": "凉皮，豆腐串",
+   "campus": "虎溪",
+   "rating": 3.6,
+   "votes": 25,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "塔斯汀中国汉堡",
+   "type": "炸鸡汉堡",
+   "campus": "虎溪",
+   "rating": 4.5,
+   "votes": 32,
+   "tags": [
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "一食堂瓦香鸡",
+   "type": "瓦香鸡",
+   "campus": "虎溪",
+   "rating": 3.1,
+   "votes": 22,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "天街朴家铺子",
+   "type": "板栗饼",
+   "campus": "虎溪",
+   "rating": 4.3,
+   "votes": 25,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "一食堂一楼",
+   "type": "饭饭而烫",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 28,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "同学惠（二食堂顶楼）",
+   "type": "主食小炒",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 47,
+   "tags": [
+    "食堂",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "无届",
+   "type": "点菜",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 38,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "西门烧烤",
+   "type": "烧烤",
+   "campus": "虎溪",
+   "rating": 3.2,
+   "votes": 20,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "雾漫里",
+   "type": "自助烤肉",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 33,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "Happy Meal Time自选菜",
+   "type": "荤菜",
+   "campus": "虎溪",
+   "rating": 3.2,
+   "votes": 25,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "巫山纸上烤鱼",
+   "type": "纸包鱼",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 33,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "b区二食堂云饺",
+   "type": "云吞",
+   "campus": "虎溪",
+   "rating": 3.6,
+   "votes": 20,
+   "tags": [
+    "食堂",
+    "小吃"
+   ]
+  },
+  {
+   "name": "熙街 熙熙Mall 回回烤第一",
+   "type": "自助烤肉",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 27,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "二食堂一楼兰州拉面",
+   "type": "面食/炒饭",
+   "campus": "虎溪",
+   "rating": 3.3,
+   "votes": 38,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "（西门外）雨峰饭店",
+   "type": "炒菜",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 36,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "二食堂山东煎饼",
+   "type": "煎饼",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 38,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "西门花雕醉鸡",
+   "type": "花雕醉鸡",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 28,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "西门外街头汉堡车 （随便汉堡） 汉堡群在群精华",
+   "type": "牛肉，猪肉汉堡",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 47,
+   "tags": [
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "一食堂一楼匠心卤",
+   "type": "翅根饭",
+   "campus": "虎溪",
+   "rating": 3.1,
+   "votes": 26,
+   "tags": [
+    "食堂",
+    "小吃"
+   ]
+  },
+  {
+   "name": "鲜师傅骨汤米粉（沙坪坝店）",
+   "type": "红油香辣骨汤米粉",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 32,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "谭记王烤鱼",
+   "type": "烤鱼加配菜",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 23,
+   "tags": [
+    "火锅",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "宜宾燃面（一食堂一楼）",
+   "type": "面条米线",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 38,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "一食堂二楼烤盘饭",
+   "type": "烤盘饭",
+   "campus": "虎溪",
+   "rating": 4.3,
+   "votes": 42,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "汤呈一品",
+   "type": "汤",
+   "campus": "虎溪",
+   "rating": 3.5,
+   "votes": 11,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "一食堂二楼萌锅蒸饭",
+   "type": "茶油小炒鸡",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 33,
+   "tags": [
+    "食堂",
+    "饮品甜品"
+   ]
+  },
+  {
+   "name": "一食堂二楼西安味道大骨浓汤面",
+   "type": "面条与肉夹馍",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 46,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "一食堂二楼遇江湖",
+   "type": "盐煎肉 青椒肉丝",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 41,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "一食堂蜜雪冰城边上的卖糕点的",
+   "type": "零食",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 44,
+   "tags": [
+    "食堂",
+    "饮品甜品"
+   ]
+  },
+  {
+   "name": "西门霜老板烤生蚝",
+   "type": "都不行",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 13,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "一食堂一楼锅燃有味",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.5,
+   "votes": 32,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "熙街猫咪烤肉火锅",
+   "type": "别试",
+   "campus": "虎溪",
+   "rating": 3.2,
+   "votes": 9,
+   "tags": [
+    "火锅",
+    "烧烤"
+   ]
+  },
+  {
+   "name": "一食堂一楼汉堡店",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 44,
+   "tags": [
+    "食堂",
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "计大厨炒饭炒面（外卖）",
+   "type": "外卖",
+   "campus": "虎溪",
+   "rating": 3.6,
+   "votes": 21,
+   "tags": [
+    "面食",
+    "外卖"
+   ]
+  },
+  {
+   "name": "熙街去大理",
+   "type": "餐厅",
+   "campus": "虎溪",
+   "rating": 3.3,
+   "votes": 25,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "一食堂一楼瓦香鸡",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 36,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "熙街五谷渔粉 (不是三食堂一楼的)",
+   "type": "粉面馆",
+   "campus": "虎溪",
+   "rating": 3.7,
+   "votes": 25,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "一食堂一楼武胜面馆",
+   "type": "面条米线",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 48,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "时代天街寿司郎",
+   "type": "寿司日料",
+   "campus": "虎溪",
+   "rating": 3.4,
+   "votes": 24,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "熙街鲜鲜肥肠饭",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 35,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "西门外面的三明治摊",
+   "type": "三明治",
+   "campus": "虎溪",
+   "rating": 3.3,
+   "votes": 17,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "一食堂一楼亦鱼亦饭",
+   "type": "藤椒酸菜鱼",
+   "campus": "虎溪",
+   "rating": 4.3,
+   "votes": 30,
+   "tags": [
+    "食堂",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "二食堂凡仔汉堡",
+   "type": "汉堡",
+   "campus": "虎溪",
+   "rating": 3.4,
+   "votes": 26,
+   "tags": [
+    "食堂",
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "一食堂粤式烧腊",
+   "type": "套饭",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 34,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "熙街新世纪超市盒装水果",
+   "type": "盒装小水果",
+   "campus": "虎溪",
+   "rating": 3.5,
+   "votes": 23,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "猪脚饭（二食堂二楼）",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 41,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "西门干辣椒抄手",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 40,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "二食堂二楼水煮肉片",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 40,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "渝牛家烧烤",
+   "type": "烧烤",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 33,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "淮南里",
+   "type": "牛肉粉丝汤",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 37,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "熙街 雾漫里自助烤肉",
+   "type": "自助烤肉",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 23,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "哈尔滨车站的老盒饭",
+   "type": "盖饭",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 46,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "一食堂二楼东家卤味",
+   "type": "卤肉饭",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 33,
+   "tags": [
+    "食堂",
+    "小吃"
+   ]
+  },
+  {
+   "name": "一食堂南厅",
+   "type": "武胜猪肝面",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 30,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "兰博烤肉饭",
+   "type": "烤肉饭",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 38,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "一食堂杨家小馆",
+   "type": "所有",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 32,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "Nana美食街的关东煮",
+   "type": "所有",
+   "campus": "虎溪",
+   "rating": 4.3,
+   "votes": 28,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "北门去熙街路上移动摊，梅菜扣肉饼",
+   "type": "梅菜扣肉饼",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 38,
+   "tags": [
+    "面食",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "一席地鸡窝",
+   "type": "鸡肉汤煲",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 36,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "爱国爱民螺蛳粉",
+   "type": "各种都是神中神，最爱吃炸蛋螺蛳粉 12块钱 我的",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 46,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "喜姐炸串",
+   "type": "好吃好吃，炸鸡翅根多汁鲜美",
+   "campus": "虎溪",
+   "rating": 4.3,
+   "votes": 24,
+   "tags": [
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "鞠婆婆·绵绵冰(熙街店)",
+   "type": "吃过绵绵冰之后你的这辈子都离不开绵绵冰了！",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 35,
+   "tags": [
+    "饮品甜品"
+   ]
+  },
+  {
+   "name": "钟盅里社区火锅（大学城点）",
+   "type": "东门门口的一家，味道不错😋",
+   "campus": "虎溪",
+   "rating": 4.3,
+   "votes": 27,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "二食堂二楼浇汁牛肉饭",
+   "type": "哈哈，我来单开一行锐评新窗口。这个酱香牛肉一股康",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 48,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "一食堂豆浆",
+   "type": "不推荐，一点不甜，像有口感的白开水",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 31,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "一品煲仔饭",
+   "type": "好吃😋，预订锅巴更好吃，推荐山椒牛肉、香菇滑鸡",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 23,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "一食堂二楼轻食窗口",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.5,
+   "votes": 32,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "（北麓国际城、北碚歇马等连锁店）尤卤",
+   "type": "卤味零食（鸭头 鸭脖 鸭架 鸭心 凤爪 凉菜 鸭",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 33,
+   "tags": [
+    "小吃",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "歪角老火锅(陈家桥店)",
+   "type": "老火锅",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 27,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "西门门口晚上自助烤肉",
+   "type": "又好又便宜，35一个人有饮料有水果😋",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 33,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "三食堂三楼半只烤鸭",
+   "type": "半只烤鸭加饭",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 21,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "二食堂二楼极味肥牛饭",
+   "type": "脆皮鸡味道还可以，其他不知道",
+   "campus": "虎溪",
+   "rating": 4.3,
+   "votes": 31,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "黄记隆江猪脚饭",
+   "type": "猪脚软烂，烧鸭肥美，推荐😋",
+   "campus": "虎溪",
+   "rating": 4.5,
+   "votes": 27,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "U城番疆",
+   "type": "番茄火锅",
+   "campus": "虎溪",
+   "rating": 4.4,
+   "votes": 35,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "熙街熙熙mall四楼渝厨火锅",
+   "type": "火锅",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 18,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "熙熙mall四楼布斯林",
+   "type": "主食",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 33,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "烤小匠（东门出去富力城）",
+   "type": "烤串",
+   "campus": "虎溪",
+   "rating": 4.9,
+   "votes": 44,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "肉食堂1998韩式烤肉",
+   "type": "烤肉自助",
+   "campus": "虎溪",
+   "rating": 4.6,
+   "votes": 35,
+   "tags": [
+    "食堂",
+    "烧烤"
+   ]
+  },
+  {
+   "name": "花堡堡",
+   "type": "西式快餐汉堡",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 23,
+   "tags": [
+    "炸鸡汉堡"
+   ]
+  },
+  {
+   "name": "熙街崔欧巴韩食堂",
+   "type": "韩式料理",
+   "campus": "虎溪",
+   "rating": 4.7,
+   "votes": 19,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "弓长牛老倌潮汕牛肉火锅",
+   "type": "牛肉火锅（质量特别好的鲜肉）",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 36,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "二食堂二楼渝味面庄",
+   "type": "所有面都好吃，但我要推荐饺子！！！白菜鲜肉你太好",
+   "campus": "虎溪",
+   "rating": 4.8,
+   "votes": 22,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "B区食堂",
+   "type": "食堂",
+   "campus": "B",
+   "rating": 3.2,
+   "votes": 33,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "堂客老火锅",
+   "type": "火锅",
+   "campus": "OLD",
+   "rating": 4.5,
+   "votes": 30,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "a区柏树林餐厅石锅拌饭",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.2,
+   "votes": 32,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "B区门口对面新疆烤羊肉串（生意好的那家）",
+   "type": "烧烤",
+   "campus": "B",
+   "rating": 4.7,
+   "votes": 36,
+   "tags": [
+    "面食",
+    "烧烤"
+   ]
+  },
+  {
+   "name": "A区莘莘一楼 的干锅",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.3,
+   "votes": 21,
+   "tags": [
+    "食堂",
+    "火锅"
+   ]
+  },
+  {
+   "name": "记忆包工坊",
+   "type": "早餐包子",
+   "campus": "OLD",
+   "rating": 4.7,
+   "votes": 27,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "A区民主湖教工 餐厅一楼瑞幸旁边的粉面铺",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.1,
+   "votes": 18,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "跃进江湖菜",
+   "type": "川菜江湖菜",
+   "campus": "OLD",
+   "rating": 4.3,
+   "votes": 31,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "a区三食堂二楼冒菜",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.7,
+   "votes": 29,
+   "tags": [
+    "食堂",
+    "火锅"
+   ]
+  },
+  {
+   "name": "欣阳乡村菜",
+   "type": "川菜",
+   "campus": "OLD",
+   "rating": 4.5,
+   "votes": 36,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "a区东林餐厅一楼",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.7,
+   "votes": 30,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "南开旁边山东杂粮煎饼",
+   "type": "早餐煎饼",
+   "campus": "OLD",
+   "rating": 4.3,
+   "votes": 26,
+   "tags": [
+    "面食",
+    "小吃"
+   ]
+  },
+  {
+   "name": "一中旁边串老乡",
+   "type": "火锅",
+   "campus": "OLD",
+   "rating": 4.5,
+   "votes": 33,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "a区莘莘食堂3楼自选菜",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.2,
+   "votes": 27,
+   "tags": [
+    "食堂",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "a区莘莘食堂二楼猪脚饭",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.7,
+   "votes": 14,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "大碗小碗",
+   "type": "江湖菜",
+   "campus": "OLD",
+   "rating": 4.7,
+   "votes": 30,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "陕西面庄",
+   "type": "面与肉夹馍",
+   "campus": "OLD",
+   "rating": 4.5,
+   "votes": 25,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "A区明主湖食堂二楼面面俱到",
+   "type": "小面",
+   "campus": "A",
+   "rating": 3.2,
+   "votes": 27,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "A区一食堂二楼黄焖鸡",
+   "type": "主食",
+   "campus": "A",
+   "rating": 4.5,
+   "votes": 37,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "香肠兄弟",
+   "type": "食物",
+   "campus": "OLD",
+   "rating": 3.5,
+   "votes": 12,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "a区三食堂羊肉粉",
+   "type": "面食",
+   "campus": "A",
+   "rating": 4.8,
+   "votes": 37,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "A区大门隆江猪脚饭",
+   "type": "食物",
+   "campus": "A",
+   "rating": 3.7,
+   "votes": 19,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "（乡村基广场旁边）无二家金牌洋芋饭",
+   "type": "食物",
+   "campus": "OLD",
+   "rating": 3.2,
+   "votes": 10,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "俄士厨房",
+   "type": "俄罗斯菜",
+   "campus": "OLD",
+   "rating": 4.5,
+   "votes": 37,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "A区新华园餐厅",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.7,
+   "votes": 22,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "a区大门左拐山友店",
+   "type": "面食",
+   "campus": "A",
+   "rating": 4.7,
+   "votes": 32,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "A区中门，绿色牛肉面",
+   "type": "餐馆",
+   "campus": "A",
+   "rating": 3.7,
+   "votes": 29,
+   "tags": [
+    "面食",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "汉渝路的酱肉包子店",
+   "type": "早餐（面食）",
+   "campus": "OLD",
+   "rating": 4.4,
+   "votes": 23,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "a区一餐厅二楼禾也轻食",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.4,
+   "votes": 18,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "a区一食堂三 楼大西北干锅",
+   "type": "主食",
+   "campus": "A",
+   "rating": 4.6,
+   "votes": 24,
+   "tags": [
+    "食堂",
+    "火锅"
+   ]
+  },
+  {
+   "name": "野生菌汤锅干锅馆（欣阳广场店）",
+   "type": "餐馆",
+   "campus": "OLD",
+   "rating": 3.7,
+   "votes": 14,
+   "tags": [
+    "火锅",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "一食堂二楼的羊肉米线",
+   "type": "面食",
+   "campus": "A",
+   "rating": 4.6,
+   "votes": 19,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "民主湖食堂三楼广式烧腊的白切鸡",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 3.7,
+   "votes": 13,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "大门门口的鲍汁黄焖鸡",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.9,
+   "votes": 33,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "A区中门右边，新疆风味",
+   "type": "餐馆",
+   "campus": "A",
+   "rating": 3.6,
+   "votes": 25,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "三峡广场九锅一堂酸菜鱼",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.4,
+   "votes": 23,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "东林餐厅瓦香鸡",
+   "type": "食物",
+   "campus": "A",
+   "rating": 3.4,
+   "votes": 14,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "柏林餐厅的激情椒麻鱼",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.4,
+   "votes": 19,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "B区中门莲藕抄手",
+   "type": "面食",
+   "campus": "B",
+   "rating": 4.8,
+   "votes": 22,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "A区中门刘氏鸡公煲",
+   "type": "主食",
+   "campus": "A",
+   "rating": 4.7,
+   "votes": 28,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "外卖宋记排骨饭",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.8,
+   "votes": 20,
+   "tags": [
+    "外卖"
+   ]
+  },
+  {
+   "name": "外卖诗熠烤米线/线下店在B区大门对面",
+   "type": "主食",
+   "campus": "B",
+   "rating": 4.5,
+   "votes": 26,
+   "tags": [
+    "面食",
+    "外卖"
+   ]
+  },
+  {
+   "name": "a区中门超市烤红薯",
+   "type": "小吃",
+   "campus": "A",
+   "rating": 4.9,
+   "votes": 31,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "A区一食堂二楼自助称重",
+   "type": "食堂",
+   "campus": "A",
+   "rating": 4.6,
+   "votes": 25,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "B区后门半月楼阮小面",
+   "type": "主食",
+   "campus": "B",
+   "rating": 4.5,
+   "votes": 18,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "A区正门旁边的鲜葱肉饼",
+   "type": "小吃",
+   "campus": "A",
+   "rating": 4.4,
+   "votes": 26,
+   "tags": [
+    "面食",
+    "小吃"
+   ]
+  },
+  {
+   "name": "民主湖食堂一楼重庆小面（瑞幸咖啡旁）",
+   "type": "面食",
+   "campus": "A",
+   "rating": 4.9,
+   "votes": 26,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "（外卖）陶然居",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.6,
+   "votes": 27,
+   "tags": [
+    "外卖"
+   ]
+  },
+  {
+   "name": "b区中门石锅鸡米饭",
+   "type": "主食",
+   "campus": "B",
+   "rating": 4.6,
+   "votes": 31,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "a区大门对面藕王抄手",
+   "type": "主食",
+   "campus": "A",
+   "rating": 4.8,
+   "votes": 21,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "欣阳广场南韩铁板烧",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.6,
+   "votes": 22,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "A区莘莘食堂三楼匠心卤",
+   "type": "主食",
+   "campus": "A",
+   "rating": 4.7,
+   "votes": 25,
+   "tags": [
+    "食堂",
+    "小吃"
+   ]
+  },
+  {
+   "name": "炫地购物中心牛匠寿喜锅",
+   "type": "日料",
+   "campus": "OLD",
+   "rating": 4.5,
+   "votes": 24,
+   "tags": [
+    "小吃"
+   ]
+  },
+  {
+   "name": "A区一食堂猪脚饭",
+   "type": "主食",
+   "campus": "A",
+   "rating": 4.7,
+   "votes": 37,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "B区大门右边五十米叶府记米线",
+   "type": "主食",
+   "campus": "B",
+   "rating": 4.9,
+   "votes": 19,
+   "tags": [
+    "面食"
+   ]
+  },
+  {
+   "name": "A区一食堂羊肉米粉",
+   "type": "主食",
+   "campus": "A",
+   "rating": 4.6,
+   "votes": 29,
+   "tags": [
+    "食堂",
+    "面食"
+   ]
+  },
+  {
+   "name": "B区后门黑娃餐馆",
+   "type": "家常菜",
+   "campus": "B",
+   "rating": 4.3,
+   "votes": 29,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "满山盘盘烤肉（欣阳广场）",
+   "type": "自助烤肉",
+   "campus": "OLD",
+   "rating": 4.6,
+   "votes": 18,
+   "tags": [
+    "烧烤"
+   ]
+  },
+  {
+   "name": "顾乡",
+   "type": "家常菜",
+   "campus": "OLD",
+   "rating": 4.8,
+   "votes": 36,
+   "tags": [
+    "家常菜"
+   ]
+  },
+  {
+   "name": "A区中门外黄焖鸡的肥肠盖饭",
+   "type": "家常菜",
+   "campus": "A",
+   "rating": 4.7,
+   "votes": 22,
+   "tags": [
+    "小吃",
+    "家常菜"
+   ]
+  },
+  {
+   "name": "B区地下食堂（二食堂一楼）粤式烧腊",
+   "type": "主食",
+   "campus": "B",
+   "rating": 4.4,
+   "votes": 29,
+   "tags": [
+    "食堂"
+   ]
+  },
+  {
+   "name": "七中旁边小巷沈姐烤鱼",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.8,
+   "votes": 26,
+   "tags": [
+    "火锅"
+   ]
+  },
+  {
+   "name": "牛香阁串串 重庆图书馆后面",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.9,
+   "votes": 22,
+   "tags": [
+    "面食",
+    "火锅"
+   ]
+  },
+  {
+   "name": "事事小满",
+   "type": "主食",
+   "campus": "OLD",
+   "rating": 4.7,
+   "votes": 35,
+   "tags": [
+    "小吃"
+   ]
+  }
+ ]
+}

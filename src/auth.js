@@ -143,6 +143,27 @@ export function register(name, pass) {
   return call('app_register', { p_name: name, p_pass: pass });
 }
 
+/* ---------------- 邮箱验证码（可选功能） ----------------
+ * 服务端用 app_settings.email_verify 控制是否开启；
+ * 没开启时登录页不会显示邮箱输入框，注册流程和以前完全一样。
+ */
+export function publicConfig() {
+  return call('app_public_config', {});
+}
+
+export function requestEmailCode(name, email) {
+  return call('app_email_send', { p_name: name, p_email: email });
+}
+
+export function registerWithEmail(name, pass, email, code) {
+  return call('app_register_email', {
+    p_name: name,
+    p_pass: pass,
+    p_email: email,
+    p_code: code,
+  });
+}
+
 /**
  * 校验会话。
  * @returns {Promise<{state:'ok'|'invalid'|'unknown', user?:object}>}
