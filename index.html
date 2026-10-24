@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN" data-theme="day">
   <head>
     <meta charset="utf-8" />
@@ -35,7 +35,7 @@
       // 本地：全部走相对路径。数据请求在 app.js/terrain.js 里是「CDN 与本站并行抢」。
       (function () {
         var isGh = location.hostname.endsWith('github.io');
-        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@1bf39cf1cb778aee3567a65601908ec8d1182160/';
+        var cdn = 'https://cdn.jsdelivr.net/gh/liujiarui4777/cqu-campus-3d-site@0bcd2617e5251d1063854a826e10ed5f41140bad/';
         var local = new URL('./', document.baseURI).href;
         window.__ASSET_BASE = isGh ? cdn : local;
         window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
