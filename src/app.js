@@ -137,20 +137,20 @@ function flyToView(key, animate = true) {
   }
 }
 
-import { loadTerrain } from './terrain.js?v=20261031f';
-import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031f';
-import { addLandmarks } from './landmarks.js?v=20261031f';
-import { createBasemapProvider } from './basemap.js?v=20261031f';
-import { initInteraction } from './ui.js?v=20261031f';
-import { initPanels } from './panels.js?v=20261031f';
+import { loadTerrain } from './terrain.js?v=20261031g';
+import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031g';
+import { addLandmarks } from './landmarks.js?v=20261031g';
+import { createBasemapProvider } from './basemap.js?v=20261031g';
+import { initInteraction } from './ui.js?v=20261031g';
+import { initPanels } from './panels.js?v=20261031g';
 import { initLogin, isAuthed } from './login.js?v=20261030b';
-import { addTrees } from './trees.js?v=20261031f';
-import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031f';
-import { addLamps } from './lamps.js?v=20261031f';
-import { addRoofProps } from './props.js?v=20261031f';
-import { addGates } from './gates.js?v=20261031f';
-import { addSports } from './sports.js?v=20261031f';
-import { addBuildingLabels } from './labels.js?v=20261031f';
+import { addTrees } from './trees.js?v=20261031g';
+import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031g';
+import { addLamps } from './lamps.js?v=20261031g';
+import { addRoofProps } from './props.js?v=20261031g';
+import { addGates } from './gates.js?v=20261031g';
+import { addSports } from './sports.js?v=20261031g';
+import { addBuildingLabels } from './labels.js?v=20261031g';
 
 (async () => {
   initLogin();
@@ -268,7 +268,7 @@ import { addBuildingLabels } from './labels.js?v=20261031f';
       for (const a of data.areas || []) {
         if (a.center) take(a.center[0], a.center[1]);
       }
-      const m = 0.0016; // 约 150–180 m 余量，别贴着楼边
+      const m = 0.003; // 目标点再往里收 ~330 m，相机不会退到底图外面
       return { west: w - m, east: e + m, south: s - m, north: n + m };
     })();
     const MAX_H = 2000; // 最高只能拉到「全景」高度，再高就会看到校外
