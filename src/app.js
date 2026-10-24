@@ -1,4 +1,4 @@
-/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
+﻿/* 重庆大学 A 区 + B 区三维校园 —— 场景入口（原生 ES module，不依赖构建工具） */
 
 // Cesium 走 CDN，失败时 index.html 会补一个本站脚本；这里等一下它
 async function waitForCesium(timeoutMs = 12000) {
@@ -12,7 +12,7 @@ async function waitForCesium(timeoutMs = 12000) {
 
 const Cesium = window.Cesium || (await waitForCesium());
 
-import { currentScene, sceneHref } from './scenes.js?v=20261104a';
+import { currentScene, sceneHref } from './scenes.js?v=20261104b';
 
 // 当前场景：A/B/C 三校区（默认）或虎溪校区（?campus=hx）
 const S = currentScene();
@@ -180,20 +180,20 @@ function initSceneSwitch() {
   btn.title = S.id === 'hx' ? '切换到沙坪坝 A / B / C 区三维地图' : '切换到重庆大学虎溪校区三维地图';
 }
 
-import { loadTerrain } from './terrain.js?v=20261104a';
-import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261104a';
-import { addLandmarks } from './landmarks.js?v=20261104a';
-import { createBasemapProvider } from './basemap.js?v=20261104a';
-import { initInteraction } from './ui.js?v=20261104a';
-import { initPanels } from './panels.js?v=20261104a';
-import { initLogin, isAuthed } from './login.js?v=20261104a';
-import { addTrees } from './trees.js?v=20261104a';
-import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261104a';
-import { addLamps } from './lamps.js?v=20261104a';
-import { addRoofProps } from './props.js?v=20261104a';
-import { addGates } from './gates.js?v=20261104a';
-import { addSports } from './sports.js?v=20261104a';
-import { addBuildingLabels } from './labels.js?v=20261104a';
+import { loadTerrain } from './terrain.js?v=20261104b';
+import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261104b';
+import { addLandmarks } from './landmarks.js?v=20261104b';
+import { createBasemapProvider } from './basemap.js?v=20261104b';
+import { initInteraction } from './ui.js?v=20261104b';
+import { initPanels } from './panels.js?v=20261104b';
+import { initLogin, isAuthed } from './login.js?v=20261104b';
+import { addTrees } from './trees.js?v=20261104b';
+import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261104b';
+import { addLamps } from './lamps.js?v=20261104b';
+import { addRoofProps } from './props.js?v=20261104b';
+import { addGates } from './gates.js?v=20261104b';
+import { addSports } from './sports.js?v=20261104b';
+import { addBuildingLabels } from './labels.js?v=20261104b';
 
 (async () => {
   initLogin();
@@ -212,7 +212,7 @@ import { addBuildingLabels } from './labels.js?v=20261104a';
     setStatus('正在加载地形…');
     // 大图版本号：影像/底图改了必须换版本，否则浏览器缓存会让用户看到旧图。
     // 按场景分开，只让改过数据的那套重新下载，A/B/C 的大图不会跟着刷新。
-    const ASSET_V = S.id === 'hx' ? '20261104a' : '20261103b';
+    const ASSET_V = S.id === 'hx' ? '20261104b' : '20261103b';
     const layers = {};
     const only = new URLSearchParams(location.search).get('only');
 
@@ -234,10 +234,31 @@ import { addBuildingLabels } from './labels.js?v=20261104a';
     viewer.scene.terrainProvider = terrain.provider;
 
     setStatus('正在铺设地面…');
-    // 首屏只铺当前校区的精细底图，卫星影像按需加载
-    const basemapP = createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE, DIR);
-    const [basemap, data] = await Promise.all([basemapP, dataP]);
-    layers.style = viewer.scene.imageryLayers.addImageryProvider(basemap);
+    // 底图两级：S.basemapLo 存在时先铺小图（409 KB）立刻出画面，
+    // 高清图（4096²，1.16 MB）在空闲时后台补上，首屏少等约 5 秒。
+    const loFile = S.basemapLo || '';
+    const mainP = createBasemapProvider(
+      ASSET_BASE, Cesium, terrain.meta, loFile || 'basemap.jpg', ASSET_V, BASE, DIR,
+    );
+    const [mainLayer, data] = await Promise.all([mainP, dataP]);
+    layers.style = viewer.scene.imageryLayers.addImageryProvider(mainLayer);
+    if (loFile) {
+      // 高清底图在首屏渲染之后补，不阻塞出图
+      const upgrade = () => {
+        createBasemapProvider(ASSET_BASE, Cesium, terrain.meta, 'basemap.jpg', ASSET_V, BASE, DIR)
+          .then((hd) => {
+            const hdLayer = viewer.scene.imageryLayers.addImageryProvider(hd);
+            // 已经切到卫星影像的话，高清底图先别显示，等切回来
+            hdLayer.show = !(layers.esri && layers.esri.show);
+            layers.style.show = false;
+            layers.styleLo = layers.style;
+            layers.style = hdLayer;
+          })
+          .catch(() => {});
+      };
+      if ('requestIdleCallback' in window) requestIdleCallback(upgrade, { timeout: 2500 });
+      else setTimeout(upgrade, 1200);
+    }
     let esriLayer = null;
     // 卫星影像按需加载：默认不下载大体积 esri.jpg，第一次打开「卫星影像」时才拉取
     async function ensureEsri() {

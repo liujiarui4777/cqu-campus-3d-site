@@ -43,6 +43,8 @@ export const SCENES = {
     subtitle: '虎溪校区 · 大学城 · 3.0 km',
     bootText: '正在生成虎溪校区校园…',
     searchHint: '搜索建筑：图书馆 / 第一食堂 / 兰园 / 工科大楼…',
+    // 底图分级：先铺 2048²（409 KB）快速出图，空闲时再换 4096²（1.16 MB）高清
+    basemapLo: 'basemap_lo.jpg',
     center: [106.2932, 29.5960],
     weather: { lon: 106.297, lat: 29.596 },
     views: [

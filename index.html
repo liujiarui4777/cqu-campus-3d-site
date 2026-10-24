@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN" data-theme="day">
   <head>
     <meta charset="utf-8" />
@@ -39,6 +39,16 @@
         var local = new URL('./', document.baseURI).href;
         window.__ASSET_BASE = isGh ? cdn : local;
         window.CESIUM_BASE_URL = isGh ? cdn + 'cesium/' : new URL('./cesium/', document.baseURI).href;
+        // 先给 Cesium.js 排上预加载队列：script 标签要等 HTML 解析到才会发起请求，
+        // preload 能提前开始下载（线上冷启动约省 0.5–1 s）。
+        // 注意：preload 不要加 crossorigin，否则与下面的 <script> 不匹配会重复下载 6 MB。
+        if (isGh) {
+          var pl = document.createElement('link');
+          pl.rel = 'preload';
+          pl.as = 'script';
+          pl.href = cdn + 'cesium/Cesium.js';
+          document.head.appendChild(pl);
+        }
         document.write(
           '<script src="' +
             (isGh ? cdn + 'cesium/Cesium.js' : './cesium/Cesium.js') +
@@ -246,6 +256,7 @@
       <div class="boot-inner">
         <div class="boot-ring"></div>
         <p id="boot-text">正在下载三维引擎（首次约 6 MB，之后走缓存）…</p>
+        <p id="boot-hint" style="margin-top:10px;font-size:12px;color:#8a8f96;line-height:1.6;min-height:19px"></p>
       </div>
     </div>
 
@@ -270,7 +281,27 @@
       </form>
     </div>
 
-    <script type="module" src="./src/app.js?v=20261104a"></script>
+    <script>
+      // 加载计时：让用户看到「在动」，而不是一个静止的圈
+      (function () {
+        var t0 = Date.now();
+        var hint = document.getElementById('boot-hint');
+        var boot = document.getElementById('boot');
+        if (!hint || !boot) return;
+        var timer = setInterval(function () {
+          if (boot.style.display === 'none') {
+            clearInterval(timer);
+            return;
+          }
+          var s = Math.round((Date.now() - t0) / 1000);
+          if (s < 4) return;
+          hint.textContent =
+            '已等待 ' + s + ' 秒 · 首次打开要下载三维引擎（约 6 MB）和地形，之后会走本地缓存，通常 2–3 秒';
+        }, 1000);
+      })();
+    </script>
+
+    <script type="module" src="./src/app.js?v=20261104b"></script>
   </body>
 </html>
 
