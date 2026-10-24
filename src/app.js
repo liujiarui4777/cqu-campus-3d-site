@@ -180,7 +180,7 @@ function initSceneSwitch() {
   btn.title = S.id === 'hx' ? '切换到沙坪坝 A / B / C 区三维地图' : '切换到重庆大学虎溪校区三维地图';
 }
 
-import { loadTerrain } from './terrain.js?v=20261104b';
+import { loadTerrain } from './terrain.js?v=20261104c';
 import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261104b';
 import { addLandmarks } from './landmarks.js?v=20261104b';
 import { createBasemapProvider } from './basemap.js?v=20261104b';

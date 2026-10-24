@@ -16,21 +16,35 @@ async function raceFetch(urls) {
   );
 }
 
+/* 抢源必须比「下载完」而不是「响应头到」：
+ * fetch() 在收到响应头时就已经 resolve，body 可能还要很久；
+ * 之前用 raceFetch 抢 .bin.gz，结果常常拿住本站（29 KB/s）的头、丢掉 CDN（134 KB/s）的体，
+ * 一个 551 KB 的地形能拖 19 秒。这里统一比完整的 ArrayBuffer。 */
+async function raceBuffer(urls) {
+  const list = typeof urls === 'string' ? [urls] : urls;
+  return Promise.any(
+    list.map(async (u) => {
+      const r = await fetch(u);
+      if (!r.ok) throw new Error('http ' + r.status);
+      return await r.arrayBuffer();
+    }),
+  );
+}
+
 async function fetchBin(base, name, dir = '') {
   const bases = Array.isArray(base) ? base : [base];
-  let gz;
-  try {
-    gz = await raceFetch(bases.map((b) => `${b}data/${dir}${name}.bin.gz`));
-  } catch (e) {
-    gz = null;
+  if (typeof DecompressionStream !== 'undefined') {
+    try {
+      const compressed = await raceBuffer(bases.map((b) => `${b}data/${dir}${name}.bin.gz`));
+      if (compressed.byteLength > 100) {
+        const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+        return await new Response(stream).arrayBuffer();
+      }
+    } catch (e) {
+      /* 落到未压缩的 .bin */
+    }
   }
-  if (gz && gz.ok && typeof DecompressionStream !== 'undefined') {
-    const compressed = await gz.arrayBuffer();
-    const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
-    return await new Response(stream).arrayBuffer();
-  }
-  const plain = await raceFetch(bases.map((b) => `${b}data/${dir}${name}.bin`));
-  return plain.arrayBuffer();
+  return await raceBuffer(bases.map((b) => `${b}data/${dir}${name}.bin`));
 }
 
 async function loadGrid(base, name, dir = '') {
