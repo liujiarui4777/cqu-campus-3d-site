@@ -1553,3 +1553,11 @@ body.cam-free #cam-lock {
   border-color: rgba(216, 152, 63, 0.42);
 }
 html[data-theme='night'] body.cam-free #cam-lock { color: #f0c07a; }
+
+/* 长吐槽文本换行，避免面板出现横向滚动条 */
+.drawer-body { overflow-x: hidden; }
+.food-item { min-width: 0; }
+.food-main { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+.food-quote { overflow-wrap: anywhere; }
+.food-rank .food-main b { display: block; }
+#food-filters button { padding: 4px 9px; font-size: 11.5px; }

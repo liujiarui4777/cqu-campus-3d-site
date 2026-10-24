@@ -137,20 +137,20 @@ function flyToView(key, animate = true) {
   }
 }
 
-import { loadTerrain } from './terrain.js?v=20261031c';
-import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031c';
-import { addLandmarks } from './landmarks.js?v=20261031c';
-import { createBasemapProvider } from './basemap.js?v=20261031c';
-import { initInteraction } from './ui.js?v=20261031c';
-import { initPanels } from './panels.js?v=20261031c';
+import { loadTerrain } from './terrain.js?v=20261031d';
+import { addAreas, addRoads, addBuildings, addBoundary, addRiver } from './build.js?v=20261031d';
+import { addLandmarks } from './landmarks.js?v=20261031d';
+import { createBasemapProvider } from './basemap.js?v=20261031d';
+import { initInteraction } from './ui.js?v=20261031d';
+import { initPanels } from './panels.js?v=20261031d';
 import { initLogin, isAuthed } from './login.js?v=20261030b';
-import { addTrees } from './trees.js?v=20261031c';
-import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031c';
-import { addLamps } from './lamps.js?v=20261031c';
-import { addRoofProps } from './props.js?v=20261031c';
-import { addGates } from './gates.js?v=20261031c';
-import { addSports } from './sports.js?v=20261031c';
-import { addBuildingLabels } from './labels.js?v=20261031c';
+import { addTrees } from './trees.js?v=20261031d';
+import { buildRoadGraph, nearestNode, shortestPath } from './nav.js?v=20261031d';
+import { addLamps } from './lamps.js?v=20261031d';
+import { addRoofProps } from './props.js?v=20261031d';
+import { addGates } from './gates.js?v=20261031d';
+import { addSports } from './sports.js?v=20261031d';
+import { addBuildingLabels } from './labels.js?v=20261031d';
 
 (async () => {
   initLogin();
